@@ -1,6 +1,5 @@
 classdef flim_data_decay_view < handle & abstract_display_controller ...
-                                       & flim_data_series_observer ...
-                                       & flim_fit_observer
+                                       & flim_data_series_observer
     
     % Copyright (C) 2013 Imperial College London.
     % All rights reserved.
@@ -31,6 +30,7 @@ classdef flim_data_decay_view < handle & abstract_display_controller ...
     properties
        roi_controller;
        fitting_params_controller;
+       fit_controller;
 
        decay_panel;
        
@@ -65,14 +65,14 @@ classdef flim_data_decay_view < handle & abstract_display_controller ...
         function obj = flim_data_decay_view(handles)
 
             obj = obj@flim_data_series_observer(handles.data_series_controller);
-            obj = obj@flim_fit_observer(handles.fit_controller);
             obj = obj@abstract_display_controller(handles,handles.decay_panel,true);
                             
             assign_handles(obj,handles)
 
-            addlistener(obj.roi_controller,'roi_updated',@(~,~) EC(@obj.roi_update));
-            set(obj.highlight_display_mode_popupmenu,'Callback',@(~,~) EC(@obj.display_mode_update));
-            set(obj.highlight_decay_mode_popupmenu,'Callback',@(~,~) EC(@obj.display_mode_update));
+            addlistener(obj.roi_controller,'roi_updated',@(~,~) EC(@obj.update_display));
+            addlistener(obj.fit_controller,'fit_updated',@(~,~) EC(@obj.update_display))
+            set(obj.highlight_display_mode_popupmenu,'Callback',@(~,~) EC(@obj.update_display));
+            set(obj.highlight_decay_mode_popupmenu,'Callback',@(~,~) EC(@obj.update_display));
             
             obj.register_tab_function('Decay');
             
@@ -83,21 +83,9 @@ classdef flim_data_decay_view < handle & abstract_display_controller ...
             delete(obj.lh);
             obj.lh = addlistener(obj.data_series,'masking_updated',@(~,~) EC(@obj.data_update_evt));
         end
-        
-        function display_mode_update(obj)
-            obj.update_display();
-        end
-        
-        function roi_update(obj)
-            obj.update_display();
-        end
-        
+                
         function data_update(obj)
            %obj.update_display(); 
-        end
-        
-        function fit_update(obj)
-           obj.update_display(); 
         end
         
         function lims = get_axis_lims(obj,idx)

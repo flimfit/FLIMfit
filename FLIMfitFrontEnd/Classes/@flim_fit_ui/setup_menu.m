@@ -47,10 +47,9 @@ function handles = setup_menu(obj,handles)
     handles.menu_file_export_acceptor = uimenu(menu_file_acceptor,'Label','Export Acceptor Images...','Separator','on');
     handles.menu_file_import_acceptor = uimenu(menu_file_acceptor,'Label','Import Saved Acceptor Images...');
 
-
-    handles.menu_file_reload_data = uimenu(menu_file,'Label','Reload Data...','Accelerator','R');
-
-    %handles.menu_file_save_dataset = uimenu(menu_file,'Label','Save FLIM Data...','Separator','on');
+    handles.menu_file_save_project = uimenu(menu_file,'Label','Save project...','Separator','on');
+    handles.menu_file_load_project = uimenu(menu_file,'Label','Load project...');
+    
     handles.menu_file_save_raw = uimenu(menu_file,'Label','Save as Raw Dataset...','Separator','on');
     handles.menu_file_save_magic_angle_raw = uimenu(menu_file,'Label','Save Magic Angle as Raw Dataset...');
     handles.menu_file_export_segmented_regions = uimenu(menu_file,'Label','Export Segmented Regions...');

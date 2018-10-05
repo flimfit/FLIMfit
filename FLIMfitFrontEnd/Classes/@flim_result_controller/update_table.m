@@ -14,6 +14,7 @@ function update_table(obj)
         set(obj.results_table,'RowName',column_headers);
         set(obj.results_table,'Data',data);
 
+        %{
         set(obj.progress_table,'RowName',column_headers(1:4));
         
         if ~isempty(data)
@@ -21,5 +22,6 @@ function update_table(obj)
         else
             set(obj.progress_table,'Data',[]);
         end
+        %}
     end
 end

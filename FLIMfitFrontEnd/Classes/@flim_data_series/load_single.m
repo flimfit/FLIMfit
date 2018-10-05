@@ -32,9 +32,6 @@ function load_single(obj,files,polarisation_resolved)
     if nargin < 4
         data_setting_file = [];
     end
-    if nargin < 5
-        channel = [];
-    end
     
     if ~iscell(files)            % single file selected
         file = files;

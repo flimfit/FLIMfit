@@ -1,5 +1,4 @@
-function update_progress(obj,~,~)
-
+function update_progress(obj)
 
     % Copyright (C) 2013 Imperial College London.
     % All rights reserved.
@@ -28,23 +27,17 @@ function update_progress(obj,~,~)
 
     
     if obj.fit_in_progress
-
-        p = obj.fit_params;
-
-        [progress, n_completed, cur_group, iter, chi2] = obj.dll_interface.get_progress();
-
-        if ~isempty(obj.wait_handle)
-            if progress > 0
-                obj.wait_handle.Indeterminate = false;
-                obj.wait_handle.FractionComplete = progress;
-            end
-            %waitbar(progress,obj.wait_handle);
+        
+        [progress, finished] = obj.dll_interface.get_progress();
+        
+        if ishandleandvalid(obj.wait_handle) && progress > 0
+            obj.wait_handle.Indeterminate = false;
+            obj.wait_handle.FractionComplete = progress;
         end
-
-        table_data = [double((1:p.n_thread)); double(n_completed); ...
-                      double(cur_group); double(iter); double(chi2)];
-
-        set(obj.progress_table,'Data',table_data);
+        
+        if finished
+            obj.fit_complete();
+        end
     end
     
 end

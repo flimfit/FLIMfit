@@ -899,8 +899,8 @@ endfunction()
 #     the name of the target without any prefix and
 #     with ``Matlab_MEX_EXTENSION`` suffix.
 #   ``MEX_API``
-#     if given, specifies the MEX API to use. Valid options are C, C++ and
-#     FORTRAN. By default, the C API is used.
+#     if given, specifies the MEX API to use. Valid options are C and C++.
+#     By default, the C API is used.
 #   ``DEFAULT_RELEASE``
 #     if, given specifies the Matlab API version to use. Valid options are 
 #     currently R2017b for the large array dimensions API and R2018a for the
@@ -954,28 +954,33 @@ function(matlab_add_mex)
     set(${prefix}_OUTPUT_NAME ${${prefix}_NAME})
   endif()
 
-  if (NOT ${prefix}_MEX_API)
+  if(NOT ${prefix}_MEX_API)
     set(${prefix}_MEX_API "C")
   endif()
+
+  set(_export_symbols "mexFunction")
 
   if(NOT ${Matlab_VERSION_STRING} VERSION_LESS "9.1") # For 9.1 (R2016b) and newer, add version source file
     string(TOUPPER "${${prefix}_MEX_API}" mex_api)
     if(${mex_api} STREQUAL "C++") 
       set(MEX_VERSION_FILE "${Matlab_ROOT_DIR}/extern/version/cpp_mexapi_version.cpp")
-      set(API_EXPORT "mexfilerequiredapiversion")
+      list(APPEND _export_symbols "mexfilerequiredapiversion")
     elseif(${mex_api} STREQUAL "C")
       set(MEX_VERSION_FILE "${Matlab_ROOT_DIR}/extern/version/c_mexapi_version.c")
-      set(API_EXPORT "mexfilerequiredapiversion")
-    elseif(${mex_api} STREQUAL "Fortran")
-      set(MEX_VERSION_FILE "${Matlab_ROOT_DIR}/extern/version/fortran_mexapi_version.F ")
-      set(API_EXPORT "_MEXFILEREQUIREDAPIVERSION")
+      list(APPEND _export_symbols "mexfilerequiredapiversion")
     else()
-      message(FATAL_ERROR "[MATLAB] MEX_API must be one of C, C++ or FORTRAN")
+      message(FATAL_ERROR "[MATLAB] MEX_API must bef C or C++")
     endif()
   endif()
 
-  if (NOT ${prefix}_DEFAULT_RELEASE)
+
+  if(NOT ${prefix}_DEFAULT_RELEASE)
     set(${prefix}_DEFAULT_RELEASE "R2017b")
+  endif()
+
+  set(_valid_default_release "R2017b;R2018a")
+  if(NOT ${prefix}_DEFAULT_RELEASE IN_LIST _valid_default_release)
+    message(FATAL_ERROR "[MATLAB] DEFAULT_RELEASE must be one of ${_valid_default_release}")
   endif()
 
   if(NOT ${Matlab_VERSION_STRING} VERSION_LESS "9.4") # For 9.4 (R2018a) and newer, add API macro
@@ -1025,9 +1030,7 @@ function(matlab_add_mex)
         OUTPUT_NAME ${${prefix}_OUTPUT_NAME}
         SUFFIX ".${Matlab_MEX_EXTENSION}")
 
-  if(MEX_API_MACRO)
-    target_compile_definitions(${${prefix}_NAME} PRIVATE ${MEX_API_MACRO})
-  endif()
+  target_compile_definitions(${${prefix}_NAME} PRIVATE ${MEX_API_MACRO} MATLAB_MEX_FILE)
 
   # documentation
   if(NOT ${${prefix}_DOCUMENTATION} STREQUAL "")
@@ -1042,18 +1045,12 @@ function(matlab_add_mex)
 
   # entry point in the mex file + taking care of visibility and symbol clashes.
   if (MSVC)
-    get_target_property(
-        _previous_link_flags
-        ${${prefix}_NAME}
-        LINK_FLAGS)
-    if(NOT _previous_link_flags)
-      set(_previous_link_flags)
-    endif()
-
-    set_target_properties(${${prefix}_NAME}
-      PROPERTIES
-        LINK_FLAGS "${_previous_link_flags} /EXPORT:mexFunction")
+    foreach(_sym ${_export_symbols})
+      set(_link_flags "${_link_flags} /EXPORT:${_sym}")
+    endforeach()
+    set_property(TARGET ${${prefix}_NAME} APPEND PROPERTY LINK_FLAGS ${_link_flags})
   endif()
+
 
   if(WIN32)
     set_target_properties(${${prefix}_NAME}
@@ -1079,44 +1076,24 @@ function(matlab_add_mex)
     # MEX file). In order to propagate the visibility options to the libraries
     # to which the MEX file is linked against, the -Wl,--exclude-libs,ALL
     # option should also be specified.
+    
+    if(${Matlab_VERSION_STRING} VERSION_LESS "9.1")
+      set(_ver_map_file ${Matlab_EXTERN_LIBRARY_DIR}/mexFunction.map)
+    else()
+      set(_ver_map_file ${Matlab_EXTERN_LIBRARY_DIR}/c_exportsmexfileversion.map)
+    endif()
+
+    if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+      set(_link_flags -Wl,--version-script,${_ver_map_file})
+    elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang") #Match Clang or AppleClang
+       set(_link_flags -Wl,-exported_symbols_list,${_ver_map_file})
+    endif()
 
     set_target_properties(${${prefix}_NAME}
       PROPERTIES
-        CXX_VISIBILITY_PRESET "hidden"
-        C_VISIBILITY_PRESET "hidden"
-        VISIBILITY_INLINES_HIDDEN ON
+        DEFINE_SYMBOL "DLL_EXPORT_SYM=__attribute__ ((visibility (\"default\")))" 
+        LINK_FLAGS "${_link_flags}"
     )
-
-    #  get_target_property(
-    #    _previous_link_flags
-    #    ${${prefix}_NAME}
-    #    LINK_FLAGS)
-    #  if(NOT _previous_link_flags)
-    #    set(_previous_link_flags)
-    #  endif()
-
-    #  if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-    #    set_target_properties(${${prefix}_NAME}
-    #      PROPERTIES
-    #        LINK_FLAGS "${_previous_link_flags} -Wl,--exclude-libs,ALL"
-    #        # -Wl,--version-script=${_FindMatlab_SELF_DIR}/MatlabLinuxVisibility.map"
-    #    )
-    #  elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-    #    # in this case, all other symbols become hidden.
-    #    set_target_properties(${${prefix}_NAME}
-    #      PROPERTIES
-    #        LINK_FLAGS "${_previous_link_flags} -Wl,-exported_symbol,_mexFunction"
-    #        #-Wl,-exported_symbols_list,${_FindMatlab_SELF_DIR}/MatlabOSXVisilibity.map"
-    #    )
-    #  endif()
-
-
-
-    set_target_properties(${${prefix}_NAME}
-      PROPERTIES
-        DEFINE_SYMBOL "DLL_EXPORT_SYM=__attribute__ ((visibility (\"default\")))"
-    )
-
 
   endif()
 

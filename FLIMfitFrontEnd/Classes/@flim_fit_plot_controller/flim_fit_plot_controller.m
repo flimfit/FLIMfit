@@ -1,4 +1,4 @@
- classdef flim_fit_plot_controller < flim_fit_observer
+ classdef flim_fit_plot_controller < handle
      
     % Copyright (C) 2013 Imperial College London.
     % All rights reserved.
@@ -27,13 +27,13 @@
 
    
     properties
-        
         dataset_selected = 1;       
         plot_panel;
         plot_axes;
     
         n_plots = 0;
         
+        result_controller;
         data_series_list;
         lh = {};
     end
@@ -47,13 +47,14 @@
     methods
        
         function obj = flim_fit_plot_controller(handles)
-                       
-            obj = obj@flim_fit_observer(handles.fit_controller);
-            
+                                   
             assign_handles(obj,handles);
             
             set(obj.plot_panel,'ResizeFcn',@obj.panel_resized);
             addlistener(obj.data_series_list,'selection_updated',@(src,evt) EC(@obj.dataset_selected_update,src,evt));
+            addlistener(obj.result_controller,'result_updated',@(src,evt) EC(@obj.result_updated));
+            addlistener(obj.result_controller,'result_display_updated',@(src,evt) EC(@obj.result_updated));
+            
             
         end
         
@@ -77,18 +78,12 @@
             obj.update_plots();
         end
         
-        function fit_update(obj)
+        function result_updated(obj)
             if ishandle(obj.plot_panel) %check object hasn't been closed
                 obj.update_plots();
             end
         end
-        
-        function fit_display_update(obj)
-            if ishandle(obj.plot_panel) %check object hasn't been closed
-                obj.update_plots();
-            end
-        end
- 
+       
     end
     
 end

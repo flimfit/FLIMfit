@@ -63,14 +63,12 @@ classdef flim_data_series_observer < handle
             end
         end
 
-        % override this
+        % override these
         function data_set(obj) 
         end
-
-                 
-    end
-    
-    methods(Abstract = true)
-        data_update(obj);
-    end
+        
+        function data_update(obj)
+        end
+        
+    end    
 end

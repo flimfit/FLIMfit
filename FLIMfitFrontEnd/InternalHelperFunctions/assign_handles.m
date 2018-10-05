@@ -46,7 +46,7 @@ function assign_handles(obj,handles,callback)
         p = obj_prop{i}.Name;
         for j=1:length(handle_fields)
             if strcmp(p,handle_fields{j})
-                eval(['obj.' p ' = handles.' p ';']);
+                obj.(p) = handles.(p);
                 if ~isempty(callback)
                     try
                         set(handles.(handle_fields{j}),'Callback',callback);

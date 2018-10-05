@@ -25,49 +25,35 @@ function fit_complete(obj,~,~)
 
     % Author : Sean Warren
 
+    stop(obj.fit_timer);
+    obj.fit_timer = [];
     
-    obj.fit_result = obj.dll_interface.fit_result;
-    
-    obj.display_fit_end();
-
-    if ishandle(obj.table_stat_popupmenu)
-        set(obj.table_stat_popupmenu,'String',obj.fit_result.stat_names);
+    if ishandleandvalid(obj.wait_handle)
+        obj.wait_handle.StatusMessage = 'Processing Fit Results...';
+        obj.wait_handle.Indeterminate = true;
     end
     
-    obj.update_table();
+    obj.fit_result = obj.dll_interface.get_fit_result();
+    
+    obj.display_fit_end();
 
     obj.has_fit = true;
     obj.fit_in_progress = false;
     obj.terminating = false;
-    
-    obj.update_progress([],[]);
-    
-    [~, ~, ~, ~, chi2] = obj.dll_interface.get_progress();
-    
+            
     t_exec = toc(obj.start_time);    
     disp(['Total execution time: ' num2str(t_exec)]);
-    
-    obj.selected = 1:obj.fit_result.n_results;
-    
-    
-    obj.update_filter_table();
-    obj.update_list();
-    obj.update_display_table();
-   
+       
+    if ishandleandvalid(obj.wait_handle)
+        close(obj.wait_handle);
+        obj.wait_handle = [];
+    end
+        
     try
-    notify(obj,'fit_updated');    
+        notify(obj,'fit_updated');    
     catch ME
         getReport(ME)
     end
     notify(obj,'fit_completed');    
-    
-    
-    
-    if obj.refit_after_return
-        obj.refit_after_return = false;
-        obj.fit(true);
-    end
-
-    
 end
 

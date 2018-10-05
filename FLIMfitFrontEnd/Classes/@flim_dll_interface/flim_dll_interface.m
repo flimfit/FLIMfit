@@ -17,113 +17,77 @@ classdef flim_dll_interface < handle
     % with this program; if not, write to the Free Software Foundation, Inc.,
     % 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
     %
-    % This software tool was developed with support from the UK 
-    % Engineering and Physical Sciences Council 
-    % through  a studentship from the Institute of Chemical Biology 
-    % and The Wellcome Trust through a grant entitled 
+    % This software tool was developed with support from the UK
+    % Engineering and Physical Sciences Council
+    % through  a studentship from the Institute of Chemical Biology
+    % and The Wellcome Trust through a grant entitled
     % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
-
+    
     % Author : Sean Warren
-
-
-    properties        
-        fit_params;
-        data_series;
-        fit_result;
-        
-        progress_cur_group;
-        progress_n_completed
-        progress_iter;
-        progress_chi2;
+    
+    
+    properties
         progress;
-        
-        fit_in_progress = false;
-        
         datasets;
-        
-        fit_round = 1;
-        n_rounds = 0;
-                
-        progress_bar;
     end
     
     events
         progress_update;
         fit_completed;
     end
-        
+    
     properties(Access='protected')
+        data_series;
         use_image_irf;
-                
-        bin;
         
-        fit_timer;
-        wait_handle;
-        start_time;
-        
-        im_size;
-        
-        single_guess;
+        bin;        
         use;
         
         dll_id;
-        result_objs;
     end
-        
-    methods
     
-         function obj = flim_dll_interface()
-            obj.result_objs = struct('type',{},'pointer',{},'valid',{});
-            obj.load_global_library();
-         end
-        
-         function load_global_library(obj) 
-         end
-
-         function unload_global_library(obj)
-            obj.clear_fit();
-            %clear ff_FLIMImage ff_FLIMData ff_FitResult ff_DecayModel ff_Controller
-         end
-         
-         function terminate_fit(obj)
-            ff_Controller(obj.dll_id,'StopFit');
-         end
+    methods
                 
-        function delete(obj)
-            obj.unload_global_library();
+        function terminate_fit(obj)
+            ff_Controller(obj.dll_id,'StopFit');
         end
-       
+                
         function clear_fit(obj)
-            for r=1:length(obj.result_objs)
-                ff_FitResults(obj.result_objs(r),'Clear');
-            end
-            obj.result_objs = struct('type',{},'pointer',{},'valid',{});
             if ~isempty(obj.dll_id)
                 ff_Controller(obj.dll_id,'Clear');
                 obj.dll_id = [];
             end
         end
         
-        function im = fill_image(obj,var,mask,min_region)
+        function fit_result = get_fit_result(obj)
+            result_ptr = ff_Controller(obj.dll_id,'GetFitResults');
+            fit_result = flim_fit_result_mex(result_ptr,obj.data_series,obj.datasets);
+        end
+        
+        function [progress, finished] = get_progress(obj)
+            [progress, finished] = ff_Controller(obj.dll_id,'GetFitStatus');
+        end
+        
+        function decay = fitted_decay(obj,mask,selected)               
+            if obj.bin
+                loc = uint32(0);
+                im = 1;
+            else
+                [~,im] = find(obj.datasets == selected); 
 
-            if (isempty(mask) || ndims(var)==3 || all(size(var)==size(mask)) || isempty(min_region) )
-                im = var;
+                mask = mask(:);
+                loc = 0:(length(mask)-1);
+                loc = loc(mask);
+                loc = uint32(loc);
+            end
+
+            if isempty(im)
+                decay = [];
                 return
             end
 
-            n = size(var,1);
-            nv = size(var,2);
-
-
-
-            im = NaN([length(mask(:)) n]);
-            for i=1:n
-                for j=1:nv
-                    im(mask==(j+min_region-1),i) = var(i,j);
-                end
-            end
-            im = reshape(im,[size(mask) n]);
-            
+            decay = ff_Controller(obj.dll_id, 'GetFit', im - 1, loc);
+            decay = nanmean(decay,3);           
         end
         
     end

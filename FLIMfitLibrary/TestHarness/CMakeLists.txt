@@ -35,7 +35,7 @@ include_directories( ${LEVMAR_INCLUDE_DIRS} ../FLIMDecayModel ../DataFitter ../F
 # Include the BOOST header files
 #===================================================
 find_package(Boost REQUIRED COMPONENTS system filesystem serialization)
-find_package(Qt5Core)
+find_package(Qt5 COMPONENTS Core)
 
 # Set the source and header files
 #===================================================

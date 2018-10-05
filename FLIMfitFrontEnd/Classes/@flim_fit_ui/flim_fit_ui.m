@@ -112,7 +112,8 @@ classdef flim_fit_ui
             handles.data_series_list = flim_data_series_list(handles);
             handles.data_intensity_view = flim_data_intensity_view(handles);
             handles.roi_controller = roi_controller(handles);                                                   
-            handles.fit_controller = flim_fit_controller(handles);    
+            handles.fit_controller = flim_fit_controller(handles);   
+            handles.result_controller = flim_result_controller(handles);
             handles.data_decay_view = flim_data_decay_view(handles);
             handles.data_masking_controller = flim_data_masking_controller(handles);
             handles.irf_controller = irf_controller(handles);

@@ -1,4 +1,4 @@
-function [fig,im_data,lims] = plot_figure2(obj,dataset,im,merge,options,indexing)
+function update_results(obj,~,~)
 
     % Copyright (C) 2013 Imperial College London.
     % All rights reserved.
@@ -25,37 +25,21 @@ function [fig,im_data,lims] = plot_figure2(obj,dataset,im,merge,options,indexing
 
     % Author : Sean Warren
 
-
-    f = obj.result_controller;
-    r = f.fit_result;
-    if isempty(f.fit_result) || (~isempty(f.fit_result.binned) && f.fit_result.binned == 1)
-        return
+    
+    obj.fit_result = obj.fit_controller.fit_result;
+    
+    if ishandle(obj.table_stat_popupmenu)
+        set(obj.table_stat_popupmenu,'String',obj.fit_result.stat_names);
     end
-    im_data = f.get_image(dataset,im,indexing);
+    
+    obj.update_table();
+    
+    obj.selected = 1:obj.fit_result.n_results;
         
-    invert = f.invert_colormap;
-        
-    param = r.params{im};
+    obj.update_filter_table();
+    obj.update_list();
+    obj.update_display_table();
     
-    if contains(param,' I') || strcmp(param,'I') 
-        cscale = @gray;
-    elseif invert && (contains(param,'tau') || contains(param,'theta'))
-        cscale = @inv_jet;
-    else
-        cscale = @jet;
-    end
-    
-    lims = f.get_cur_lims(im);
-    options.int_lim = f.get_cur_intensity_lims(im);
-    options.cscale = cscale;
-    options.show_colormap = f.show_colormap;
-    options.show_limits = f.show_limits;
-    
-    if merge
-        intensity = f.get_intensity(dataset,im,indexing);
-        fig = display_flim(im_data,isnan(im_data),lims,intensity,options);
-    else
-        fig = display_flim(im_data,isnan(im_data),lims,options);
-    end
-
+    notify(obj,'result_updated')
 end
+

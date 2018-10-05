@@ -77,7 +77,7 @@ classdef flim_fitting_params_controller < control_binder & flim_data_series_obse
             
         end
         
-        function load_fitting_params(obj,file)
+        function load(obj,file)
             try 
                 doc_node = xmlread(file);
                 obj.fit_params = marshal_object(doc_node,'flim_fitting_params',obj.fit_params);
@@ -89,25 +89,19 @@ classdef flim_fitting_params_controller < control_binder & flim_data_series_obse
             
         end
         
-        function save_fitting_params(obj,file)
+        function save(obj,file)
             obj.fit_params.save_fitting_params(file);
         end
         
         function set_polarisation_mode(obj,polarisation_resolved)
-           
             obj.fit_params.polarisation_resolved = polarisation_resolved;
-                        
         end
-        
-        
-                
+                        
         function update_controls(obj)
-            
             if ~obj.bound_all_controls
                 return
             end
             notify(obj,'fit_params_update');
-            
         end
         
     end

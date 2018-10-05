@@ -26,15 +26,17 @@ function update_plots(obj,file_root)
     % Author : Sean Warren
 
 
-    % obj.plot_panel
-        
-    if ~obj.fit_controller.has_fit || (~isempty(obj.fit_controller.fit_result.binned) && obj.fit_controller.fit_result.binned == 1)
+    % TODO: seperate save/display
+    
+    r = obj.result_controller.fit_result;
+    
+    if isempty(r) || r.binned
         return
     end
     
-    f = obj.fit_controller;
+    f = obj.result_controller;
     r = f.fit_result;
-        
+    
     
     if nargin == 2
         save = true;
@@ -45,7 +47,8 @@ function update_plots(obj,file_root)
         save = false;
     end
 
-    if ~save && obj.dataset_selected == 0
+    if ~save && ~any(r.datasets == obj.dataset_selected)
+        cla(obj.plot_axes);
         return
     end
     
@@ -53,12 +56,12 @@ function update_plots(obj,file_root)
     m = ceil(f.n_plots/n);
 
     
-    if ~save
-        ims = obj.dataset_selected;
-        indexing = 'dataset';
-    else
+    if save
         ims = 1:r.n_results;
         indexing = 'result';
+    else
+        ims = obj.dataset_selected;
+        indexing = 'dataset';
     end
     
     if ~save
@@ -140,9 +143,6 @@ function update_plots(obj,file_root)
             end
             
             montage(figs,'Size',[m n],'Parent',obj.plot_axes);
-    
-        else
-            cla(obj.plot_axes)
         end
     end
 end

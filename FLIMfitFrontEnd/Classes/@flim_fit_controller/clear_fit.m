@@ -31,14 +31,11 @@ function clear_fit(obj)
 
     if ishandle(obj.fit_result)
         delete(obj.fit_result);
+        obj.fit_result = [];
     end
-    obj.fit_result = flim_fit_result();
     
     obj.dll_interface.clear_fit();
     
-    set(obj.results_table,'ColumnName',[]);
-    set(obj.results_table,'Data',[]);    
-
     set(obj.progress_table,'ColumnName',[]);
     set(obj.progress_table,'Data',[]);    
 

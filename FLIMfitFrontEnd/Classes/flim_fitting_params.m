@@ -68,7 +68,7 @@ classdef flim_fitting_params < handle & h5_serializer
         end
         
         function save_fitting_params(obj,file)
-            serialise_object(obj,file);
+            serialise_object(obj,file,'flim_fitting_params');
         end
         
     end
