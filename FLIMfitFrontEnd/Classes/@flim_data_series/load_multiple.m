@@ -44,6 +44,7 @@ function load_multiple(obj, polarisation_resolved, data_setting_file, channels)
     
     chan_info = reader.chan_info;
     obj.mode = reader.FLIM_type;
+    obj.reader_settings = reader.settings;
     obj.data_type = reader.data_type;
     
     % Determine which planes we need to load 
