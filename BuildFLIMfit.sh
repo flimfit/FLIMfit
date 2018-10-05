@@ -7,17 +7,17 @@
 
 if [ -z ${MATLAB_VER+x} ]; then export MATLAB_VER=R2018b; echo "Setting MATLAB_VER=R2018b"; fi
 
+MATLAB_OMP_ROOT=/Applications/MATLAB_${MATLAB_VER}.app/sys/os/maci64
+export CC=/usr/local/opt/llvm/bin/clang
+export CXX=/usr/local/opt/llvm/bin/clang++
+export LDFLAGS="-L$MATLAB_OMP_ROOT -L/usr/local/opt/llvm/lib -Wl,-rpath,$MATLAB_OMP_ROOT:/usr/local/opt/llvm/lib"
 export PATH="/usr/local/opt/qt5/bin:$PATH"
 export MKLROOT=/opt/intel/mkl
-
-
 
 [ "$1" == "--clean" ] && rm -rf GeneratedProjects/Unix
 if ! cmake -GNinja -H. -BGeneratedProjects/Unix \
     -DBUILD_OPENCV:bool=TRUE \
-    -DOpenMP_CXX_FLAGS="-Xpreprocessor -fopenmp -I/usr/local/opt/libomp/include" \
-    -DOpenMP_CXX_LIB_NAMES="omp" \
-    -DOpenMP_omp_LIBRARY=/usr/local/opt/libomp/lib/libomp.dylib; then
+    -DOpenMP_omp_LIBRARY=$MATLAB_OMP_ROOT/libiomp5.dylib; then
    echo 'Error configuring project'
    exit 1
 fi
@@ -27,6 +27,7 @@ if ! cmake --build "GeneratedProjects/Unix" --config RelWithDebInfo; then
     exit 1
 fi
 
+exit 1
 
 export PATH=/Applications/MATLAB_${MATLAB_VER}.app/bin:$PATH
 # compile the Matlab code to generate the FLIMfit_MACI64.app
