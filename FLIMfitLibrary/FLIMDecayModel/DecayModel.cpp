@@ -273,13 +273,15 @@ void DecayModel::setupIncMatrix(std::vector<int>& inc)
    for (int r = 0; r < g_row; r++)
       for (int c = 0; c < col; c++)
          inc[(r + row) + c * MAX_VARIABLES] = group_inc[r + c * MAX_VARIABLES];
+
+   n_derivatives = std::count(inc.begin(), inc.end(), 1);
 }
 
 int DecayModel::getNumDerivatives()
 {
-   std::vector<int> inc(INC_ENTRIES);
-   setupIncMatrix(inc);
-   return std::count(inc.begin(), inc.end(), 1);
+   if (n_derivatives == -1)
+      throw std::runtime_error("Please setup inc matrix before requesting number of derivatives");
+   return n_derivatives;
 }
 
 bool DecayModel::isSpatiallyVariant()
@@ -311,7 +313,7 @@ void DecayModel::setVariables(const std::vector<double>& alf)
       int n_var = -1;
       if (!last_variables[i].empty())
       {
-         n_var = last_variables[i].size();
+         n_var = (int) last_variables[i].size();
          for (int j = 0; j < n_var; j++)
             if (last_variables[i][j] != alf[idx + j])
                n_var = -1;
@@ -331,6 +333,9 @@ int DecayModel::calculateModel(double_iterator a, int adim, double_iterator kap,
 {
    int idx = 0;
    int col = 0;
+
+   size_t n_cols = getNumColumns();
+   std::fill_n(a, n_cols * adim, 0);
 
    for (int i = 0; i < decay_groups.size(); i++)
    {
@@ -355,6 +360,8 @@ int DecayModel::calculateDerivatives(double_iterator b, int bdim, const_double_i
 {
    int col = 0;
    int var = 0;
+
+   std::fill_n(b, n_derivatives * bdim, 0);
 
    double_iterator kap_derv = kap + 1; // TODO tidy this a bit
 
@@ -575,13 +582,12 @@ void DecayModel::validateDerivatives()
    double epsf = factor*epsmch;
    double epslog = log10(eps);
 
+   std::vector<int> inc(INC_ENTRIES);
+   setupIncMatrix(inc);
 
    int n_nonlinear = getNumNonlinearVariables();
    int n_cols = getNumColumns();
    int n_der = getNumDerivatives();
-
-   std::vector<int> inc(INC_ENTRIES);
-   setupIncMatrix(inc);
 
    int dim = dp->n_meas;
 

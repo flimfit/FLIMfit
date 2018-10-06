@@ -232,8 +232,6 @@ int BackgroundLightDecayGroup::addScatterColumn(double_iterator a, int adim, dou
    // set constant phi value for scatterer
    if (parameters[1]->isFittedLocally())
    {
-      std::fill_n(a, adim, 0);
-      
       double scale_factor[2] = { 1.0, 0.0 };
       addIRF(irf_buf.begin(), irf_idx, t0_shift, a, channel_factors);
       
@@ -262,8 +260,6 @@ int BackgroundLightDecayGroup::addTVBColumn(double_iterator a, int adim, double&
 int BackgroundLightDecayGroup::addGlobalBackgroundLightColumn(double_iterator a, int adim, double& kap)
 {
    // Set L+1 phi value (without associated beta), to include global offset/scatter
-
-   std::fill_n(a, adim, 0);
 
    // Add scatter
    if (parameters[1]->isFittedGlobally())
@@ -311,8 +307,6 @@ int BackgroundLightDecayGroup::addScatterDerivatives(double_iterator b, int bdim
    // Set derivatives for scatter 
    if (parameters[1]->isFittedGlobally())
    {
-      std::fill_n(b, bdim, 0);
-
       double scale_factor[2] = { 1.0, 0.0 };
       addIRF(irf_buf.begin(), irf_idx, t0_shift, b, channel_factors);
 

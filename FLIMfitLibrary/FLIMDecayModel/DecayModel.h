@@ -135,6 +135,7 @@ protected:
 
 private:
 
+   int n_derivatives = -1;
    std::vector<std::vector<double>> last_variables;
 
    double t0_shift;

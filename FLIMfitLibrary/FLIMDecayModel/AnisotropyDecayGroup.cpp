@@ -215,8 +215,6 @@ int AnisotropyDecayGroup::calculateModel(double_iterator a, int adim, double& ka
    int col = 0;
 
    int n_anisotropy_group = n_anisotropy_populations + include_r_inf + 1;
-   std::fill_n(a, adim * n_anisotropy_group, 0);
-
    col += addDecayGroup(buffer, 1, a, adim, kap, ss_channel_factors);
 
    for (int i = 0; i < anisotropy_buffer.size(); i++)
@@ -254,8 +252,6 @@ int AnisotropyDecayGroup::calculateDerivatives(double_iterator b, int bdim, doub
 int AnisotropyDecayGroup::addLifetimeDerivativesForAnisotropy(int j, double_iterator b, int bdim, double& kap_derv)
 {
    int col = 0;
-   std::fill_n(b, 0, n_anisotropy_populations * bdim);
-
    for (int p = 0; p < n_anisotropy_populations; p++)
    {
       double fact = beta[j] / (tau[j] * tau[j]); // TODO: *TransformRangeDerivative(wb.tau_buf[j], tau_min[j], tau_max[j]);
@@ -280,7 +276,6 @@ int AnisotropyDecayGroup::addContributionDerivativesForAnisotropy(double_iterato
       {
          for (int i = 0; i < n_anisotropy_group; i++)
          {
-            std::fill_n(b + col * bdim, bdim, 0);
             int qi = ji;
             for (int q = j; q < n_exponential; q++)
             {
@@ -317,8 +312,6 @@ int AnisotropyDecayGroup::addRotationalCorrelationTimeDerivatives(double_iterato
    {
       if (theta_parameters[p]->isFittedGlobally())
       {
-         std::fill_n(b + col*bdim, 0, bdim);
-
          for (int j = 0; j < n_exponential; j++)
          {
             double factor = beta[j] / theta[p] / theta[p]; // TODO: * TransformRangeDerivative(wb.theta_buf[p], 0, 1000000);

@@ -344,7 +344,6 @@ int MultiExponentialDecayGroupPrivate::normaliseLinearParameters(float_iterator 
 int MultiExponentialDecayGroupPrivate::calculateModel(double_iterator a, int adim, double& kap)
 {
    int sz = contributions_global ? 1 : n_exponential;
-   std::fill_n(a, sz*adim, 0);
    return addDecayGroup(buffer, 1, a, adim, kap);
 }
 
@@ -434,8 +433,6 @@ int MultiExponentialDecayGroupPrivate::addLifetimeDerivative(int idx, double_ite
 {
    if (tau_parameters[idx]->isFittedGlobally())
    {
-      std::fill_n(b, bdim, 0);
-
       double fact = 1 / (tau[idx] * tau[idx]); // TODO: *TransformRangeDerivative(wb.tau_buf[j], tau_min[j], tau_max[j]);
       fact *= contributions_global ? beta[idx] : 1;
 
@@ -463,7 +460,6 @@ int MultiExponentialDecayGroupPrivate::addContributionDerivatives(double_iterato
       for (int j = 0; j < n_exponential; j++)
          if (beta_parameters[j]->isFittedGlobally())
          {
-            std::fill_n(b + col * bdim, bdim, 0);
             int ki = ji;
             for (int k = j; k < n_exponential; k++)
                if (!beta_parameters[k]->isFixed())
