@@ -39,8 +39,6 @@ MultiExponentialDecayGroupPrivate::MultiExponentialDecayGroupPrivate(int n_expon
    contributions_global(contributions_global)
 {
    channel_factor_names.push_back("Decay");
-
-   setupParametersMultiExponential();
 }
 
 MultiExponentialDecayGroupPrivate::MultiExponentialDecayGroupPrivate(const MultiExponentialDecayGroupPrivate& obj) :
@@ -118,8 +116,6 @@ void MultiExponentialDecayGroupPrivate::setupParametersMultiExponential()
       resizeContributionParameters(beta_parameters, n_exponential, "beta_");
    else
       beta_parameters.clear(); 
-
-   parametersChanged();
 }
 
 void MultiExponentialDecayGroupPrivate::init()

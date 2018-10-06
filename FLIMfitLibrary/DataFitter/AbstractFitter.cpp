@@ -63,8 +63,6 @@ AbstractFitter::AbstractFitter(std::shared_ptr<DecayModel> model_, int n_param_e
    lmax = l;
    n = model->getTransformedDataParameters()->n_meas;
    
-   pmax  = model->getNumDerivatives();
-
    ndim = std::max( n, 2*nl+3 );
    nmax = n + 16; // pad to prevent false sharing  
 
@@ -98,9 +96,7 @@ AbstractFitter::AbstractFitter(std::shared_ptr<DecayModel> model_, int n_param_e
    getting_errs = false;
 
    init();
-   if (pmax != p)
-      throw std::runtime_error("Inc matrix incorrectly setup");
-
+   
    counts_per_photon = model->getTransformedDataParameters()->counts_per_photon;
 }
 

@@ -82,7 +82,7 @@ public:
    int getNumNonlinearParameters() { return n_nl_parameters; };
 
    void setTransformedDataParameters(std::shared_ptr<TransformedDataParameters> dp);
-   void setNumChannels(int n_chan);
+   virtual void setNumChannels(int n_chan);
 
    virtual void init() = 0;
 

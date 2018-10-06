@@ -4,12 +4,12 @@
 
 
 VariableProjector::VariableProjector(VariableProjectionFitter* f, spvd a_, spvd b_, spvd wp_) :
-   n(f->n), nmax(f->nmax), ndim(f->ndim), nl(f->nl), l(f->l), p(f->p), pmax(f->pmax), philp1(f->philp1), nr(f->n)
+   n(f->n), nmax(f->nmax), ndim(f->ndim), nl(f->nl), l(f->l), p(f->p), philp1(f->philp1), nr(f->n)
 {
    r.resize(nmax);
    work.resize(nmax);
    aw.resize(nmax * (l + 1));
-   bw.resize(ndim * (pmax + 3));
+   bw.resize(ndim * (p + 3));
    u.resize(nmax);
    yr.resize(nr);
 
@@ -29,7 +29,7 @@ VariableProjector::VariableProjector(VariableProjectionFitter* f, spvd a_, spvd 
    if (b_)
       b = b_;
    else
-      b = std::make_shared<aligned_vector<double>>(ndim * (pmax + 3));
+      b = std::make_shared<aligned_vector<double>>(ndim * (p + 3));
 
    la = l;
    active.resize(l+1, true);

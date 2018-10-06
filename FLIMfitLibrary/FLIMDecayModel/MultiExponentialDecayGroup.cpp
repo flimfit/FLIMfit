@@ -29,8 +29,132 @@
 
 #include "MultiExponentialDecayGroup.h"
 #include "ParameterConstraints.h"
+#include <boost/lexical_cast.hpp>
+
+MultiExponentialDecayGroup::MultiExponentialDecayGroup(int n_exponential, bool contributions_global, const QString& name) :
+   MultiExponentialDecayGroupPrivate(n_exponential, contributions_global, name)
+{
+   setupParameters();
+}
+
+
+MultiExponentialDecayGroup::MultiExponentialDecayGroup(const MultiExponentialDecayGroup& obj) :
+   MultiExponentialDecayGroupPrivate(obj)
+{
+   fit_channel_factors = obj.fit_channel_factors;
+   channel_factor_parameters = obj.channel_factor_parameters;
+   n_chan = obj.n_chan;
+
+   setupParameters();
+   init();
+}
+
+
+void MultiExponentialDecayGroup::init()
+{
+   MultiExponentialDecayGroupPrivate::init();
+   if (fit_channel_factors)
+   {
+      norm_channel_factors = channel_factors; // we don't normalise in this case
+      for (auto& p : channel_factor_parameters)
+         n_nl_parameters += p->isFittedGlobally();
+   }
+}
+
+void MultiExponentialDecayGroup::setNumChannels(int n_chan_)
+{
+   n_chan = n_chan_;
+   AbstractDecayGroup::setNumChannels(n_chan);
+   setupParameters();
+}
+
+
+void MultiExponentialDecayGroup::setupParameters()
+{
+   setupParametersMultiExponential();
+
+   if (fit_channel_factors)
+   {
+      channel_factor_parameters.resize(n_chan-1);
+      std::vector<ParameterFittingType> fixed_or_global = { Fixed, FittedGlobally };
+      for (int i = 0; i < channel_factor_parameters.size(); i++)
+      {
+         if (!channel_factor_parameters[i])
+         {
+            std::string name = "ch_" + boost::lexical_cast<std::string>(i + 1);
+            channel_factor_parameters[i] = std::make_shared<FittingParameter>(name, channel_factors[i+1], 0, 1, 1, fixed_or_global, FittedGlobally);            
+         }
+      }
+   }
+
+   for (auto& p : channel_factor_parameters)
+      parameters.push_back(p);
+
+   parametersChanged();
+}
+
+int MultiExponentialDecayGroup::getNonlinearOutputs(float_iterator nonlin_variables, float_iterator output, int& nonlin_idx)
+{
+   int output_idx = MultiExponentialDecayGroupPrivate::getNonlinearOutputs(nonlin_variables, output, nonlin_idx);
+
+   for(auto& p : channel_factor_parameters)
+      output[output_idx++] = p->getValue<float>(nonlin_variables, nonlin_idx);
+
+   return output_idx;
+}
+
+void MultiExponentialDecayGroup::setupIncMatrix(std::vector<int>& inc, int& row, int& col)
+{
+   MultiExponentialDecayGroupPrivate::setupIncMatrix(inc, row, col);
+
+   if (fit_channel_factors)
+   {
+      for(auto& p : channel_factor_parameters)
+         if (p->isFittedGlobally())
+         {
+            for (int i = 0; i < col; i++)
+               inc[row + i * MAX_VARIABLES] = 1;
+            row++;
+         }
+   }
+}
+
+int MultiExponentialDecayGroup::setVariables(const_double_iterator param_values)
+{
+   int idx = MultiExponentialDecayGroupPrivate::setVariables(param_values);
+
+   if (fit_channel_factors)
+   {
+      int ch = 1;
+      for (auto& p : channel_factor_parameters)
+         norm_channel_factors[ch++] = p->getValue<double>(param_values, idx);
+   }
+   return idx;
+}
 
 void MultiExponentialDecayGroup::setFitChannelFactors(bool fit_channel_factors_)
 {
    fit_channel_factors = fit_channel_factors_;
+   setupParameters();
+}
+
+int MultiExponentialDecayGroup::calculateDerivatives(double_iterator b, int bdim, double_iterator& kap_derv)
+{
+   int idx = MultiExponentialDecayGroupPrivate::calculateDerivatives(b, bdim, kap_derv);
+
+   if (fit_channel_factors)
+   {
+      double kap = 0;
+      std::vector<double> diff_factors(dp->n_chan);
+      for (int i = 0; i < channel_factor_parameters.size(); i++)
+         if (channel_factor_parameters[i]->isFittedGlobally())
+         {
+            diff_factors[i] = 0;
+            diff_factors[i + 1] = 1;
+
+            int sz = contributions_global ? 1 : n_exponential;
+            idx += addDecayGroup(buffer, 1, b + idx * bdim, bdim, kap, diff_factors);
+         }
+   }
+   return idx;
 }

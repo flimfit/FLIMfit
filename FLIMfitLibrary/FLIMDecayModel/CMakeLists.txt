@@ -41,6 +41,7 @@ set(SOURCE
    IRFConvolution.cpp
    InstrumentResponseFunction.cpp
    AbstractDecayGroup.cpp
+   MultiExponentialDecayGroupPrivate.cpp
    MultiExponentialDecayGroup.cpp
    FretDecayGroup.cpp
    AnisotropyDecayGroup.cpp
@@ -61,6 +62,7 @@ set(SOURCE
 set(HEADERS   
    AbstractDecayGroup.h
    FretDecayGroup.h
+   MultiExponentialDecayGroupPrivate.h
    MultiExponentialDecayGroup.h
    AnisotropyDecayGroup.h
    BackgroundLightDecayGroup.h

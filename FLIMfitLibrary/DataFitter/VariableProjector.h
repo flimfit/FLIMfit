@@ -29,7 +29,7 @@ protected:
 
    double d_sign(double *a, double *b);
 
-   int n, nmax, ndim, nl, l, la,  p, pmax, philp1, nr;
+   int n, nmax, ndim, nl, l, la,  p, philp1, nr;
    
    std::vector<double> work, aw, bw, u, r;
    std::vector<float> yr;

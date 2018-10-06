@@ -50,7 +50,8 @@ DecayModel::DecayModel(const DecayModel &obj) :
    channel_factor(obj.channel_factor),
    use_spectral_correction(obj.use_spectral_correction),
    spectral_correction(obj.spectral_correction),
-   zernike_order(obj.zernike_order)
+   zernike_order(obj.zernike_order),
+   n_derivatives(obj.n_derivatives)
 {
    setTransformedDataParameters(obj.dp);
    for (auto& g : obj.decay_groups)
