@@ -66,12 +66,6 @@ function compile(exit_on_error)
         addpath_global_analysis();
  		generate_segmentation_functions_file();
 
-
-        % Make sure we have included the DLL
-        dll_interface = flim_dll_interface();
-        dll_interface.unload_global_library();
-        dll_interface.load_global_library();
-
         % Build compiled Matlab project
         %------------------------------------------------
         exe = ['DeployFiles' filesep 'FLIMfit' exe_ext];
