@@ -113,12 +113,12 @@ void FretDecayGroup::setupParameters()
       n_acceptor_exponential = n_acceptor_exponential_requested;
       parameters.push_back(Q_parameter);
       parameters.push_back(Qsigma_parameter);
+
+      resizeLifetimeParameters(tauA_parameters, n_acceptor_exponential, "tauA_", 4000);
+      std::vector<ParameterFittingType> fixed = { Fixed };
+      resizeContributionParameters(betaA_parameters, n_acceptor_exponential, "betaA_", fixed);
    }
 
-   resizeLifetimeParameters(tauA_parameters, n_acceptor_exponential, "tauA_", 4000);
-
-   std::vector<ParameterFittingType> fixed = { Fixed };
-   resizeContributionParameters(betaA_parameters, n_acceptor_exponential, "betaA_", fixed);
 
    channel_factor_names.clear();
    channel_factor_names.push_back("Donor");

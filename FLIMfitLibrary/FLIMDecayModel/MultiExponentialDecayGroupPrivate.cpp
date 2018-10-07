@@ -294,7 +294,7 @@ int MultiExponentialDecayGroupPrivate::getLinearOutputs(float_iterator lin_varia
    if (!contributions_global)
       output_idx += normaliseLinearParameters(lin_variables, n_exponential, output + output_idx, lin_idx);
    else
-      output[output_idx++] += lin_variables[lin_idx++];
+      output[output_idx++] = lin_variables[lin_idx++];
 
    return output_idx;
 }

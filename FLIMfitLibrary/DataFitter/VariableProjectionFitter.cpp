@@ -350,9 +350,12 @@ void VariableProjectionFitter::fitFcn(int nl, std::vector<double>& initial, int&
                   for (int j = 0; j < l; j++)
                      x(j) = log(lin_params[j + i * lmax]);
 
-                  dlib::find_min_trust_region(
-                     dlib::objective_delta_stop_strategy(1e-7),
-                     model, x, 10);
+                  double r =
+                     dlib::find_min_trust_region(
+                        dlib::objective_delta_stop_strategy(1e-7),
+                        model, x, 10);
+
+                  chi2[i] = 2 * r / chi2_norm;
 
                   for (int j = 0; j < l; j++)
                      lin_params[j + i * lmax] = exp(x(j));
@@ -419,6 +422,8 @@ void VariableProjectionFitter::setupWeighting()
       }
    }
    
+   using_gamma_weighting = false;
+
    if (using_gamma_weighting)
    {
       for (int i=0; i<nr; i++)

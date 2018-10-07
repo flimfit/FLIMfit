@@ -22,6 +22,7 @@ void LinearMLModel::setData(float_iterator y_)
 
 double LinearMLModel::operator()(const column_vector& x) const
 {
+   mu = 0;
    for (int j = 0; j < nl; j++)
    {
       beta(j) = exp(x(j));
