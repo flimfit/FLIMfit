@@ -49,12 +49,7 @@ function [s,obj_name] = marshal_struct(file,search_name)
     elseif strcmp(obj_name,search_name)
         s = read_node(obj_node);
     end
-        
-        
-    
-    %mc = meta.class.fromName(obj_name);
-    
-    
+            
     function s = read_node(obj_node)
     
         s = struct();
@@ -62,18 +57,17 @@ function [s,obj_name] = marshal_struct(file,search_name)
         child_nodes = obj_node.getChildNodes;
         n_nodes = child_nodes.getLength;
 
-         for i = 1:n_nodes
+         for i=1:n_nodes
              child = child_nodes.item(i-1);
              child_name = char(child.getNodeName);
              
                                
-             encoded = false;
+             encoded = false; celldata = false;
              if child.hasAttributes
                  attr = child.getAttributes;
                  for j=1:attr.getLength()
-                     if strcmp(attr.item(j-1),'encoded="true"')
-                         encoded = true;
-                     end
+                     encoded = encoded | strcmp(attr.item(j-1),'encoded="true"');
+                     celldata = celldata | strcmp(attr.item(j-1),'cell="true"');
                  end
              end
              
@@ -84,8 +78,17 @@ function [s,obj_name] = marshal_struct(file,search_name)
                  if encoded
                      child_value = base64decode(child_value);
                      child_value = deserialize(child_value);
-                     
+                 elseif celldata
+                     char_nodes = child.getChildNodes;
+                     n_char = char_nodes.getLength;
+                     child_value = {};
+                     for j=1:n_char
+                         if char_nodes.item(j-1).hasChildNodes()
+                             child_value{end+1} = char(char_nodes.item(j-1).getFirstChild().getData());
+                         end
+                     end
                  else
+                     child_value
                      child_value = eval(child_value);
                  end
                  

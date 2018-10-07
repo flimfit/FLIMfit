@@ -1,4 +1,4 @@
-classdef flim_fit_ui
+classdef flim_fit_ui < handle
         
     % Copyright (C) 2013 Imperial College London.
     % All rights reserved.
@@ -28,7 +28,22 @@ classdef flim_fit_ui
    
     properties
         window
-        model
+        handles
+        
+        data_series_list
+        data_intensity_view
+        roi_controller
+        fit_controller
+        result_controller
+        data_decay_view
+        data_masking_controller
+        irf_controller
+        plot_controller
+        gallery_controller
+        hist_controller
+        corr_controller
+        graph_controller
+        platemap_controller
     end
     
     methods
@@ -41,7 +56,7 @@ classdef flim_fit_ui
             obj.check_prefs();
            
             if nargin < 1
-                wait = is_deployed;
+                wait = isdeployed;
             end
             
             if ~isdeployed
@@ -60,12 +75,7 @@ classdef flim_fit_ui
             profile.load_profile();
 
             % Try and read in version number
-            try
-                v = textread(['GeneratedFiles' filesep 'version.txt'],'%s');
-                v = v{1};
-            catch
-                v = '[unknown version]';
-            end
+            v = read_version();
                         
             % Open a window and add some menus
             obj.window = figure( ...
@@ -94,9 +104,7 @@ classdef flim_fit_ui
             catch e %#ok
                disp('Warning: could not maximise window'); 
             end
-            handles = guidata(obj.window); 
-             
-        
+            
             handles.version = v;
             handles.window = obj.window;
             handles.use_popup = true;
@@ -123,7 +131,9 @@ classdef flim_fit_ui
             handles.corr_controller = flim_fit_corr_controller(handles);
             handles.graph_controller = flim_fit_graph_controller(handles);
             handles.platemap_controller = flim_fit_platemap_controller(handles);            
-            
+
+            handles.project_controller = flim_project_controller(handles);
+
             handles = obj.setup_menu(handles);            
             handles.file_menu_controller = file_menu_controller(handles);
             handles.omero_menu_controller = omero_menu_controller(handles);
@@ -134,6 +144,8 @@ classdef flim_fit_ui
             handles.icy_menu_controller = icy_menu_controller(handles);
             
             guidata(obj.window,handles);
+            
+            assign_handles(obj,handles)
             
             obj.init_omero_bioformats();
           

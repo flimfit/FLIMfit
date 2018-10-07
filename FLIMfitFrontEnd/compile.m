@@ -109,7 +109,7 @@ function compile(exit_on_error)
                 case 'MAC'
                     
                     % Manually fix Qt references
-                    if isdir('Libraries/QtCore.framework')
+                    if isfolder('Libraries/QtCore.framework')
                         rmdir('Libraries/QtCore.framework','s')
                     end
                     copyfile('/usr/local/opt/qt/lib/QtCore.framework/','Libraries/QtCore.framework/');
@@ -149,7 +149,7 @@ function compile(exit_on_error)
 
         % Create deployment folder in FLIMfitStandalone
         %------------------------------------------------
-        deploy_folder = ['..' filesep 'FLIMfitStandalone' filesep 'FLIMfit_' v]
+        deploy_folder = ['..' filesep 'FLIMfitStandalone' filesep 'FLIMfit_' v];
 
         disp( ['creating folder at  ' deploy_folder ] );
         mkdir(deploy_folder);

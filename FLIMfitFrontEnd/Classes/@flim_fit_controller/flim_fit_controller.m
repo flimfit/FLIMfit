@@ -31,6 +31,7 @@ classdef flim_fit_controller < flim_data_series_observer
         fit_result;
         
         fitting_params_controller;
+        model_controller;
         roi_controller;
         data_series_list;
         fit_params;

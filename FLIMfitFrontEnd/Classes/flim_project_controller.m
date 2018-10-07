@@ -71,7 +71,7 @@ classdef flim_project_controller < flim_data_series_observer
              
             obj.data_series_controller.clear();
             
-            % move this into data_series_controller
+            % TODO: move this into data_series_controller
             d = obj.data_series_controller.data_series;
             d.file_names = data_info.file_names;
             d.ZCT = data_info.ZCT;

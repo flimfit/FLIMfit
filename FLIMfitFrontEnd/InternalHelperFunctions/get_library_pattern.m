@@ -11,8 +11,6 @@ function [pattern,name] = get_library_pattern
     
     [sel,ok] = listdlg('ListString',keys,'SelectionMode','single','Name','Pattern Library','PromptString','Select Pattern');
     
-    
-    
     if ok
         name = keys{sel};
         pattern = pattern_library(name);

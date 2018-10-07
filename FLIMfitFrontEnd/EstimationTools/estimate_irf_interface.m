@@ -76,10 +76,12 @@ save_button.Enable = 'on';
             
             [file, path] = uiputfile({'*.json', 'JSON file (*.json)'},'Select file name',default_path);
             
-            f = fopen([path file],'w');
-            fprintf(f,text);
-            fclose(f);
-            
+            if file~=0
+                f = fopen([path file],'w');
+                fprintf(f,text);
+                fclose(f);
+                close(fh);
+            end
         else
             
             dat = table();

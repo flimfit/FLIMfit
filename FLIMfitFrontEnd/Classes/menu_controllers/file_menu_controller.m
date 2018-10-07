@@ -34,6 +34,7 @@ classdef file_menu_controller < handle
         model_controller;
         hist_controller;
         plot_controller;
+        project_controller;
         
         menu_irf_recent;
         menu_file_recent_default;
@@ -173,6 +174,21 @@ classdef file_menu_controller < handle
         function menu_file_reload_data(obj)
             obj.data_series_controller.data_series.reload_data;
         end
+
+        function menu_file_load_project(obj)
+            folder = uigetdir(default_path,'Select the project folder');
+            if folder ~= 0
+                obj.project_controller.load(folder);
+            end
+        end
+        
+        function menu_file_save_project(obj)
+            [file, path] = uiputfile('*.flimfit','Select the project folder name',[default_path 'project']);
+            if file ~= 0
+                obj.project_controller.save(path,file);
+            end
+        end
+
         
         function menu_file_load_acceptor(obj)
             folder = uigetdir(default_path,'Select the folder containing the acceptor images');

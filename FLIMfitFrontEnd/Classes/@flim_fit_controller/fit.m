@@ -42,6 +42,8 @@ function fit(obj,varargin)
 
         else
 
+            obj.fit_params.model = obj.model_controller.model;
+            
             if nargin == 2
                 bin = varargin{1};
             elseif nargin >= 4

@@ -70,7 +70,7 @@ classdef flim_data_decay_view < handle & abstract_display_controller ...
             assign_handles(obj,handles)
 
             addlistener(obj.roi_controller,'roi_updated',@(~,~) EC(@obj.update_display));
-            addlistener(obj.fit_controller,'fit_updated',@(~,~) EC(@obj.update_display))
+            addlistener(obj.fit_controller,'fit_updated',@(~,~) EC(@obj.update_display));
             set(obj.highlight_display_mode_popupmenu,'Callback',@(~,~) EC(@obj.update_display));
             set(obj.highlight_decay_mode_popupmenu,'Callback',@(~,~) EC(@obj.update_display));
             
