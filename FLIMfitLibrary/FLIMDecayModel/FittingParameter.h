@@ -182,8 +182,8 @@ private:
       }
       else if (transform_type == Exponential)
       {
-         forward_transform = [](double x) { return exp(x); };
-         reverse_transform = [](double x) { return log(x); };
+         forward_transform = [](double x) { return log(x); };
+         reverse_transform = [](double x) { return exp(x); };
          transformed_scale = scale;
       }
    }
@@ -215,14 +215,14 @@ void FittingParameter::serialize(Archive & ar, const unsigned int version)
       ar & initial_min;
       ar & initial_max;
    }
+
    if (version >= 3)
-   {
       ar & scale;
-   }
+
    if (version >= 4)
       ar & transform_type;
    else
-      transform_type = None;
+   transform_type = None;
 
    if (Archive::is_loading::value)
          setupTransform();

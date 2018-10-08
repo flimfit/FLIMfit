@@ -73,8 +73,8 @@ FretDecayGroup::FretDecayGroup(int n_donor_exponential, int n_fret_populations, 
    std::vector<ParameterFittingType> fixed_or_global = { Fixed, FittedGlobally };
    std::vector<ParameterFittingType> fixed = { Fixed };
    A_parameter = std::make_shared<FittingParameter>("A", 1, 1, fixed, Fixed);
-   Q_parameter = std::make_shared<FittingParameter>("Q", 1, 0, 4, 1, fixed_or_global, Fixed);
-   Qsigma_parameter = std::make_shared<FittingParameter>("Qsigma", 0.1, 0, 4, 1, fixed_or_global, Fixed);
+   Q_parameter = std::make_shared<FittingParameter>("Q", 1, 0, 4, 1, fixed_or_global, Fixed, TransformType::Exponential);
+   Qsigma_parameter = std::make_shared<FittingParameter>("Qsigma", 0.1, 0, 4, 1, fixed_or_global, Fixed, TransformType::Exponential);
    setupParameters();
 }
 
@@ -702,7 +702,7 @@ int FretDecayGroup::addDirectAcceptorDerivatives(double_iterator b, int bdim, do
       for (int i = 0; i < n_fret_group; i++)
       {
          for(int m=0; m<n_acceptor_exponential; m++)
-            acceptor_buffer[m]->addDecay(betaA[m], norm_acceptor_channel_factors, reference_lifetime, b + idx);
+            acceptor_buffer[m]->addDecay(Qsigma * betaA[m], norm_acceptor_channel_factors, reference_lifetime, b + idx);
 
          col++;
          idx += bdim;
@@ -723,7 +723,7 @@ int FretDecayGroup::addAcceptorIntensityDerivatives(double_iterator b, int bdim,
    {
       for (int i = 0; i < n_fret_populations; i++)
       {
-         addAcceptorContribution(i, 1.0, b + idx, bdim, kap_derv[col]);
+         addAcceptorContribution(i, Q, b + idx, bdim, kap_derv[col]);
          
          col++;
          idx += bdim;
