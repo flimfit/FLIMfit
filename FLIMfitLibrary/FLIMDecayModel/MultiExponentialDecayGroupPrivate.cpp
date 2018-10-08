@@ -70,7 +70,7 @@ void MultiExponentialDecayGroupPrivate::resizeLifetimeParameters(std::vector<std
          string name = name_prefix + boost::lexical_cast<std::string>(i + 1);
          double initial_value = tau0 / (i + 1);
 
-         auto p = make_shared<FittingParameter>(name, initial_value, 200, 6000, 1e-3, fixed_or_global, FittedGlobally, Inverse);
+         auto p = make_shared<FittingParameter>(name, initial_value, 200, 6000, 1e3, fixed_or_global, FittedGlobally, Inverse);
          params.push_back(p);
          parameters.push_back(p);
       }
