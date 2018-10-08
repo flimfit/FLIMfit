@@ -70,7 +70,7 @@ void MultiExponentialDecayGroupPrivate::resizeLifetimeParameters(std::vector<std
          string name = name_prefix + boost::lexical_cast<std::string>(i + 1);
          double initial_value = tau0 / (i + 1);
 
-         auto p = make_shared<FittingParameter>(name, initial_value, 200, 6000, 1e-3, fixed_or_global, FittedGlobally);
+         auto p = make_shared<FittingParameter>(name, initial_value, 200, 6000, 1e-3, fixed_or_global, FittedGlobally, Inverse);
          params.push_back(p);
          parameters.push_back(p);
       }
@@ -149,7 +149,7 @@ void MultiExponentialDecayGroupPrivate::init()
    n_beta_free = 0;
    for (auto& p : beta_parameters)
       if (p->isFixed())
-         fixed_beta += p->initial_value;
+         fixed_beta += p->getInitialValue();
       else
          n_beta_free++;
 
@@ -231,12 +231,11 @@ int MultiExponentialDecayGroupPrivate::setVariables(const_double_iterator param_
    int idx = 0;
 
    // Get lifetimes
-   tau.resize(n_exponential);
-   tau_raw.resize(n_exponential);
+   k_decay.resize(n_exponential);
    for (int i = 0; i < n_exponential; i++)
    {
-      tau_raw[i] = tau_parameters[i]->getValue<double>(param_value, idx);
-      tau[i] = tau_raw[i] < 5.0 ? 5.0 : tau_raw[i];
+      k_decay[i] = tau_parameters[i]->getTransformedValue<double>(param_value, idx);
+      //TODO: k_decay[i] = k_decay[i] < 5.0 ? 5.0 : tau_raw[i];
    }
 
    /*
@@ -253,7 +252,7 @@ int MultiExponentialDecayGroupPrivate::setVariables(const_double_iterator param_
    }
    */
    for (int i = 0; i < n_exponential; i++)
-      buffer[i]->compute(1 / tau[i], irf_idx, t0_shift); // TODO: only when changed
+      buffer[i]->compute(k_decay[i], irf_idx, t0_shift); // TODO: only when changed
 
    // Get contributions
    if (contributions_global)
@@ -359,7 +358,8 @@ int MultiExponentialDecayGroupPrivate::calculateDerivatives(double_iterator b, i
       {
          if (last_idx >= 0)
          {
-            double k = kappaSpacer(tau[i], tau[last_idx]);
+            // TODO
+            //double k = kappaSpacer(tau[i], tau[last_idx]);
             //kap_derv[i] -= tau[last_idx] * k;
             //kap_derv[last_idx] += tau[i] * k;
          }
@@ -398,7 +398,7 @@ int MultiExponentialDecayGroupPrivate::addDecayGroup(const std::vector<std::shar
       if (!contributions_global)
          col++;
 
-      kap += kappaLim(tau[j]);      
+      kap += 0; //TODO: kappaLim(tau[j]);
    }
 
    // Keep tau's in order
@@ -429,7 +429,7 @@ int MultiExponentialDecayGroupPrivate::addLifetimeDerivative(int idx, double_ite
 {
    if (tau_parameters[idx]->isFittedGlobally())
    {
-      double fact = 1 / (tau[idx] * tau[idx]); // TODO: *TransformRangeDerivative(wb.tau_buf[j], tau_min[j], tau_max[j]);
+      double fact = 1;
       fact *= contributions_global ? beta[idx] : 1;
 
       buffer[idx]->addDerivative(fact, channel_factors, reference_lifetime, b);
@@ -442,7 +442,7 @@ int MultiExponentialDecayGroupPrivate::addLifetimeDerivative(int idx, double_ite
 void MultiExponentialDecayGroupPrivate::addLifetimeKappaDerivative(int idx, double_iterator& kap_derv)
 {
    if (tau_parameters[idx]->isFittedGlobally())
-      *(kap_derv++) = -kappaLim(tau[idx]);
+      *(kap_derv++) = 0; // TODO: -kappaLim(tau[idx]);
 }
 
 

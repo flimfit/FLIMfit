@@ -189,9 +189,9 @@ int BackgroundLightDecayGroup::calculateDerivatives(double_iterator b, int bdim,
 
 void BackgroundLightDecayGroup::addConstantContribution(float_iterator a)
 {
-   float offset_adj = parameters[0]->isFixed() ? (float) parameters[0]->initial_value : 0.0f;
-   float scatter_adj = parameters[1]->isFixed() ? (float) parameters[0]->initial_value : 0.0f;
-   float tvb_adj = parameters[2]->isFixed() ? (float) parameters[0]->initial_value : 0.0f;
+   float offset_adj = parameters[0]->isFixed() ? (float) parameters[0]->getInitialValue() : 0.0f;
+   float scatter_adj = parameters[1]->isFixed() ? (float) parameters[0]->getInitialValue() : 0.0f;
+   float tvb_adj = parameters[2]->isFixed() ? (float) parameters[0]->getInitialValue() : 0.0f;
    
    if (scatter_adj != 0.0f)
       addIRF(irf_buf.begin(), 0, 0, a, channel_factors, scatter_adj); // TODO : irf_shift?

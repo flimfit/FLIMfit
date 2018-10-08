@@ -39,7 +39,7 @@ int AbstractDecayGroup::getInitialVariables(std::vector<double>::iterator variab
    {
       if (p->isFittedGlobally())
       {
-         *(variables++) = p->initial_value;
+         *(variables++) = p->getTransformedInitialValue();
          idx++;
       }
    }

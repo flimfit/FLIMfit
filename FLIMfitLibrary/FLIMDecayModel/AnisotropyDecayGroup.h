@@ -46,7 +46,7 @@ protected:
    int n_anisotropy_populations;
    bool include_r_inf;
 
-   std::vector<double> theta;
+   std::vector<double> k_theta;
 
    std::vector<std::vector<std::shared_ptr<AbstractConvolver>>> anisotropy_buffer;
    std::vector<double> ss_channel_factors;

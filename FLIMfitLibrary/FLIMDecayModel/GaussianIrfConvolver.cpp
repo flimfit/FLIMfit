@@ -25,10 +25,8 @@ GaussianChannelConvolver::GaussianChannelConvolver(const GaussianParameters& par
 
 void GaussianChannelConvolver::compute(double rate, double t0_shift_)
 {
-   double tau = 1.0 / rate;
-   double tau_p = eps * abs(tau);
-   if (tau_p == 0.0) tau_p = eps;
-   double rate_p = 1.0 / (tau + tau_p);
+   double d_rate = eps * rate;
+   double rate_p = rate + d_rate;
 
    if (t0_shift != t0_shift_)
    {
@@ -52,6 +50,12 @@ void GaussianChannelConvolver::compute(double rate, double t0_shift_)
 
    computeQ(rate, Q);
    computeQ(rate_p, Qp);
+
+   for (int i = 0; i < Q.size(); i++)
+   {
+      Qp[i] -= Q[i];
+      Qp[i] /= d_rate;
+   }
 }
 
 
@@ -158,9 +162,7 @@ void GaussianChannelConvolver::addDecay(double fact, double_iterator decay) cons
 
 void GaussianChannelConvolver::addDerivative(double fact, double_iterator derv) const
 {
-   fact /= (eps * rate);
    add(fact, derv, Qp);
-   add(-fact, derv, Q);
 }
 
 

@@ -96,7 +96,7 @@ void PatternDecayGroup::addConstantContribution(float_iterator a)
 
    compute();
 
-   float fact = fit->initial_value;
+   float fact = fit->getInitialValue();
 
    for (int i = 0; i < dp->n_meas; i++)
       a[i] += fact * decay[i];
@@ -118,7 +118,7 @@ int PatternDecayGroup::getLinearOutputs(float_iterator lin_variables, float_iter
    if (fit->isFittedLocally())
       output[0] = lin_variables[lin_idx++];
    else
-      output[0] = fit->initial_value;
+      output[0] = fit->getInitialValue();
    return 1;
 }
 

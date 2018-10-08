@@ -134,7 +134,7 @@ mxArray* getVariables(const std::vector<std::shared_ptr<FittingParameter>> param
    for (int i = 0; i < parameters.size(); i++)
    { 
       mxSetFieldByNumber(s, i, 0, mxCreateString(parameters[i]->name.c_str()));
-      mxSetFieldByNumber(s, i, 1, mxCreateDoubleScalar(parameters[i]->initial_value));
+      mxSetFieldByNumber(s, i, 1, mxCreateDoubleScalar(parameters[i]->getInitialValue()));
       mxSetFieldByNumber(s, i, 2, mxCreateLogicalScalar(parameters[i]->initial_search));
       mxSetFieldByNumber(s, i, 3, mxCreateDoubleScalar(parameters[i]->initial_min));
       mxSetFieldByNumber(s, i, 4, mxCreateDoubleScalar(parameters[i]->initial_max));
@@ -256,7 +256,7 @@ void setVariables(std::shared_ptr<QDecayModel> model, std::vector<std::shared_pt
    AssertInputCondition(mxGetNumberOfElements(new_parameters) == parameters.size());
    for (int i = 0; i < parameters.size(); i++)
    {
-      parameters[i]->initial_value = mxGetScalar(mxGetField(new_parameters, i, "InitialValue"));
+      parameters[i]->setInitialValue(mxGetScalar(mxGetField(new_parameters, i, "InitialValue")));
       parameters[i]->initial_search = mxGetScalar(mxGetField(new_parameters, i, "InitialSearch"));
       parameters[i]->initial_min = mxGetScalar(mxGetField(new_parameters, i, "InitialMin"));
       parameters[i]->initial_max = mxGetScalar(mxGetField(new_parameters, i, "InitialMax"));

@@ -36,9 +36,10 @@ using namespace std;
 
 DecayModel::DecayModel()
 {
-   std::vector<ParameterFittingType> fixed_or_global = { Fixed, FittedGlobally };
-   reference_parameter = std::make_shared<FittingParameter>("ref_lifetime", 100, 1e-3, fixed_or_global, Fixed);
-   t0_parameter = std::make_shared<FittingParameter>("t0", 0, 1, fixed_or_global, Fixed);
+   //std::vector<ParameterFittingType> fixed_or_global = { Fixed, FittedGlobally };
+   std::vector<ParameterFittingType> fixed = { Fixed };
+   reference_parameter = std::make_shared<FittingParameter>("ref_lifetime", 100, 1e-3, fixed, Fixed);
+   t0_parameter = std::make_shared<FittingParameter>("t0", 0, 1, fixed, Fixed);
 
    parameters = { t0_parameter };
 }
@@ -520,7 +521,7 @@ void DecayModel::getInitialVariables(std::vector<double>& param, double mean_arr
    int idx = 0;
    for (auto& p : parameters)
       if (p->isFittedGlobally())
-         param[idx++] = p->initial_value;
+         param[idx++] = p->getTransformedInitialValue();
 
    for (auto& g : decay_groups)
       idx += g->getInitialVariables(param.begin()+idx);
@@ -667,11 +668,11 @@ void DecayModel::validateDerivatives()
                mean_err += err[k];
             mean_err /= dim;
 
-            std::cout << "Variable: " << i << " (" << names[i] << "), Column: " << j << "\n";
-            std::cout << "   Mean err : " << mean_err << "\n";
 
             if (mean_err < 0.5)
             {
+               std::cout << "Variable: " << i << " (" << names[i] << "), Column: " << j << "\n";
+               std::cout << "   Mean err : " << mean_err << "\n";
                std::cout << "   *********************************\n";
                pass = false;
             }

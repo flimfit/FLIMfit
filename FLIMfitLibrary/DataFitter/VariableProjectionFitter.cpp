@@ -217,7 +217,7 @@ void VariableProjectionFitter::fitFcn(int nl, std::vector<double>& initial, int&
          global_parameters.push_back(p);
          if (p->initial_search)
             n_search++;
-         scale.push_back(p->scale);
+         scale.push_back(p->transformed_scale);
       }
 
 
@@ -233,7 +233,7 @@ void VariableProjectionFitter::fitFcn(int nl, std::vector<double>& initial, int&
          auto it = x0.begin();
          auto xit = x.begin();
          for (auto& p : global_parameters)
-            *(it++) = (p->initial_search) ? *(xit++) : p->initial_value;
+            *(it++) = (p->initial_search) ? *(xit++) : p->getTransformedInitialValue();
          return x0;
       };
 
@@ -252,8 +252,8 @@ void VariableProjectionFitter::fitFcn(int nl, std::vector<double>& initial, int&
       {
          if (p->initial_search)
          {
-            lb(idx) = p->initial_min;
-            ub(idx) = p->initial_max;
+            lb(idx) = p->getTransformedInitialMin();
+            ub(idx) = p->getTransformedInitialMax();
             idx++;
          }
       }
@@ -316,7 +316,7 @@ void VariableProjectionFitter::fitFcn(int nl, std::vector<double>& initial, int&
       else
       {
 
-         info = lmstx(VariableProjectionFitterCallback, (void*) this, nr-l, nl, s, n_jac_group, initial.data(), fvec, fjac, nl,
+            info = lmstx(VariableProjectionFitterCallback, (void*) this, nr-l, nl, s, n_jac_group, initial.data(), fvec, fjac, nl,
             ftol, xtol, gtol, options.max_iterations, scale.data(), 2, options.initial_step_size, -1, n_thread,
             &nfev, &niter, &rnorm, ipvt, qtf, wa1, wa2, wa3, wa4);
       }

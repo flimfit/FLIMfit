@@ -21,7 +21,7 @@ int getBeta(const std::vector<std::shared_ptr<FittingParameter>>& beta_parameter
       }
       else
       {
-         beta[i] = beta_parameters[i]->initial_value;
+         beta[i] = beta_parameters[i]->getInitialValue();
       }
    }
    return std::max(n_beta_free-1, 0);
@@ -74,7 +74,7 @@ protected:
    int n_exponential;
    bool contributions_global;
 
-   std::vector<double> tau, tau_raw;
+   std::vector<double> k_decay;
    std::vector<double> beta, beta_buf;
    std::vector<float> beta_buf_float;
    std::vector<std::shared_ptr<AbstractConvolver>> buffer;

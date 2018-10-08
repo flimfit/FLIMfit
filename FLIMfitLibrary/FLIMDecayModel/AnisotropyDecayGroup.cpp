@@ -100,16 +100,16 @@ int AnisotropyDecayGroup::setVariables(const_double_iterator param_value)
 {
    int idx = MultiExponentialDecayGroupPrivate::setVariables(param_value);
     
-   theta.resize(n_anisotropy_populations);
+   k_theta.resize(n_anisotropy_populations);
 
    for (int i = 0; i<n_anisotropy_populations; i++)
    {
-      theta[i] = theta_parameters[i]->getValue<double>(param_value, idx);
+      k_theta[i] = theta_parameters[i]->getTransformedValue<double>(param_value, idx);
       // TODO: constrain above 60ps
 
       for (int j = 0; j < n_exponential; j++)
       {
-         double rate = 1 / tau[j] + 1 / theta[i];
+         double rate = k_decay[j] + k_theta[i];
          anisotropy_buffer[i][j]->compute(rate, irf_idx, t0_shift);
       }
    }
@@ -254,7 +254,7 @@ int AnisotropyDecayGroup::addLifetimeDerivativesForAnisotropy(int j, double_iter
    int col = 0;
    for (int p = 0; p < n_anisotropy_populations; p++)
    {
-      double fact = beta[j] / (tau[j] * tau[j]); // TODO: *TransformRangeDerivative(wb.tau_buf[j], tau_min[j], tau_max[j]);
+      double fact = beta[j];
       anisotropy_buffer[p][j]->addDerivative(fact, pol_channel_factors, reference_lifetime, b + col * bdim);
       col++;
    }
@@ -314,7 +314,7 @@ int AnisotropyDecayGroup::addRotationalCorrelationTimeDerivatives(double_iterato
       {
          for (int j = 0; j < n_exponential; j++)
          {
-            double factor = beta[j] / theta[p] / theta[p]; // TODO: * TransformRangeDerivative(wb.theta_buf[p], 0, 1000000);
+            double factor = beta[j];
             anisotropy_buffer[p][j]->addDerivative(factor, pol_channel_factors, reference_lifetime, b + col * bdim);
          }
 
