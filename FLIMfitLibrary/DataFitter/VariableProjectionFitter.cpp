@@ -426,12 +426,10 @@ void VariableProjectionFitter::setupWeighting()
       }
    }
    
-   using_gamma_weighting = false;
-
    if (using_gamma_weighting)
    {
-      for (int i=0; i<nr; i++)
-         w[i] = 1.0 / sqrt(avg_y[i] + 1);
+      for (int i = 0; i < nr; i++)
+         w[i] = 1.0;
    }
    else
    {
@@ -595,10 +593,12 @@ void VariableProjectionFitter::calculateWeights(int px, it alf, double* wp)
 {
    auto yp = this->y + px * n;
    
+   /*
    for (int i = 0; i<nr; i++)
       wp[i] = 1.0;
 
-   return;
+   //return;
+   */
 
    if (weighting == AverageWeighting)
    {
