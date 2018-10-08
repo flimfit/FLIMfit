@@ -285,7 +285,11 @@ void VariableProjectionFitter::fitFcn(int nl, std::vector<double>& initial, int&
             if (global_parameters[j]->initial_search)
             {
                int idx = ((int)(i / std::pow(n_initial, var_idx))) % n_initial;
-               trial[j] = global_parameters[j]->initial_min + idx * (global_parameters[j]->initial_max - global_parameters[j]->initial_min) / (n_initial - 1);
+
+               double initial_min = global_parameters[j]->getTransformedInitialMin();
+               double initial_max = global_parameters[j]->getTransformedInitialMax();
+
+               trial[j] = initial_min + idx * (initial_max - initial_min) / (n_initial - 1);
                var_idx++;
             }
          }
