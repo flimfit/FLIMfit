@@ -72,6 +72,7 @@ void GaussianChannelConvolver::computeQ(double rate_, aligned_vector<double>& Q)
    double c = f < HUGE_VAL ? (erf(b - T * a) - f * erf(b)) / (f - 1) : -1.0;
    double d = 0.5 * tau * exp(rate * (0.5 * sigma * sigma * rate + mu + t0_shift));
 
+   d = d < HUGE_VAL ? d : 0;
    double e0 = d * exp(-t0 * rate);
    double de = exp(-dt * rate);
 
