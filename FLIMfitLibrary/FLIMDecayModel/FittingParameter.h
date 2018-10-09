@@ -222,7 +222,17 @@ void FittingParameter::serialize(Archive & ar, const unsigned int version)
    if (version >= 4)
       ar & transform_type;
    else
-   transform_type = None;
+   {
+      if ((name.compare(0, 3, "tau")==0) || (name.compare(0, 5, "theta")==0))
+      {
+         transform_type = Inverse;
+         scale = 1e3;
+      }
+      else if (name.compare(0, 1, "Q")==0)
+      {
+         transform_type = Exponential;
+      }
+   }
 
    if (Archive::is_loading::value)
          setupTransform();
