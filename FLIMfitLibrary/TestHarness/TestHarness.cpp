@@ -28,9 +28,6 @@
 //
 //=========================================================================
 
-
-#include "Cout2VisualStudioDebugOutput.h"
-
 #include "FLIMSimulation.h"
 #include <iostream>
 #include <string>
@@ -40,6 +37,7 @@
 #include "BackgroundLightDecayGroup.h"
 #include "FLIMImage.h"
 #include "PatternDecayGroup.h"
+#include "GaussianIrfConvolver.h"
 
 extern int testFittingCoreDouble();
 extern void testDecayResampler();
@@ -65,7 +63,34 @@ TEST_CASE("Gaussian IRF", "[irf]")
 
 }
 
-TEST_CASE("Model derivatives", "[model]") 
+TEST_CASE("Convolution", "[model]")
+{
+   FLIMSimulationTCSPC sim;
+   auto acq = std::make_shared<AcquisitionParameters>(sim);
+
+   auto params = sim.getIrfParameters();
+   auto irf_gaussian = std::make_shared<InstrumentResponseFunction>();
+   irf_gaussian->setGaussianIRF({ params });
+
+   auto transform = DataTransformationSettings(irf_gaussian);
+   auto dp = std::make_shared<TransformedDataParameters>(acq, transform);
+
+   GaussianIrfConvolver conv(dp);
+
+   double tau = 2;
+   double rate = 1 / tau;
+
+   conv.compute(tau, 0, 0, 0);
+
+   std::vector<double> a(acq->n_meas_full);
+   conv.addDecay(1, { 1 }, a.begin());
+
+   for (int i = 0; i < a.size(); i++)
+      if (!std::isfinite(a[i]))
+         throw std::runtime_error("Non-finite entry");
+}
+
+TEST_CASE("Model", "[model]") 
 {
    testModelDerivatives();
 }
@@ -88,14 +113,6 @@ TEST_CASE("Multichannel fit", "[fitting2]")
    testFittingCoreMultiChannel();
 }
 
-TEST_CASE("FRET", "[fret]")
-{
-   auto group = std::make_shared<FretDecayGroup>(1, 1, false);
-   group->setIncludeAcceptor(true);
-   //validate(group);
-
-}
-
 
 int main0()
 {
@@ -116,7 +133,7 @@ int main0()
    for (int i=0; i<params.size(); i++)
    {
       params[i]->setFittingType(FittedGlobally);
-      params[i]->initial_value = test[i];
+      params[i]->setInitialValue(test[i]);
 //      std::cout << params[i]->name << " " << params[i]->fitting_type << "\n";
    }
    

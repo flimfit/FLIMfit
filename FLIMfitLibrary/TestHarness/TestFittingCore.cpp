@@ -58,8 +58,8 @@ bool checkResult(std::shared_ptr<FitResults> results, const std::string& param_n
       float diff = mean - expected_value;
       float std_use = std;
       // If global, use expected value
-      if (expected_std > 0)
-         std_use = expected_std;
+      //if (expected_std > 0)
+      //   std_use = expected_std;
       if (!isfinite(std_use))
          std_use = 1;
 
@@ -140,22 +140,22 @@ int testFittingCoreDouble()
    auto model = std::make_shared<DecayModel>();
    model->setTransformedDataParameters(data->GetTransformedDataParameters());
     
-   std::vector<double> test = { 500, 4000 };
+   std::vector<double> test = { 1000, 3000 };
    auto group = std::make_shared<MultiExponentialDecayGroup>((int) test.size());
    model->addDecayGroup(group);
    
    auto params = group->getParameters();
    for (int i=0; i<params.size(); i++)
    {
-      params[i]->setFittingType(FittedGlobally);
-      params[i]->initial_value = test[i];
+      params[i]->setFittingType(Fixed);
+      params[i]->setInitialValue(test[i]);
       params[i]->initial_search = false;
 //      std::cout << params[i]->name << " " << params[i]->fitting_type << "\n";
    }
 
    auto bg = std::make_shared<BackgroundLightDecayGroup>();
    bg->getParameter("offset")->setFittingType(FittedLocally);
-   bg->getParameter("offset")->initial_value = N_bg;
+   bg->getParameter("offset")->setInitialValue(N_bg);
    if (use_background)
       model->addDecayGroup(bg);
 
@@ -165,9 +165,9 @@ int testFittingCoreDouble()
 
    std::vector<FitSettings> settings;
    //settings.push_back(FitSettings(MaximumLikelihood, Pixelwise, GlobalAnalysis, AverageWeighting, 4));
-   settings.push_back(FitSettings(VariableProjection, Pixelwise, GlobalAnalysis, PixelWeighting, 1));
+   settings.push_back(FitSettings(VariableProjection, Pixelwise, GlobalAnalysis, AverageWeighting, 1));
    //settings.push_back(FitSettings(VariableProjection, Imagewise, GlobalAnalysis, AverageWeighting, 1));
-   //settings.push_back(FitSettings(VariableProjection, Global, GlobalAnalysis, AverageWeighting, 4));
+   settings.push_back(FitSettings(VariableProjection, Global, GlobalAnalysis, AverageWeighting, 1));
    
    bool pass = true;
 
@@ -185,8 +185,8 @@ int testFittingCoreDouble()
       auto results = controller.getResults();
       auto stats = results->getStats();
 
-      pass &= checkResult(results, "[1] tau_1", tau[0]);
-      pass &= checkResult(results, "[1] tau_2", tau[1]);
+      //pass &= checkResult(results, "[1] tau_1", tau[0]);
+      //pass &= checkResult(results, "[1] tau_2", tau[1]);
       pass &= checkResult(results, "[1] beta_1", beta1);
       if (use_background)
          pass &= checkResult(results, "[2] offset", N_bg, 0.5);
@@ -204,8 +204,9 @@ int testFittingCoreSingle(double tau, int N, bool use_gaussian_irf)
    // Create simulator
 
    int n_x = 40;
+   int n_chan = 2;
 
-   FLIMSimulationTCSPC sim;
+   FLIMSimulationTCSPC sim(n_chan);
    sim.setImageSize(n_x, n_x);
 
    bool use_background = false;
@@ -224,7 +225,8 @@ int testFittingCoreSingle(double tau, int N, bool use_gaussian_irf)
       auto data_ptr = image->getDataPointer<uint16_t>();
       size_t sz = image->getImageSizeInBytes();
       std::fill_n((char*)data_ptr, sz, 0);
-      sim.GenerateImage(tau, N, 0, data_ptr);
+      for(int c=0; c<n_chan; c++)
+         sim.GenerateImage(tau, N * (1+0.5*c), c, data_ptr);
       if (use_background)
          sim.GenerateImageBackground(N_bg, data_ptr);
       image->releaseModifiedPointer<uint16_t>();
@@ -246,25 +248,28 @@ int testFittingCoreSingle(double tau, int N, bool use_gaussian_irf)
    auto model = std::make_shared<DecayModel>();
    model->setTransformedDataParameters(data->GetTransformedDataParameters());
 
-   std::vector<double> test = { 1.5 * tau };
+   std::vector<double> test = { 1.2 * tau };
    auto group = std::make_shared<MultiExponentialDecayGroup>((int)test.size());
+   group->setFitChannelFactors(true);
    model->addDecayGroup(group);
 
    auto params = group->getParameters();
-   for (int i = 0; i < params.size(); i++)
+   for (int i = 0; i < test.size(); i++)
    {
       params[i]->setFittingType(FittedGlobally);
-      params[i]->initial_value = test[i];
+      params[i]->setInitialValue(test[i]);
    }
+
+   params[1]->setFittingType(FittedGlobally);
 
    auto bg = std::make_shared<BackgroundLightDecayGroup>();
    bg->getParameter("offset")->setFittingType(FittedLocally);
-   bg->getParameter("offset")->initial_value = N_bg;
+   bg->getParameter("offset")->setInitialValue(N_bg);
    if (use_background)
       model->addDecayGroup(bg);
 
    std::vector<FitSettings> settings;
-   settings.push_back(FitSettings(VariableProjection, Pixelwise, GlobalAnalysis, AverageWeighting, 1));
+   settings.push_back(FitSettings(VariableProjection, Pixelwise, GlobalAnalysis, AverageWeighting, 4));
    //settings.push_back(FitSettings(VariableProjection, Imagewise, GlobalAnalysis, AverageWeighting, 1));
    //settings.push_back(FitSettings(VariableProjection, Global, GlobalAnalysis, AverageWeighting, 1));
    //settings.push_back(FitSettings(VariableProjection, Pixelwise, GlobalAnalysis, PixelWeighting, 4));
@@ -344,7 +349,7 @@ int testFittingCoreMultiChannel()
    }
 
    std::vector<std::shared_ptr<Attenuator>> attenuator;
-   attenuator.push_back(std::make_shared<Attenuator>([&](int x, int y) { return (0.2 * x) / n_x + 0.4; }, 1));
+   attenuator.push_back(std::make_shared<Attenuator>([&](int x, int y) { return (0.1 * x) / n_x + 0.4; }, 1));
    //attenuator.push_back(std::make_shared<Attenuator>([&](int x, int y) { return (0.2 * y) / n_y + 0.4; }, 2));
 
    for(auto& im : images)
@@ -371,7 +376,7 @@ int testFittingCoreMultiChannel()
 
       auto params = group->getParameters();
       params[0]->setFittingType(FittedGlobally);
-      params[0]->initial_value = test[i];
+      params[0]->setInitialValue(test[i]);
       params[0]->initial_search = false;
    }
 

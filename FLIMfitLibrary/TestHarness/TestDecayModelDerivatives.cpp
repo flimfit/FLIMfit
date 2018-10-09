@@ -37,6 +37,7 @@
 #include "FitController.h"
 #include "MultiExponentialDecayGroup.h"
 #include "BackgroundLightDecayGroup.h"
+#include "AnisotropyDecayGroup.h"
 #include "FLIMImage.h"
 #include "PatternDecayGroup.h"
 
@@ -63,16 +64,17 @@ void validate(std::vector<std::shared_ptr<AbstractDecayGroup>> groups)
    }
    
    model->init();
+   model->validateDerivatives();
 
 }
 
 void validate(std::shared_ptr<AbstractDecayGroup> g)
 {
 
-   std::cout << "\nTesting derivatives for " << g->objectName().toStdString() << "\n================\n";
+   //std::cout << "\nTesting derivatives for " << g->objectName().toStdString() << "\n================\n";
    
-
-   FLIMSimulationTCSPC sim;
+   int n_chan = 2;
+   FLIMSimulationTCSPC sim(n_chan);
    //std::shared_ptr<InstrumentResponseFunction> irf = sim.GenerateIRF(1e5);
    std::shared_ptr<InstrumentResponseFunction> irf = sim.GetGaussianIRF();
    auto acq = std::make_shared<AcquisitionParameters>(sim);
@@ -93,6 +95,7 @@ void validate(std::shared_ptr<AbstractDecayGroup> g)
    auto params = g->getParameters();
    std::for_each(params.begin(), params.end(), [](auto& p) { p->setFittingType(FittedGlobally); });
    model->init();
+   model->validateDerivatives();
 
    // Test with one fixed
    for (int i = 0; i < params.size(); i++)
@@ -100,6 +103,7 @@ void validate(std::shared_ptr<AbstractDecayGroup> g)
       std::for_each(params.begin(), params.end(), [](auto& p) { p->setFittingType(FittedGlobally); });
       params[i]->setFittingType(Fixed);
       model->init();
+      model->validateDerivatives();
    }
 
    // Test with two fixed
@@ -111,6 +115,7 @@ void validate(std::shared_ptr<AbstractDecayGroup> g)
          params[i]->setFittingType(Fixed);
          params[j]->setFittingType(Fixed);
          model->init();
+         model->validateDerivatives();
       }
    }
 
@@ -118,9 +123,16 @@ void validate(std::shared_ptr<AbstractDecayGroup> g)
 
 int testModelDerivatives()
 {
-   // Test multiexponential group
    
-   for (int n_exp = 1; n_exp <= 4; n_exp++)
+   // Fitting channel factors
+   {
+      auto group = std::make_shared<MultiExponentialDecayGroup>(2);
+      group->setFitChannelFactors(true);
+      validate(group);
+   }
+
+   // Test multiexponential group
+   for (int n_exp : { 1,3 })
    {
       auto group = std::make_shared<MultiExponentialDecayGroup>(n_exp);
       validate(group);
@@ -129,22 +141,40 @@ int testModelDerivatives()
       group->setContributionsGlobal(true);
       validate(group);
    }
-   
+
+
    // Test FRET group
-   for(int n_fret = 1; n_fret <= 2; n_fret++)
-      for (int n_exp = 1; n_exp <= 3; n_exp++)
+   for (int n_fret : {1, 2})
+      for (int n_exp : {1, 3})
+         for (int n_acc : {1, 2})
+         {
+            auto group = std::make_shared<FretDecayGroup>(n_exp, n_fret, true);
+            group->setNumAcceptorExponential(n_acc);
+            group->setUseStaticModel(false);
+
+
+            group->setIncludeAcceptor(false);
+            //validate(group);
+
+            group->setIncludeAcceptor(true);
+            validate(group);
+
+            group->setUseStaticModel(false);
+            validate(group);
+
+            group->setIncludeDonorOnly(false);
+            validate(group);
+         }
+   
+   // Test anisotropy group
+   for (int n_exp : {1, 2})
+      for (int n_pol : {1, 2})
       {
-         auto group = std::make_shared<FretDecayGroup>(n_exp, n_fret, true);
-         group->setIncludeAcceptor(false);
-         validate(group);
-
-         group->setIncludeAcceptor(true);
-         validate(group);
-
-         group->setIncludeDonorOnly(false);
+         auto group = std::make_shared<AnisotropyDecayGroup>(n_exp, n_pol);
          validate(group);
       }
-   
+
+
    // Test some basic combinations of FRET groups
    {
       std::vector<std::shared_ptr<AbstractDecayGroup>> groups;
