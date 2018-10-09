@@ -83,6 +83,7 @@ classdef flim_project_controller < flim_data_series_observer
             d.load_multiple(data_info.polarisation_resolved, [folder 'data_settings.xml']);
             
             if isfolder([folder 'segmentation'])
+                d.seg_mask = uint16.empty();
                 for i=1:d.n_datasets
                     file = [folder 'segmentation' filesep d.names{i} ' segmentation.tif'];
                     if exist(file,'file')   

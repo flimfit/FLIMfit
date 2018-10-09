@@ -124,6 +124,7 @@ function fit(obj, data_series, fit_params, roi_mask, selected)
                 if ~isempty(d.multid_mask)
                     mask(~d.multid_mask(:,:,sel(i))) = 0;
                 end
+                mask = uint16(mask);
                 ff_FLIMImage(im(i),'SetMask',mask);
             end
         end
