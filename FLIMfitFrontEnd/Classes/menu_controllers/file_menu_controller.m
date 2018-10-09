@@ -35,6 +35,7 @@ classdef file_menu_controller < handle
         hist_controller;
         plot_controller;
         project_controller;
+        result_controller;
         
         menu_irf_recent;
         menu_file_recent_default;
@@ -335,7 +336,7 @@ classdef file_menu_controller < handle
         function menu_file_export_fit_table(obj)
             [filename, pathname] = uiputfile({'*.csv', 'CSV File (*.csv)'},'Select file name',default_path);
             if filename ~= 0
-                obj.fit_controller.save_param_table([pathname filename]);
+                obj.result_controller.save_param_table([pathname filename]);
             end
         end
    

@@ -25,7 +25,7 @@ function save_param_table(obj,file)
 
     % Author : Sean Warren
 
-    if obj.has_fit
+    if ~isempty(obj.fit_result)
         
         f = obj.fit_result;
 
