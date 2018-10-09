@@ -341,28 +341,38 @@ void VariableProjectionFitter::fitFcn(int nl, std::vector<double>& initial, int&
             if (refine_linear)
             {
                auto& B = vp[0];
-               getModel(B.model, irf_idx[0], *(B.a));
 
 
-               LinearMLModel model(n, l, (*(B.a)).begin(), nmax);
-               column_vector x(l);
+               std::vector<LinearMLModel> model;
+               std::vector<column_vector> x(n_thread);
 
+               for (int i = 0; i < n_thread; i++)
+               {
+                  getModel(vp[i].model, irf_idx[0], *(vp[i].a));
+                  model.emplace_back(n, l, (*(vp[0].a)).begin(), nmax);
+                  x[i].set_size(l);
+               }
+
+               #pragma omp parallel for
                for (int i = 0; i < s; i++)
                {
-                  model.setData(y + i * n);
+                  int thread = omp_get_thread_num();
+                  auto& xt = x[thread];
+
+                  model[thread].setData(y + i * n);
 
                   for (int j = 0; j < l; j++)
-                     x(j) = log(lin_params[j + i * lmax]);
+                     x[thread](j) = log(lin_params[j + i * lmax]);
 
                   double r =
                      dlib::find_min_trust_region(
                         dlib::objective_delta_stop_strategy(1e-7),
-                        model, x, 10);
+                        model[thread], xt, 10);
 
                   chi2[i] = 2 * r / chi2_norm;
 
                   for (int j = 0; j < l; j++)
-                     lin_params[j + i * lmax] = exp(x(j));
+                     lin_params[j + i * lmax] = exp(xt(j));
                }
 
             }
@@ -426,7 +436,7 @@ void VariableProjectionFitter::setupWeighting()
       }
    }
    
-   if (using_gamma_weighting)
+   if (using_gamma_weighting || s < 100)
    {
       for (int i = 0; i < nr; i++)
          w[i] = 1.0;
