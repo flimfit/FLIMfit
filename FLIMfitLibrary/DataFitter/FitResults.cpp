@@ -307,9 +307,11 @@ int FitResults::getParameterImage(int im, int param, uint8_t ret_mask[], float i
    float_iterator param_data;
    int span;
 
-   if (param < 0 || param >= n_output_params
-      || im    < 0 || im >= data->n_im)
-      return -1;
+   if (param < 0 || param >= n_output_params)
+      throw std::runtime_error("Invalid parameter index");
+
+   if (im < 0 || im >= data->n_im)
+      throw std::runtime_error("Invalid dataset index");
 
    // Get mask
    std::vector<mask_type>& im_mask = mask[im];
@@ -321,8 +323,7 @@ int FitResults::getParameterImage(int im, int param, uint8_t ret_mask[], float i
    int merge_regions = data->merge_regions;
    int iml = data->getImLoc(im);
    im = iml;
-   if (iml == -1)
-      return 0;
+   if (iml == -1) throw std::runtime_error("Invalid dataset index");
 
    SetNaN(image_data, n_px);
 
