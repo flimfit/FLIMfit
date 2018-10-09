@@ -229,9 +229,12 @@ void FitResults::computeRegionStats(float confidence_factor)
    stats.SetSize(n_regions, n_output_params);
    region_summary.resize(n_regions);
 
-   RegionStatsCalculator stats_calculator(n_aux, confidence_factor);
+   RegionStatsCalculator stats_calculator(confidence_factor);
    
-   std::vector<float> param_buf;
+   std::vector<float> lin_buf, nonlin_buf;
+   std::vector<size_t> linear_intensity_index, nonlinear_intensity_index;
+
+   model->getParameterIntensityIndices(linear_intensity_index, nonlinear_intensity_index);
    
    for (int im = 0; im<n_im; im++)
    {
@@ -242,16 +245,14 @@ void FitResults::computeRegionStats(float confidence_factor)
 
          if (r_idx > -1)
          {
-
             int start = data->getRegionPos(im, rg);
             int s_local = data->getRegionCount(im, rg);
             auto intensity = aux_data.begin() + start;
 
-            if (param_buf.size() < n_output_params*s_local)
-               param_buf.resize(n_output_params*s_local);
-
-            
-            //int intensity_stride = n_aux;
+            if (lin_buf.size() < n_lin_output_params*s_local)
+               lin_buf.resize(n_lin_output_params*s_local);
+            if (nonlin_buf.size() < n_nl_output_params*s_local)
+               nonlin_buf.resize(n_nl_output_params*s_local);
 
             region_summary[idx].image = data->use_im[im];
             region_summary[idx].region = rg;
@@ -259,36 +260,59 @@ void FitResults::computeRegionStats(float confidence_factor)
             region_summary[idx].iterations = ierr[r_idx];
             region_summary[idx].success = success[r_idx];
 
-            if (data->global_scope == Pixelwise)
-               region_summary[idx].success /= s_local;
+            float_iterator lin_start = lin_params.begin() + start * lmax;
 
+            // Get linear outputs
+            for (int i = 0; i<s_local; i++)
+               model->getLinearOutputs(lin_start + i * lmax, lin_buf.begin() + i * n_lin_output_params);
+
+            // Get nonlinear outputs
             int output_idx = 0;
-
             if (data->global_scope == Pixelwise)
             {
-               auto alf_group = alf.begin() + start * nl;
-             
-               for (int i = 0; i < s_local; i++)
-                  output_idx += model->getNonlinearOutputs(alf_group + i*nl, param_buf.begin() + output_idx);
+               region_summary[idx].success /= s_local;
 
-               stats_calculator.CalculateRegionStats(n_nl_output_params, s_local, param_buf.begin(), intensity, stats, idx);
+               auto alf_group = alf.begin() + start * nl;
+               for (int i = 0; i < s_local; i++)
+                  output_idx += model->getNonlinearOutputs(alf_group + i*nl, nonlin_buf.begin() + output_idx);
+
+               float_iterator intensity_it;
+               int intensity_stride;
+               for (int i = 0; i < n_nl_output_params; i++)
+               {
+                  if (nonlinear_intensity_index[i] == -1)
+                  {
+                     intensity_it = intensity;
+                     intensity_stride = n_aux;
+                  }
+                  else
+                  {
+                     intensity_it = lin_buf.begin() + nonlinear_intensity_index[i];
+                     intensity_stride = n_lin_output_params;
+                  }
+                  stats_calculator.CalculateRegionStats(s_local, nonlin_buf.begin()+i, n_nl_output_params, intensity_it, intensity_stride, stats, idx);
+               }
+
             }
             else
             {
                auto alf_group = alf.begin() + nl * r_idx;
-
-               model->getNonlinearOutputs(alf_group, param_buf.begin());
-
+               model->getNonlinearOutputs(alf_group, nonlin_buf.begin());
                for (int i = 0; i<n_nl_output_params; i++)
-                  stats.SetNextParam(idx, param_buf[i]);
+                  stats.SetNextParam(idx, nonlin_buf[i]);
             }
             
-            for(int i=0; i<s_local; i++)
-               model->getLinearOutputs(lin_params.begin() + (start+i)*lmax, param_buf.begin() + i*n_lin_output_params);
             
-            stats_calculator.CalculateRegionStats(n_lin_output_params, s_local, param_buf.begin(), intensity, stats, idx);
-            stats_calculator.CalculateRegionStats(n_aux, s_local, aux_data.begin(), intensity, stats, idx);
-            stats_calculator.CalculateRegionStats(1, s_local, chi2.begin() + start, intensity, stats, idx);
+            // Compute linear stats
+            for(int i=0; i<n_lin_output_params; i++)
+               stats_calculator.CalculateRegionStats(s_local, lin_buf.begin()+i, n_lin_output_params, lin_buf.begin() + linear_intensity_index[i], n_lin_output_params, stats, idx);
+            
+            // Compute auxillary data stats
+            for (int i = 0; i<n_aux; i++)
+               stats_calculator.CalculateRegionStats(s_local, aux_data.begin()+i, n_aux, intensity, n_aux, stats, idx);
+
+            // Compute chi stats
+            stats_calculator.CalculateRegionStats(s_local, chi2.begin() + start, 1, intensity, n_aux, stats, idx);
          }
       }
    }

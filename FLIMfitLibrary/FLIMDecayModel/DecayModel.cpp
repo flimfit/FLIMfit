@@ -571,6 +571,31 @@ const std::vector<std::shared_ptr<FittingParameter>> DecayModel::getAllParameter
 
 
 
+void DecayModel::getParameterIntensityIndices(std::vector<size_t>& linear, std::vector<size_t>& nonlinear)
+{
+   linear.clear();
+   nonlinear.clear();
+
+   for (auto& p : parameters)
+      if (p->isFittedGlobally())
+         nonlinear.push_back(-1); 
+
+   size_t n_linear = 0;
+   for (auto& g : decay_groups)
+   {
+      size_t n_group_nonlinear = g->getNonlinearOutputParamNames().size();
+      size_t n_group_linear = g->getLinearOutputParamNames().size();
+
+      for (size_t i = 0; i<n_group_nonlinear; i++)
+         nonlinear.push_back(n_linear);
+      for (size_t i = 0; i<n_group_linear; i++)
+         linear.push_back(n_linear);
+
+      n_linear += n_group_linear;
+   }
+}
+
+
 /*
 * Based on fortran77 subroutine CHKDER by
 * Burton S. Garbow, Kenneth E. Hillstrom, Jorge J. More

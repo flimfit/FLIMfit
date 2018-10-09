@@ -51,8 +51,7 @@ typedef std::vector<float>::iterator float_iterator;
 class RegionStatsCalculator
 {
 public:
-   RegionStatsCalculator(int intensity_stride, float confidence_factor) :
-      intensity_stride(intensity_stride),
+   RegionStatsCalculator(float confidence_factor) :
       confidence_factor(confidence_factor)
    {
    }
@@ -99,7 +98,7 @@ public:
    }
 
 
-   int CalculateRegionStats(int n_parameters, int region_size, const_float_iterator data, const_float_iterator intensity, RegionStats<float>& stats, int region)
+   void CalculateRegionStats(int region_size, const_float_iterator data, int data_stride, const_float_iterator intensity, int intensity_stride, RegionStats<float>& stats, int region)
    {
       if (buf.size() < region_size)
       {
@@ -107,30 +106,25 @@ public:
          I_buf.resize(region_size);
       }
 
-      for (int i = 0; i<n_parameters; i++)
+      int idx = 0;
+      for (int j = 0; j < region_size; j++)
       {
-         int idx = 0;
-         for (int j = 0; j<region_size; j++)
+         // Only include finite numbers
+         float data_ij = data[j * data_stride];
+         float intensity_ij = intensity[j*intensity_stride];
+         if (boost::math::isfinite(intensity_ij) && boost::math::isfinite(data_ij * data_ij))
          {
-            // Only include finite numbers
-            float data_ij = data[i + j*n_parameters];
-            if (boost::math::isfinite(data_ij) && boost::math::isfinite(data_ij * data_ij))
-            {
-               buf[idx] = data_ij;
-               I_buf[idx] = intensity[j*intensity_stride];
-               idx++;
-            }
+            buf[idx] = data_ij;
+            I_buf[idx] = intensity_ij;
+            idx++;
          }
-         int K = int(0.05 * idx);
-         computeStatistics(buf.begin(), intensity, idx, K, confidence_factor, stats, region);
       }
-
-      return n_parameters;
+      int K = int(0.05 * idx);
+      computeStatistics(buf.begin(), I_buf.begin(), idx, K, confidence_factor, stats, region);
    }
 
 private:
 
-   int intensity_stride;
    float confidence_factor;
 
    std::vector<float> buf; 

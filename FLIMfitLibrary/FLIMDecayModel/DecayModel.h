@@ -88,6 +88,8 @@ public:
    int getNonlinearOutputs(float_iterator nonlin_variables, float_iterator outputs);
    int getLinearOutputs(float_iterator lin_variables, float_iterator outputs);
 
+   void getParameterIntensityIndices(std::vector<size_t>& linear, std::vector<size_t>& nonlinear);
+
    int getNumNonlinearVariables();
    int getNumColumns();
    int getNumDerivatives();
