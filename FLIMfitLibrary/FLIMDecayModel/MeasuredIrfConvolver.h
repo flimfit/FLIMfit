@@ -42,10 +42,10 @@ class MeasuredIrfConvolver : public AbstractConvolver
 public:
    MeasuredIrfConvolver(std::shared_ptr<TransformedDataParameters> dp);
 
-   void compute(double rate, int irf_idx, double t0_shift);
+   void compute(double rate, int irf_idx, double t0_shift, double ref_lifetime);
 
-   void addDecay(double fact, const std::vector<double>& channel_factors, double ref_lifetime, double_iterator a) const;
-   void addDerivative(double fact, const std::vector<double>& channel_factors, double ref_lifetime, double_iterator b) const;
+   void addDecay(double fact, const std::vector<double>& channel_factors, double_iterator a) const;
+   void addDerivative(double fact, const std::vector<double>& channel_factors, double_iterator b) const;
 
 private:
 
@@ -65,6 +65,7 @@ private:
    aligned_vector<double> model_decay;
    aligned_vector<double> irf_working;
 
+   double ref_lifetime;
    int n_irf;
    std::vector<int> irf_max;
 };

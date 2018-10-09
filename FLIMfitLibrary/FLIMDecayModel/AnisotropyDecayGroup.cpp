@@ -110,7 +110,7 @@ int AnisotropyDecayGroup::setVariables(const_double_iterator param_value)
       for (int j = 0; j < n_exponential; j++)
       {
          double rate = k_decay[j] + k_theta[i];
-         anisotropy_buffer[i][j]->compute(rate, irf_idx, t0_shift);
+         anisotropy_buffer[i][j]->compute(rate, irf_idx, t0_shift, reference_lifetime);
       }
    }
 
@@ -255,7 +255,7 @@ int AnisotropyDecayGroup::addLifetimeDerivativesForAnisotropy(int j, double_iter
    for (int p = 0; p < n_anisotropy_populations; p++)
    {
       double fact = beta[j];
-      anisotropy_buffer[p][j]->addDerivative(fact, pol_channel_factors, reference_lifetime, b + col * bdim);
+      anisotropy_buffer[p][j]->addDerivative(fact, pol_channel_factors, b + col * bdim);
       col++;
    }
 
@@ -284,12 +284,12 @@ int AnisotropyDecayGroup::addContributionDerivativesForAnisotropy(double_iterato
                   double factor = beta_derv(n_beta_free, ji, qi, beta_param_values) * (1 - fixed_beta);
                   if (i == 0)
                   {
-                     buffer[q]->addDecay(factor, ss_channel_factors, reference_lifetime, b + col * bdim);
+                     buffer[q]->addDecay(factor, ss_channel_factors, b + col * bdim);
                   }
                   else if (i > 0)
                   {
                      int anisotropy_idx = i - 1;
-                     anisotropy_buffer[anisotropy_idx][q]->addDecay(factor, pol_channel_factors, reference_lifetime, b + col * bdim);
+                     anisotropy_buffer[anisotropy_idx][q]->addDecay(factor, pol_channel_factors, b + col * bdim);
                   }
                   qi++;
                }
@@ -315,7 +315,7 @@ int AnisotropyDecayGroup::addRotationalCorrelationTimeDerivatives(double_iterato
          for (int j = 0; j < n_exponential; j++)
          {
             double factor = beta[j];
-            anisotropy_buffer[p][j]->addDerivative(factor, pol_channel_factors, reference_lifetime, b + col * bdim);
+            anisotropy_buffer[p][j]->addDerivative(factor, pol_channel_factors, b + col * bdim);
          }
 
          col++;

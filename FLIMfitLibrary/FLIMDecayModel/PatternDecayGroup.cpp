@@ -52,8 +52,8 @@ void PatternDecayGroup::compute()
 
       for (int j = 0; j < n_exp; j++)
       {
-         buffer->compute(1 / pattern[i].tau[j], irf_idx, t0_shift);
-         buffer->addDecay(pattern[i].beta[j], channel_factors, reference_lifetime, decay.begin());
+         buffer->compute(1 / pattern[i].tau[j], irf_idx, t0_shift, reference_lifetime);
+         buffer->addDecay(pattern[i].beta[j], channel_factors, decay.begin());
       }
    }
 

@@ -182,7 +182,7 @@ GaussianIrfConvolver::GaussianIrfConvolver(std::shared_ptr<TransformedDataParame
 };
 
 
-void GaussianIrfConvolver::compute(double rate_, int irf_idx, double t0_shift)
+void GaussianIrfConvolver::compute(double rate_, int irf_idx, double t0_shift, double ref_lifetime)
 {
    // Don't compute if rate is the same
    if (rate_ == rate)
@@ -198,14 +198,14 @@ void GaussianIrfConvolver::compute(double rate_, int irf_idx, double t0_shift)
 
 }
 
-void GaussianIrfConvolver::addDecay(double fact, const std::vector<double>& channel_factors, double ref_lifetime, double_iterator decay) const
+void GaussianIrfConvolver::addDecay(double fact, const std::vector<double>& channel_factors, double_iterator decay) const
 {
    auto& t = dp->getTimepoints();
    for (int k = 0; k < n_chan; k++)
       convolver[k].addDecay(fact * channel_factors[k], decay + k*n_t);
 }
 
-void GaussianIrfConvolver::addDerivative(double fact, const std::vector<double>& channel_factors, double ref_lifetime, double_iterator derv) const
+void GaussianIrfConvolver::addDerivative(double fact, const std::vector<double>& channel_factors, double_iterator derv) const
 {
    auto& t = dp->getTimepoints();
    for (int k = 0; k < n_chan; k++)

@@ -51,12 +51,14 @@ MeasuredIrfConvolver::MeasuredIrfConvolver(std::shared_ptr<TransformedDataParame
    calculateIRFMax();
 };
 
-void MeasuredIrfConvolver::compute(double rate_, int irf_idx, double t0_shift)
+void MeasuredIrfConvolver::compute(double rate_, int irf_idx, double t0_shift, double ref_lifetime_)
 {
    // Don't compute if rate is the same
    if (rate_ == rate)
       return;
   
+   ref_lifetime = ref_lifetime_;
+
    if (!std::isfinite(rate_))
       throw(std::runtime_error("Rate not finite"));
       
@@ -218,7 +220,7 @@ void MeasuredIrfConvolver::convolveDerivative(double t, int k, int i, double pul
 
 
 
-void MeasuredIrfConvolver::addDecay(double fact, const std::vector<double>& channel_factors, double ref_lifetime, double_iterator a) const
+void MeasuredIrfConvolver::addDecay(double fact, const std::vector<double>& channel_factors, double_iterator a) const
 {
    double c;
 
@@ -243,7 +245,7 @@ void MeasuredIrfConvolver::addDecay(double fact, const std::vector<double>& chan
    }
 }
 
-void MeasuredIrfConvolver::addDerivative(double fact, const std::vector<double>& channel_factors, double ref_lifetime, double_iterator b) const
+void MeasuredIrfConvolver::addDerivative(double fact, const std::vector<double>& channel_factors, double_iterator b) const
 {
    double c;
 

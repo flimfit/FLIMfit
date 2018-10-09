@@ -252,7 +252,7 @@ int MultiExponentialDecayGroupPrivate::setVariables(const_double_iterator param_
    }
    */
    for (int i = 0; i < n_exponential; i++)
-      buffer[i]->compute(k_decay[i], irf_idx, t0_shift); // TODO: only when changed
+      buffer[i]->compute(k_decay[i], irf_idx, t0_shift, reference_lifetime); // TODO: only when changed
 
    // Get contributions
    if (contributions_global)
@@ -393,7 +393,7 @@ int MultiExponentialDecayGroupPrivate::addDecayGroup(const std::vector<std::shar
          addIRF(irf_buf.begin(), irf_idx, t0_shift, a + col*adim, channel_factors);
 
       double c_factor = contributions_global ? beta[j] : 1;
-      buffers[j]->addDecay(factor * c_factor, channel_factors, reference_lifetime, a + col*adim);
+      buffers[j]->addDecay(factor * c_factor, channel_factors, a + col*adim);
 
       if (!contributions_global)
          col++;
@@ -432,7 +432,7 @@ int MultiExponentialDecayGroupPrivate::addLifetimeDerivative(int idx, double_ite
       double fact = 1;
       fact *= contributions_global ? beta[idx] : 1;
 
-      buffer[idx]->addDerivative(fact, channel_factors, reference_lifetime, b);
+      buffer[idx]->addDerivative(fact, channel_factors, b);
       return 1;
    }
    
@@ -461,7 +461,7 @@ int MultiExponentialDecayGroupPrivate::addContributionDerivatives(double_iterato
                if (!beta_parameters[k]->isFixed())
                {
                   double factor = beta_derv(n_beta_free, ji, ki, beta_param_values) * (1-fixed_beta);
-                  buffer[k]->addDecay(factor, norm_channel_factors, reference_lifetime, b + col*bdim);
+                  buffer[k]->addDecay(factor, norm_channel_factors, b + col*bdim);
                   ki++;
                }
 
