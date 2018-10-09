@@ -40,7 +40,7 @@ classdef flim_project_controller < flim_data_series_observer
             
             serialise_object(data_info,[folder 'data.xml'],'data_info');
             
-            if isempty(d.seg_mask)
+            if ~isempty(d.seg_mask)
                 mkdir([folder 'segmentation']);
                 for i=1:d.n_datasets
                     file = [folder 'segmentation' filesep d.names{i} ' segmentation.tif'];
@@ -85,7 +85,9 @@ classdef flim_project_controller < flim_data_series_observer
             if isfolder([folder 'segmentation'])
                 for i=1:d.n_datasets
                     file = [folder 'segmentation' filesep d.names{i} ' segmentation.tif'];
-                    d.seg_mask(:,:,i) = imread(file);
+                    if exist(file,'file')   
+                        d.seg_mask(:,:,i) = imread(file);
+                    end
                 end
             end
 
