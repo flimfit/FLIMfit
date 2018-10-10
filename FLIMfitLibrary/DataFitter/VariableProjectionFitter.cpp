@@ -349,11 +349,11 @@ void VariableProjectionFitter::fitFcn(int nl, std::vector<double>& initial, int&
                for (int i = 0; i < n_thread; i++)
                {
                   getModel(vp[i].model, irf_idx[0], *(vp[i].a));
-                  model.emplace_back(n, l, (*(vp[0].a)).begin(), nmax);
+                  model.emplace_back(n, l, (*(vp[i].a)).begin(), nmax);
                   x[i].set_size(l);
                }
 
-               #pragma omp parallel for
+               #pragma omp parallel for num_threads(n_thread)
                for (int i = 0; i < s; i++)
                {
                   int thread = omp_get_thread_num();
