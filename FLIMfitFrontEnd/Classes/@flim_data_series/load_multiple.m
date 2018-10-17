@@ -76,12 +76,14 @@ function load_multiple(obj, polarisation_resolved, data_setting_file, channels)
 
     % Extract metadata 
     if isempty(obj.metadata)
-        metadata.Z = num2cell(repmat(Z(:),[n_images 1]))';
+        metadata = struct();
+        metadata.Z = repmat(Z(:),[n_images 1]);
         if ~all(C == -1)
-            metadata.C = repmat(chan_info(C),[n_images 1])';
+            metadata.C = repmat(chan_info(C),[n_images 1]);
         end
-        metadata.T = num2cell(repmat(Z(:),[n_images 1]))';   
-        obj.metadata = extract_metadata(names,metadata);
+        metadata.T = repmat(Z(:),[n_images 1]);   
+        metadata = extract_metadata(names',metadata);
+        obj.metadata = struct2table(metadata);
     end
     
     obj.n_datasets = n_images * images_per_file;

@@ -29,20 +29,17 @@ classdef (Abstract) flim_fit_result < handle
     
     properties
         
-        regions;
-        region_size;
         image_size;
         
-        image;
-        image_stats;
-        region_stats;
+        image_stats struct;
+        region_stats struct;
         
         n_regions;
         
-        chi2;
-        ierr;
-        iterations;
-        success;
+%        chi2;
+%        ierr;
+%        iterations;
+%        success;
         
         names;
         metadata;
@@ -80,10 +77,83 @@ classdef (Abstract) flim_fit_result < handle
     
     
     methods (Abstract)
-        [param_data, mask] = get_image(obj,dataset,param,indexing)
+        [param_data, mask] = get_image_result_indexing(obj,dataset,param)
     end
     
     methods
+        
+        function update_default_lims(obj)
+           
+            pct_01 = table2array(obj.region_stats.pct_01);
+            pct_99 = table2array(obj.region_stats.pct_99);
+
+            pct_01 = pct_01(:,6:end);
+            pct_99 = pct_99(:,6:end);
+
+            lims(:,1) = nanmin(pct_01,[],1);
+            lims(:,2) = nanmax(pct_99,[],1);
+            obj.default_lims = lims;
+
+        end
+        
+        function [param_data, mask] = get_image(obj,dataset,param,indexing)
+            param_data = 0;
+            mask = 0;
+            
+            if nargin < 4 || strcmp(indexing,'result')
+                idx = dataset;
+            else
+                idx = find(obj.metadata.image == dataset);
+            end
+            
+            [param_data,mask] = get_image_result_indexing(obj,dataset,param);
+        end
+        
+        function save(obj,file)
+           
+            if exist(file,'file')
+                delete(file);
+            end
+                
+            meta_fields = obj.metadata.Properties.VariableNames;
+
+            for i=1:obj.n_results
+
+                result_root = ['/results/image ' num2str(i)];
+
+                for j=1:length(obj.params)
+                    dataset_name = [result_root '/' obj.params{j} '/'];
+                    im = obj.get_image(i,j,'result');
+                    h5create(file,dataset_name,size(im),'DataType','single','Deflate',2,'ChunkSize',[256 256]);
+                    h5write(file,dataset_name,im);
+                    h5writeatt(file,dataset_name,'GroupIndex',obj.group_idx(j));
+                    h5writeatt(file,dataset_name,'Index',j);
+                end
+
+                h5writeatt(file,result_root,'Name',obj.names{i});
+
+                for j=1:length(meta_fields)
+                    v = obj.metadata{i,j};
+                    if iscell(v)
+                        v = v{1};
+                    end
+                    h5writeatt(file,result_root,meta_fields{j},v);                    
+                end
+                
+            end
+            
+            h5writeatt(file,'/results/','Width',obj.width);
+            h5writeatt(file,'/results/','Height',obj.height);
+                        
+            for j=1:length(obj.stat_names)
+                stat_root = ['/stats/' obj.stat_names{j} '/'];
+                h5_writetable(file,stat_root,obj.region_stats.(obj.stat_names{j}));
+                h5writeatt(file,stat_root,'Index',j);
+            end
+            
+            h5_writetable(file,'/metadata/',obj.metadata);
+
+        end
         
         function set_param_names(obj,params,group_idx)
             obj.params = params;
@@ -96,29 +166,32 @@ classdef (Abstract) flim_fit_result < handle
                 lp = strrep(lp,'mean_tau','mean tau');
                 lp = strrep(lp,'w_mean','weighted mean');
                 lp = strrep(lp,'r_ss','r_{ss}');
+                lp = regexprep(lp,'G(\d+)_','G\1 ');
                 
                 obj.latex_params{i} = lp;
             end
             
         end
-        
+                
         function set_results(obj,idx,im,regions,region_size,success,iterations,stats,names)
             
             region_size = double(region_size);
             stats = double(stats);
             
-            
-            % Set statistics by region
-            obj.regions{idx} = regions;
-            obj.image(idx) = im;
-            obj.region_size{idx} = region_size;
-            
-            for i=1:length(names)
-                r_stats.(names{i}) = stats(:,:,i);
+            if isempty(obj.region_stats)
+               variable_names = [{'image','region','pixels'} obj.params];
+               for i=1:length(names)
+                  obj.region_stats.(names{i}) = array2table(zeros([0,length(variable_names)]),'VariableNames',variable_names); 
+               end
             end
             
-            obj.region_stats{idx} = r_stats;
-            
+            initial_data = [repmat(im,[length(regions),1]) regions region_size];
+                        
+            for i=1:length(names)
+                new_rows = [initial_data stats(:,:,i)];
+                obj.region_stats(names{i}) = [obj.region_stats(names{i}); new_rows];
+            end
+                        
             % Calculate image wise statistics
             [M,S] = combine_stats(r_stats.mean,r_stats.std,region_size);
             [w_M,w_S,N] = combine_stats(r_stats.w_mean,r_stats.w_std,region_size);
@@ -175,6 +248,7 @@ classdef (Abstract) flim_fit_result < handle
         function params = fit_param_list(obj)
             params = obj.params;
         end
+        
         
         
         % Some hideous OMERO stuff
@@ -304,33 +378,7 @@ function img = get_image(obj,dataset,param)
         end
         
         
-function save(obj,file)
-           
-            if exist(file,'file')
-                delete(file);
-            end
-                
-            if obj.use_memory_mapping
-                
-                copyfile(obj.file,file);
-                
-            else
 
-                for i=1:obj.n_results
-
-                    im = obj.images{i};
-                    fields = fieldnames(im);
-
-                    for j=1:length(fields)
-                        dataset_name = ['/' obj.names{i} '/' fields{j}];
-                        h5create(file,dataset_name,size(im.(fields{j})));
-                        h5write(file,dataset_name,im.(fields{j}));
-                    end
-
-                end
-
-            end;
-        end
 
 function load(obj,file)
 

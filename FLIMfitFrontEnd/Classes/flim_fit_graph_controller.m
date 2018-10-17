@@ -58,7 +58,7 @@ classdef flim_fit_graph_controller < abstract_plot_controller
         function ind_param_select_update(obj,~,~)
             idx = get(obj.graph_independent_popupmenu,'Value');
             r = obj.result_controller.fit_result;            
-            ind_vars = fieldnames(r.metadata);
+            ind_vars = r.metadata.Properties.VariableNames;
             if idx > length(ind_vars) || idx == 0
                 idx = 1;
                 set(obj.graph_independent_popupmenu,'Value',idx);
@@ -94,7 +94,6 @@ classdef flim_fit_graph_controller < abstract_plot_controller
             
             param = obj.cur_param;
             
-            
             error_type = get(obj.error_type_popupmenu,'Value');
             grouping = get(obj.graph_grouping_popupmenu,'Value');
             display = get(obj.graph_display_popupmenu,'Value');
@@ -114,27 +113,23 @@ classdef flim_fit_graph_controller < abstract_plot_controller
                 f = obj.result_controller;  
                 r = f.fit_result;
                 
-                err_name = [param '_err'];
-
-                if ~any(strcmp(obj.param_list,err_name))
-                    err_name = [];
-                end               
+                data = join(r.region_stats.w_mean,r.metadata,'Key','image');
                                 
                 % Get values for the selected parameter
-                md = r.metadata.(obj.ind_param);
-
-                % Reject images which don't have metadata for this parameter
-                empty = cellfun(@isempty,md);
-                sel = ~empty;
-                
-                md = md(sel);
+                md = data.(obj.ind_param);
                    
                 % Determine if we've got a numeric parameter
-                var_is_numeric = all(cellfun(@isnumeric,md));
+                var_is_numeric = isnumeric(md);
+                
+                param_name = obj.param_list{obj.cur_param};
+                
+                vars = {param_name, obj.ind_param};
+
+                %data = data(:,vars);
                 
                 % Determine unique parameters
+                %{
                 if var_is_numeric
-                    md = cell2mat(md);
                     x_data = md;
                     x_data = unique(x_data);
                     x_data = sort(x_data);
@@ -147,7 +142,20 @@ classdef flim_fit_graph_controller < abstract_plot_controller
                     x_data = unique(md);
                     x_data = sort_nat(x_data);
                 end
-
+                %}
+                
+                [v,ivar] = unstack(data,param_name,obj.ind_param,'GroupingVariables',{},'AggregationFunction',@mean);
+                [err] = unstack(data,param_name,obj.ind_param,'GroupingVariables',{},'AggregationFunction',@std);
+                x_data = unique(data.(obj.ind_param));
+                
+                y_data = table2array(v);
+                
+                y_mean = y_data;
+                
+                y_err_disp = table2array(err);
+                
+                
+                %{
                 y_scatter = [];
                 x_scatter = [];
                 f_scatter = [];
@@ -188,7 +196,7 @@ classdef flim_fit_graph_controller < abstract_plot_controller
                                 end
                             else
                                 ym = [ym r.region_stats{j}.(mean_param)(param,:)];
-                                ys = [ys r.region_stats{j}.(std_param)(param,:)];
+                                    ys = [ys r.region_stats{j}.(std_param)(param,:)];
                                 yn = [yn r.region_size{j}];
                                 if isfield(r.metadata,'FOV')
                                     yf = [yf repmat(r.metadata.FOV(x_sel(idx)),1,length(r.regions{j}))];
@@ -276,6 +284,7 @@ classdef flim_fit_graph_controller < abstract_plot_controller
                     case 3
                         y_err_disp = y_conf;
                 end
+                %}
                 
                 hs = 0;
                 if var_is_numeric
@@ -355,7 +364,7 @@ classdef flim_fit_graph_controller < abstract_plot_controller
                 if isnumeric(x_data) && all(~isnan(x_data)) && length(x_data) > 1 && display < 3
                     set(ax,'XLim',[nanmin(x_data) nanmax(x_data)])
                 end
-                
+                %{
                 obj.raw_data = [cell_x_data; num2cell(y_mean); num2cell(y_std); num2cell(y_err); num2cell(y_conf); num2cell(y_n)]';
        
                 switch grouping
@@ -371,7 +380,7 @@ classdef flim_fit_graph_controller < abstract_plot_controller
                
                 
                 obj.raw_data = [{obj.ind_param [r.params{param} ' ' g ' mean'] 'std dev' 'std err' '95% conf' 'count'}; obj.raw_data]; 
-                
+                %}
                 ylabel(ax,r.latex_params{param});
                 xlabel(ax,obj.ind_param);
                 set(ax,'Box','off','TickDir','out')

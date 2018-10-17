@@ -37,7 +37,7 @@ function [fig,im_data,lims] = plot_figure2(obj,dataset,im,merge,options,indexing
         
     param = r.params{im};
     
-    if contains(param,' I') || strcmp(param,'I') 
+    if contains(param,'_I_') || strcmp(param,'I') 
         cscale = @gray;
     elseif invert && (contains(param,'tau') || contains(param,'theta'))
         cscale = @inv_jet;

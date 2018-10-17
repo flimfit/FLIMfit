@@ -2,6 +2,7 @@ classdef flim_project_controller < flim_data_series_observer
    
     properties
         fit_controller;
+        result_controller;
         model_controller;
         fitting_params_controller;
     end
@@ -54,6 +55,10 @@ classdef flim_project_controller < flim_data_series_observer
             
             obj.fitting_params_controller.save([folder 'fit_settings.xml']);
             obj.model_controller.save([folder 'fit_model.xml']);
+            
+            if (~isempty(obj.result_controller.fit_result))
+                obj.result_controller.fit_result.save([folder 'fit_results.hdf5']);
+            end
         end
         
         function load(obj,folder)
@@ -96,6 +101,11 @@ classdef flim_project_controller < flim_data_series_observer
             
             obj.fitting_params_controller.load([folder 'fit_settings.xml']);
             obj.model_controller.load([folder 'fit_model.xml']);
+            
+            result_file = [folder 'fit_results.hdf5'];
+            if isfile(result_file)
+                obj.result_controller.load(result_file)
+            end
             
         end
         

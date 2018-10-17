@@ -362,9 +362,6 @@ classdef flim_data_decay_view < handle & abstract_display_controller ...
                 xlim(ra,obj.xlim_residual);
             end
 
-            if first_call
-                dragzoom([ha ra],'on',@obj.get_axis_lims)
-            end
             if ~export_plot
                 set(ha,'uicontextmenu',obj.contextmenu);
                 set(ra,'uicontextmenu',obj.contextmenu);

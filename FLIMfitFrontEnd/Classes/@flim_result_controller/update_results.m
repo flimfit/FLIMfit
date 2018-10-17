@@ -25,9 +25,6 @@ function update_results(obj,~,~)
 
     % Author : Sean Warren
 
-    
-    obj.fit_result = obj.fit_controller.fit_result;
-    
     if ishandle(obj.table_stat_popupmenu)
         set(obj.table_stat_popupmenu,'String',obj.fit_result.stat_names);
     end

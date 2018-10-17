@@ -131,7 +131,7 @@ classdef flim_data_intensity_view < handle & flim_data_series_observer
                     
                     intensity = intensity(:,:,2) ./ intensity(:,:,1);
                     lim = prctile(intensity(isfinite(intensity)),[0.05 95]);
-                    
+                    flt = intensity;
                     cmap = jet(m-1);
                 end
                 

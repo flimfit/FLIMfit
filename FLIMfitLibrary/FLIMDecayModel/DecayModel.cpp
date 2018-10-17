@@ -216,7 +216,7 @@ void DecayModel::getOutputParamNames(std::vector<std::string>& param_names, std:
 
    for (int i=0; i<decay_groups.size(); i++)
    {
-      std::string prefix = "[" + std::to_string(i+1) + "] ";
+      std::string prefix = "G" + std::to_string(i+1) + "_";
       auto group_param_names = decay_groups[i]->getNonlinearOutputParamNames();
       for (auto& name : group_param_names)
       {
@@ -229,7 +229,7 @@ void DecayModel::getOutputParamNames(std::vector<std::string>& param_names, std:
 
    for (int i = 0; i<decay_groups.size(); i++)
    {
-      std::string prefix = "[" + std::to_string(i+1) + "] ";
+      std::string prefix = "G" + std::to_string(i+1) + "_";
       auto group_param_names = decay_groups[i]->getLinearOutputParamNames();
       for (auto& name : group_param_names)
       {

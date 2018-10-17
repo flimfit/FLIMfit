@@ -47,7 +47,7 @@ function handles = add_plotter_display_panel(obj,handles,parent)
                'HorizontalAlignment', 'right' );
     
     handles.graph_grouping_popupmenu = uicontrol( 'Style', 'popupmenu', ...
-            'String', {'By Pixel' 'By Region' 'By FOV' 'By Well'}, 'Parent', param_layout );       
+            'String', {'By Pixel' 'By Region' 'By Well'}, 'Parent', param_layout );       
     handles.graph_weighting_popupmenu = uicontrol( 'Style', 'popupmenu', ...
             'String', {'None','Intensity Weighted'}, 'Parent', param_layout );       
         

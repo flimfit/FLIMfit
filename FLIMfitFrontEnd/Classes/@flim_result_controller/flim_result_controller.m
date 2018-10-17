@@ -96,7 +96,7 @@ classdef flim_result_controller < flim_data_series_observer
             end
             
             if ~isempty(obj.fit_controller)
-                addlistener(obj.fit_controller,'fit_updated',@(~,~) EC(@obj.update_results));
+                addlistener(obj.fit_controller,'fit_updated',@(~,~) EC(@obj.fit_result_updated));
             end
             
             if ~isempty(obj.plot_select_table)
@@ -124,6 +124,16 @@ classdef flim_result_controller < flim_data_series_observer
             
         end
         
+        function fit_result_updated(obj)    
+            obj.fit_result = obj.fit_controller.fit_result;
+            obj.update_results();
+        end
+        
+        function load(obj,file)
+            obj.fit_result = flim_fit_result_hdf5(file);
+            obj.update_results();
+        end
+        
         function fit_params_updated(obj)
             obj.fit_params = obj.fitting_params_controller.fit_params;
             obj.has_fit = false;
@@ -147,7 +157,7 @@ classdef flim_result_controller < flim_data_series_observer
             end
             
             param_name = obj.fit_result.params{param};
-            if contains(param_name,' I') || strcmp(param_name,'I')
+            if contains(param_name,'_I_') || strcmp(param_name,'I')
                 param_data = obj.normalise_intensity(param_data,im,indexing);
             end
             
@@ -178,7 +188,7 @@ classdef flim_result_controller < flim_data_series_observer
         
         function param_data = normalise_intensity(obj,param_data,im,indexing)
             if strcmp(indexing,'result')
-                im = obj.fit_result.image(im);
+                im = obj.fit_result.metadata.image(im);
             end
             norm = obj.data_series_controller.data_series.intensity_normalisation;
             if ~isempty(norm)
@@ -189,7 +199,7 @@ classdef flim_result_controller < flim_data_series_observer
         
         function lims = get_cur_lims(obj,param)
             if ischar(param)
-                param_idx = strcmp(obj.params,param);
+                param_idx = strcmp(obj.fit_result.params,param);
                 param = find(param_idx);
             end
             
@@ -204,7 +214,7 @@ classdef flim_result_controller < flim_data_series_observer
                 match = strcmp(obj.fit_result.params,'I');
                 idx = find(match,1);
             else
-                match = strcmp(obj.fit_result.params,['[' num2str(group) '] I_0']);
+                match = strcmp(obj.fit_result.params,['G' num2str(group) '_I_0']);
                 idx = find(match,1);
             end
         end

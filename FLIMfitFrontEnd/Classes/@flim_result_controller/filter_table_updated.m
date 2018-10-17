@@ -88,17 +88,17 @@ function filter_table_updated(obj,~,~)
         
     end
 
-    nempty = cell2mat(obj.fit_result.image_size);
-    nempty = nempty > 0;
+    %nempty = cell2mat(obj.fit_result.image_size);
+    %nempty = nempty > 0;
     
     new_selected = 1:obj.fit_result.n_results;
-    new_selected = new_selected(sel & nempty);
+    new_selected = new_selected(sel);
 
     changed = length(new_selected)~=length(obj.selected) || ~all(new_selected==obj.selected);
        
     obj.selected = new_selected;
     
     if changed
-        notify(obj,'fit_display_updated');
+        notify(obj,'result_display_updated');
     end
 end

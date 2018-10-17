@@ -141,7 +141,7 @@ classdef abstract_plot_controller < abstract_display_controller
             param = obj.result_controller.fit_result.params{param};
             invert = obj.result_controller.invert_colormap;
             
-            if contains(param,' I') || strcmp(param,'I') 
+            if contains(param,'_I_') || strcmp(param,'I') 
                 cscale = @gray;
             elseif invert && (contains(param,'tau') || contains(param,'theta'))
                 cscale = @inv_jet;

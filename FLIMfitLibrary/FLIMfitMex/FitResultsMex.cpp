@@ -85,11 +85,11 @@ void getImageStats(std::shared_ptr<FitResults> r, int nlhs, mxArray *plhs[], int
    uint num_regions = summary.size();
 
    plhs[0] = mxCreateStructMatrix(1, 1, 5, labels);
-   mxArray* image = mxCreateDoubleMatrix(1, num_regions, mxREAL);
-   mxArray* region = mxCreateDoubleMatrix(1, num_regions, mxREAL);
-   mxArray* size = mxCreateDoubleMatrix(1, num_regions, mxREAL);
-   mxArray* iterations = mxCreateDoubleMatrix(1, num_regions, mxREAL);
-   mxArray* success = mxCreateDoubleMatrix(1, num_regions, mxREAL);
+   mxArray* image = mxCreateDoubleMatrix(num_regions, 1, mxREAL);
+   mxArray* region = mxCreateDoubleMatrix(num_regions, 1, mxREAL);
+   mxArray* size = mxCreateDoubleMatrix(num_regions, 1, mxREAL);
+   mxArray* iterations = mxCreateDoubleMatrix(num_regions, 1, mxREAL);
+   mxArray* success = mxCreateDoubleMatrix(num_regions, 1, mxREAL);
 
    mxSetFieldByNumber(plhs[0], 0, 0, image);
    mxSetFieldByNumber(plhs[0], 0, 1, region);

@@ -105,27 +105,21 @@ classdef flim_data_series_list < handle & flim_data_series_observer
         function data_update(obj)
             if ishandle(obj.handle)
                 if ~isempty(obj.data_series) && obj.data_series.init 
-         
-                    headers = fieldnames(obj.data_series.metadata);
+                             
+                    checked = table(obj.data_series.use,'VariableNames',{'Use'});
+                    data = obj.data_series.metadata;
 
-                    fields = struct2cell(obj.data_series.metadata);
+                    n_field = size(data,2);
+                    data = [checked data];
+                    
+                    headers = data.Properties.VariableNames;
+                    data = table2cell(data);
 
-                    for f=1:length(fields)
-                        data(f,:) = fields{f};
-                    end
-                    
-                    n_datasets = obj.data_series.n_datasets;
-                    n_field = size(data,1);
-                    
-                    checked = num2cell(obj.data_series.use);
-
-                    
-                    set(obj.handle,'Data',[checked data']);
-                    set(obj.handle,'ColumnName',[' '; headers]);
+                    set(obj.handle,'Data',data);
+                    set(obj.handle,'ColumnName',headers);
                     
                     fmt = [{'logical'} repmat({'char'},[1,n_field])];
                     set(obj.handle,'ColumnFormat',fmt);
-                    
                     
                     edit = [true false(1,n_field)];
                     set(obj.handle,'ColumnEditable',edit);

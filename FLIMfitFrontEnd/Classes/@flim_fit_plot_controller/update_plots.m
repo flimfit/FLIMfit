@@ -47,10 +47,10 @@ function update_plots(obj,file_root)
         save = false;
     end
 
-    if ~save && ~any(r.datasets == obj.dataset_selected)
-        cla(obj.plot_axes);
-        return
-    end
+    %if ~save && ~any(r.datasets == obj.dataset_selected)
+    %    cla(obj.plot_axes);
+    %    return
+    %end
     
     n = ceil(sqrt(f.n_plots));   
     m = ceil(f.n_plots/n);

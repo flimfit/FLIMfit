@@ -33,13 +33,14 @@ function fit_complete(obj,~,~)
         obj.wait_handle.Indeterminate = true;
     end
     
+    obj.fit_in_progress = false;
+    obj.terminating = false;
+    
     obj.fit_result = obj.dll_interface.get_fit_result();
     
     obj.display_fit_end();
 
     obj.has_fit = true;
-    obj.fit_in_progress = false;
-    obj.terminating = false;
             
     t_exec = toc(obj.start_time);    
     disp(['Total execution time: ' num2str(t_exec)]);

@@ -56,8 +56,8 @@ try
         if ~isempty(tokens)
             add_class('Rep1');
             add_class('Rep2');
-            metadata.Rep1{i} = str2double(tokens{1});
-            metadata.Rep2{i} = str2double(tokens{2});
+            metadata.Rep1{i} = tokens{1};
+            metadata.Rep2{i} = tokens{2};
             
             s = strrep(s,match,'');
         end
@@ -117,6 +117,7 @@ try
             t = tokens{j};
             add_class(t{1})
             t{2} = strrep(t{2},'_','.');
+            t{2} = strrep(t{2},'-','.');
             if strcmp(t{2},'')
                 if ~isempty(t{3})
                     metadata.(t{1}){i} = t{3};
@@ -133,6 +134,7 @@ try
         for j=1:length(tokens)
             t = tokens{j};
             t{1} = strrep(t{1},'_','.');
+            t{1} = strrep(t{1},'-','.');
             add_class(t{2})
             metadata.(t{2}){i} = t{1};
             
@@ -144,13 +146,14 @@ try
         for j=1:length(tokens)
             t = tokens{j};
             t{2} = strrep(t{2},'_','.');
+            t{2} = strrep(t{2},'-','.');
             add_class(t{1})
             metadata.(t{1}){i} = t{2};
             
             s = strrep(s,match{j},'');
         end
         
-        new_strings{i} = s;
+        new_strings{i,1} = s;
         
         common_substring = commonsubstring(common_substring,s);
         
@@ -175,7 +178,7 @@ try
         metadata.FileName = new_strings;
     end
     
-    metadata.ImgNum = num2cell(1:n);
+    metadata.image = (1:n)';
     
     
     names = fieldnames(metadata);
@@ -186,15 +189,16 @@ try
        
         try
             nums = cellfun(@str2num,d,'UniformOutput',true);
-            metadata.(names{j}) = num2cell(nums);  
+            metadata.(names{j}) = nums;  
         catch %#ok
+            d(cellfun(@isempty,d)) = {''};
             metadata.(names{j}) = d;  
         end
     end
     
     % put rep fields at end
     fields = fieldnames(metadata);
-    sel = ~cellfun(@isempty,strfind(fields,'Rep'));
+    sel = contains(fields,'Rep');
     [~,idx] = sort(sel);
     ord = 1:length(fields);
     metadata = orderfields(metadata,ord(idx));
@@ -208,7 +212,7 @@ end
 
     function add_class(class)
         if ~isfield(metadata,class)
-            metadata.(class) = cell(1,n);
+            metadata.(class) = cell(n,1);
         end
     end
 

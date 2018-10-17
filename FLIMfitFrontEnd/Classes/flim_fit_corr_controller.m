@@ -98,7 +98,9 @@ classdef flim_fit_corr_controller < abstract_plot_controller
                 sel = f.selected;
                 indexing = 'result';
             end
-                                    
+                
+            param_name = obj.param_list(param);
+            
             cla(ax)
             if ~isempty(obj.result_controller.fit_result) && all(param > 0)
                 
@@ -107,9 +109,10 @@ classdef flim_fit_corr_controller < abstract_plot_controller
                 param_weight = [];
                 
                 md = {};
-                for i=1:length(sel)
+
+                if display == 1 % Pixels
+                    for i=1:length(sel)
                     
-                    if display == 1 % Pixels
                         new_x = f.get_image(sel(i),param(1),indexing);
                         new_y = f.get_image(sel(i),param(2),indexing);
                         new_weight_x = f.get_intensity(sel(i),param(1),indexing);
@@ -120,19 +123,19 @@ classdef flim_fit_corr_controller < abstract_plot_controller
                         new_x = new_x(filt);
                         new_y = new_y(filt);
                         new_weight = sqrt(new_weight_x(filt) .* new_weight_y(filt));
-                    else % Regions
-                        new_x = r.region_stats{sel(i)}.mean(param(1),:)';
-                        new_y = r.region_stats{sel(i)}.mean(param(2),:)';
-                        new_weight = ones(size(new_x));
-                    end
                     
-                    param_data_x = [param_data_x; new_x];
-                    param_data_y = [param_data_y; new_y];
-                    param_weight = [param_weight; new_weight];
-                    
-                    if display == 2 &&  ~strcmp(obj.ind_param,'-')  
-                        md = [md r.metadata.(obj.ind_param)(sel(i))];
+                        param_data_x = [param_data_x; new_x];
+                        param_data_y = [param_data_y; new_y];
+                        param_weight = [param_weight; new_weight];
+
+                        if display == 2 &&  ~strcmp(obj.ind_param,'-')  
+                            md = [md r.metadata.(obj.ind_param)(sel(i))];
+                        end
                     end
+                else % Regions
+                    param_data_x = r.region_stats.mean.(param_name{1}); %{sel(i)}.mean(param(1),:)';
+                    param_data_y = r.region_stats.mean.(param_name{2}); %{sel(i)}.mean(param(2),:)';
+                    param_weight = ones(size(param_data_x));
                 end
                                 
                 x_lim = f.get_cur_lims(param(1));

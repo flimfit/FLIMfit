@@ -36,7 +36,7 @@ methods
     
     function obj = flim_fit_result_mex(ptr, data_series, datasets)
 
-        obj.datasets = datasets;
+        obj.datasets = reshape(datasets,[length(datasets),1]);
         obj.smoothing = (2*data_series.binning+1)^2;
         
         obj.width = data_series.width;
@@ -50,10 +50,23 @@ methods
 
         names = {'mean','w_mean','std','w_std','median','q1','q2','pct_01','pct_99','err_l','err_u'};
         obj.stat_names = names;
+        
+        % Translate subset image -> real image
+        summary.image = obj.datasets(summary.image + 1,1);
+        
+        initial_table = struct2table(summary);
+            
+        obj.region_stats = struct();
+        for i=1:size(stats,1)
+            statsi = stats(i,:,:);
+            statsi = permute(statsi,[3 2 1]);
+            statsi = array2table(statsi,'VariableNames',obj.params);
+            obj.region_stats.(names{i}) = [initial_table statsi];
+        end
 
+        %{
         keep = true(size(obj.datasets));
         idx = 1;
-        
         % Get results for each image
         for i = 1:length(obj.datasets)
             im = obj.datasets(i);
@@ -75,41 +88,34 @@ methods
                 keep(i) = false;
             end
         end
-
         obj.datasets = obj.datasets(keep);
+        %}
 
         % Get metadata for the datasets we've just fit
-        md = data_series.metadata;
-        fields = fieldnames(md);
-        for i=1:length(fields)
-            f = md.(fields{i});
-            md.(fields{i}) = f(obj.image);
-        end
-        obj.metadata = md;
-
+        obj.metadata = data_series.metadata(obj.datasets,:);
         obj.names = data_series.names(obj.datasets);
+        obj.n_results = length(obj.datasets);
+        
+        obj.update_default_lims();
+        
+        %{
+        pct_01 = table2array(obj.region_stats.pct_01);
+        pct_99 = table2array(obj.region_stats.pct_99);
+        
+        pct_01 = pct_01(:,6:end)';
+        pct_99 = pct_99(:,6:end)';
+        
+        lims(:,1) = nanmin(obj.default_lims(:,1),nanmin(pct_01,[],2));
+        lims(:,2) = nanmax(obj.default_lims(:,2),nanmax(pct_99,[],2));
+        obj.default_lims = lims;
+        %}
+            
     end
             
-    function [param_data, mask] = get_image(obj,dataset,param,indexing)
-        param_data = 0;
-        mask = 0;
-
-        if nargin < 4 || strcmp(indexing,'result')
-            dataset = obj.image(dataset);
-        end
-
-        [~,idx] = find(obj.image == dataset); 
-
-        if ~isempty(idx)
-            [param_data, mask] = ff_FitResults(obj.ptr,'GetParameterImage', idx, param);
-        end
+    function [param_data, mask] = get_image_result_indexing(obj,dataset,param)
+        [param_data, mask] = ff_FitResults(obj.ptr,'GetParameterImage', dataset, param);
     end
-    
-    %function delete(obj)
-        %ff_FitResults(obj.ptr,'Clear');
-        %ff_FitResults(obj.ptr,'Release');
-    %end        
-    
+        
 end
     
 end
