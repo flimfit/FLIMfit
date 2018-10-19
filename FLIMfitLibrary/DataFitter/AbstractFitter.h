@@ -64,6 +64,7 @@ struct FittingOptions
    int max_iterations = 100;
    double initial_step_size = 0.1;
    bool use_numerical_derivatives = false;
+   bool use_ml_refinement = false;
 };
 
 class AbstractFitter

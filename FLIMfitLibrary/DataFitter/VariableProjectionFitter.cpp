@@ -337,8 +337,7 @@ void VariableProjectionFitter::fitFcn(int nl, std::vector<double>& initial, int&
             setVariables(initial.begin());
             getResidualNonNegative(initial.data(), fvec, -1, 0);
 
-            bool refine_linear = true;
-            if (refine_linear)
+            if (options.use_ml_refinement)
             {
                auto& B = vp[0];
 
