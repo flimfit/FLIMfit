@@ -63,7 +63,7 @@ classdef flim_fit_ui < handle
                 addpath_global_analysis();
             end
             
-            obj.init_pdftops();
+            init_pdftops();
             
             % Fix for inverted text in segmentation on one PC
             % use software to do graphics where available
@@ -113,11 +113,11 @@ classdef flim_fit_ui < handle
             handles = obj.setup_toolbar(handles);
 
             handles.model_controller = flim_model_controller(handles.model_panel);            
+            handles.data_series_list = flim_data_series_list(handles);
             handles.data_series_controller = flim_data_series_controller(handles);                                    
             handles.omero_logon_manager = flim_omero_logon_manager(handles);
             
             handles.fitting_params_controller = flim_fitting_params_controller(handles);
-            handles.data_series_list = flim_data_series_list(handles);
             handles.data_intensity_view = flim_data_intensity_view(handles);
             handles.roi_controller = roi_controller(handles);                                                   
             handles.fit_controller = flim_fit_controller(handles);   
@@ -147,7 +147,7 @@ classdef flim_fit_ui < handle
             
             assign_handles(obj,handles)
             
-            obj.init_omero_bioformats();
+            init_omero_bioformats();
           
             close(splash);
             
@@ -156,94 +156,6 @@ classdef flim_fit_ui < handle
             if wait
                 waitfor(obj.window);
             end
-            
-        end
-        
-        function vx = split_ver(obj,ver)
-            % Convert version string into a number
-            tk = regexp(ver,'([0-9]+).([0-9]+).([0-9]+)','tokens');
-            if ~isempty(tk{1})
-                tk = tk{1};
-                vx = str2double(tk{1})*1e6 + str2double(tk{2})*1e3 + str2double(tk{3});
-            else 
-                vx = 0;
-            end
-        end
-
-        function init_omero_bioformats(~,~)
-            
-            loadOmero();
-            
-            % find paths to OMEuiUtils.jar and ini4j.jar - approach copied from
-            % bfCheckJavaPath
-
-            jPath = javaclasspath;
-
-            function findAndAddJar(jar)
-               
-                already_in_path = any(cellfun(@(x) contains(x,jar),jPath));
-                
-                if ~already_in_path
-                    path = which(jar);
-                    if isempty(path)
-                        path = fullfile(fileparts(mfilename('fullpath')), jar);
-                    end
-                    if ~isempty(path) && exist(path, 'file') == 2
-                        javaaddpath(path);
-                    else 
-                        assert(['Cannot automatically locate ' jar]);
-                    end
-                end
-                
-            end
-                        
-            if ~isdeployed
-                findAndAddJar('OMEuiUtils.jar')
-                findAndAddJar('ini4j.jar')
-            end
-   
-            % verify that enough memory is allocated for bio-formats
-            bfCheckJavaMemory();
-          
-            % load both bioformats & OMERO
-            autoloadBioFormats = 1;
-
-            % load the Bio-Formats library into the MATLAB environment
-            status = bfCheckJavaPath(autoloadBioFormats);
-            assert(status, ['Missing Bio-Formats library. Either add loci_tools.jar '...
-                'to the static Java path or add it to the Matlab path.']);
-            
-            % initialize logging
-            %loci.common.DebugTools.enableLogging('INFO');
-            loci.common.DebugTools.enableLogging('ERROR');
-            
-        end
-        
-        function init_pdftops(obj)
-            
-            if ~isdeployed
-                addpath_global_analysis();
-                if ispc
-                    path_ = [pwd '\pdftops.exe'];
-                end
-                if ismac
-                    path_ = [pwd '/pdftops.bin'];
-                end
-            else
-                
-                wait = true;
-                if ispc
-                    path_ = [ctfroot '\FLIMfit\pdftops.exe'];
-                end
-                if ismac
-                    user_string('ghostscript','gs-noX11');
-                    path_ = [ctfroot '/FLIMfit/pdftops.bin'];
-                end
-                
-            end
-            
-            % set up pdftops path
-            user_string('pdftops',path_);
             
         end
         

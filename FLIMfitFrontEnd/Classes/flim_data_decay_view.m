@@ -121,7 +121,7 @@ classdef flim_data_decay_view < handle & abstract_display_controller ...
             obj.t = [];
             obj.t_irf = [];
             
-            if obj.data_series.init
+            if ~isempty(obj.data_series) && obj.data_series.init
                           
                 d = obj.data_series;                        
                 mask = obj.roi_controller.roi_mask;

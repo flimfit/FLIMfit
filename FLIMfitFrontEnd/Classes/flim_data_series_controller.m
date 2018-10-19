@@ -29,7 +29,10 @@ classdef flim_data_series_controller < handle
     
     properties(SetObservable = true)
         data_series;
-        fitting_params_controller;
+    end
+    
+    properties
+        data_series_list;
         model_controller;
         pol_table;
         display_smoothed_popupmenu;
@@ -85,21 +88,13 @@ classdef flim_data_series_controller < handle
             obj.clear();
             obj.data_series.load_data_series(root_path,mode,polarisation_resolved);
                         
-            if ~isempty(obj.window)
-                set(obj.window,'Name',[ obj.data_series.header_text ' (' obj.version ')']);
-            end
-
             obj.loaded_new_dataset();
         end
         
         function load_raw(obj,file)
             obj.clear();
             obj.data_series.load_raw_data(file);           
-                       
-            if ~isempty(obj.window)
-                set(obj.window,'Name',[file ' (' obj.version ')']);
-            end
-            
+                                   
             obj.loaded_new_dataset();
         end
         
@@ -114,9 +109,6 @@ classdef flim_data_series_controller < handle
             obj.clear();
             obj.data_series.load_single(file,polarisation_resolved);
                         
-            if ~isempty(obj.window)
-                set(obj.window,'Name',[obj.data_series.header_text ' (' obj.version ')']);
-            end
                         
             obj.loaded_new_dataset();
         end
@@ -134,9 +126,15 @@ classdef flim_data_series_controller < handle
         end
         
         function loaded_new_dataset(obj)
+            if ~isempty(obj.window)
+                set(obj.window,'Name',[obj.data_series.header_text ' (' obj.version ')']);
+            end
+            
             obj.model_controller.set_n_channel(obj.data_series.n_chan);
             obj.lh = addlistener(obj.data_series,'polarisation','PostSet',@obj.polarisation_changed);
 
+            obj.data_series_list.set_source(obj.data_series);
+            
             obj.update_polarisation();
             notify(obj,'new_dataset');
         end

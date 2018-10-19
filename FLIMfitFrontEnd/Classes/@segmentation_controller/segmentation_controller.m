@@ -104,7 +104,8 @@ classdef segmentation_controller < flim_data_series_observer
             obj = obj@flim_data_series_observer(handles.data_series_controller);
             
             assign_handles(obj,handles);
-            
+
+            obj.data_series_list.set_source(obj.data_series);
             
             set(obj.algorithm_popup,'Callback',@obj.algorithm_updated);
             set(obj.segment_button,'Callback',@obj.segment_pressed);
