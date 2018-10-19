@@ -47,6 +47,7 @@ function compile(exit_on_error)
 
         [~,v] = system('git describe','-echo');
         v = v(1:end-1);
+        v = strtrim(v);
 
         fid = fopen(['GeneratedFiles' filesep 'version.txt'],'w');
         fwrite(fid,v);
