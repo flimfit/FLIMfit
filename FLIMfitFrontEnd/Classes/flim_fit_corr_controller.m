@@ -89,7 +89,10 @@ classdef flim_fit_corr_controller < abstract_plot_controller
             display = get(obj.corr_display_popupmenu,'Value');
             scale = get(obj.corr_scale_popupmenu,'Value');
                 
-           
+              
+            x_lim = f.get_cur_lims(param(1));
+            y_lim = f.get_cur_lims(param(2));
+
             
             if source == 1
                 sel = obj.selected; % == r.image;
@@ -132,25 +135,16 @@ classdef flim_fit_corr_controller < abstract_plot_controller
                             md = [md r.metadata.(obj.ind_param)(sel(i))];
                         end
                     end
-                else % Regions
-                    param_data_x = r.region_stats.mean.(param_name{1}); %{sel(i)}.mean(param(1),:)';
-                    param_data_y = r.region_stats.mean.(param_name{2}); %{sel(i)}.mean(param(2),:)';
-                    param_weight = ones(size(param_data_x));
-                end
-                                
-                x_lim = f.get_cur_lims(param(1));
-                y_lim = f.get_cur_lims(param(2));
-                
-                sel = param_data_x >= x_lim(1) & param_data_x <= x_lim(2) ...
+                    
+                    sel = param_data_x >= x_lim(1) & param_data_x <= x_lim(2) ...
                     & param_data_y >= y_lim(1) & param_data_y <= y_lim(2);      
                 
-                param_data_x = param_data_x( sel );
-                param_data_y = param_data_y( sel );
-                param_weight = param_weight( sel );
+                    param_data_x = param_data_x( sel );
+                    param_data_y = param_data_y( sel );
+                    param_weight = param_weight( sel );
+
+                    n_bin = 64;
                 
-                n_bin = 64;
-                
-                if display == 1 % Pixels
                     x_edge = linspace(x_lim(1),x_lim(2),n_bin);
                     y_edge = linspace(y_lim(1),y_lim(2),n_bin);
 
@@ -177,34 +171,22 @@ classdef flim_fit_corr_controller < abstract_plot_controller
                         set(im,'uicontextmenu',obj.contextmenu);
                     end
                     
+                    
                 else % Regions
                     
+                    dat = join(r.region_stats.mean,r.metadata);
                     
-                    if ~isempty(md)
-                        md = md(sel);
-                        if (all(cellfun(@isnumeric,md)))
-                            md = cell2mat(md);
-                            [u,~,ib] = unique(md);
-                            u = num2cell(u);
-                            u = cellfun(@num2str,u,'UniformOutput',false);
-                        else
-                            [u,~,ib] = unique(md);
-                        end
-                    else
-                        u = 1;
-                        ib = ones(size(param_data_x));
+                    param_data_x = dat.(param_name{1});
+                    param_data_y = dat.(param_name{2});
+                                        
+                    param_val= dat.treatment;
+                    
+                    if iscell(param_val)
+                        [param_val,v] = findgroups(param_val);
                     end
-                    cmap = lines(length(u));
 
-                    h = zeros(length(u),1);
-                    for i=1:length(u)
-                        h(i) = plot(ax,param_data_x(ib==i),param_data_y(ib==i),'x','Color',cmap(i,:));
-                        hold(ax,'on');
-                    end
-                    if ~isempty(md)
-                        legend(ax,h,u)
-                    end
-                    hold off;
+                    scatter(ax,param_data_x,param_data_y,8,param_val,'filled');
+                    set(ax,'Colormap',lines(256))
                 end
                 
                 
@@ -216,8 +198,7 @@ classdef flim_fit_corr_controller < abstract_plot_controller
                 
                 xlabel(ax,r.latex_params{param(1)});
                 ylabel(ax,r.latex_params{param(2)});
-            else
-                cla(ax);
+
             end
         end
         

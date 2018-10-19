@@ -166,7 +166,7 @@ classdef (Abstract) flim_fit_result < handle
                 lp = strrep(lp,'mean_tau','mean tau');
                 lp = strrep(lp,'w_mean','weighted mean');
                 lp = strrep(lp,'r_ss','r_{ss}');
-                lp = regexprep(lp,'G(\d+)_','G\1 ');
+                lp = regexprep(lp,'G(\d+)_','G$1 ');
                 
                 obj.latex_params{i} = lp;
             end

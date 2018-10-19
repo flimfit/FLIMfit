@@ -21,8 +21,12 @@ classdef flim_project_controller < flim_data_series_observer
             folder = ensure_trailing_slash(folder);            
 
             if exist(folder,'dir')
-                errordlg('Project folder already exists','Error');
-                return
+                r = warndlg('Replace existing project?','Project folder already exists',{'Cancel','Replace'});
+                if strcmp(r,'Replace')
+                    rmdir(folder,'s');
+                else
+                    return
+                end
             end
             
             mkdir(folder);
@@ -86,6 +90,7 @@ classdef flim_project_controller < flim_data_series_observer
             d.multid_filters_file = [folder 'multid_segmentation.xml'];
             
             d.load_multiple(data_info.polarisation_resolved, [folder 'data_settings.xml']);
+            d.header_text = folder;
             
             if isfolder([folder 'segmentation'])
                 d.seg_mask = uint16.empty();

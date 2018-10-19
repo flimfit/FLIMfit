@@ -25,38 +25,28 @@ function save_param_table(obj,file)
 
     % Author : Sean Warren
 
-    if ~isempty(obj.fit_result)
-        
-        f = obj.fit_result;
-
-        [data, row_headers] = obj.get_table_data();
-        
-        dat = [row_headers num2cell(data)];
-
-
-        
-        % Prepend meta data to table
-        metadata = f.metadata;
-                
-        if ~isempty(metadata)   
-            metadata_fields = fieldnames(metadata);
-        else
-            metadata_fields = [];
-        end
-        
-        
-        group = [];
-        for i=1:f.n_results
-            group = [group ones(1,length(f.regions{i}))*i];
-        end
-        
-        for i=1:length(metadata_fields)
-            md = metadata.(metadata_fields{i});
-            dat = [[metadata_fields(i), md(group)]; dat];
-        end
-        
-        cell2csv(file,dat',',');
-        
+    if isfile(file)
+        delete(file);
     end
+    
+    warning('off','MATLAB:xlswrite:AddSheet');
+    
+    if ~isempty(obj.fit_result)
+        f = obj.fit_result;
+        stats = fieldnames(f.region_stats);
+        for i=1:length(stats)
+            stat = f.region_stats.(stats{i});
+            stat = innerjoin(f.metadata,stat,'Keys','image');
+            
+            writetable(stat,file,'Sheet',stats{i});
+        end
+    end
+    
+    % Remove default sheets
+    book = matlab.io.spreadsheet.internal.createWorkbook('xlsx',file,false);
+    book.removeSheet(1);
+    book.removeSheet(1);
+    book.removeSheet(1);
+    book.save(file);
     
 end

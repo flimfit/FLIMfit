@@ -180,6 +180,7 @@ classdef file_menu_controller < handle
             folder = uigetdir(default_path,'Select the project folder');
             if folder ~= 0
                 obj.project_controller.load(folder);
+                obj.set_default_path(folder);
             end
         end
         
@@ -334,7 +335,7 @@ classdef file_menu_controller < handle
         % Export Fit Table
         %------------------------------------------------------------------
         function menu_file_export_fit_table(obj)
-            [filename, pathname] = uiputfile({'*.csv', 'CSV File (*.csv)'},'Select file name',default_path);
+            [filename, pathname] = uiputfile({'*.xlsx', 'Excel File (*.xlsx)'},'Select file name',[default_path filesep 'results.xlsx']);
             if filename ~= 0
                 obj.result_controller.save_param_table([pathname filename]);
             end
