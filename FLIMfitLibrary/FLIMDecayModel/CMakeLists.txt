@@ -34,6 +34,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 find_package(MKL REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(Boost REQUIRED COMPONENTS system filesystem serialization date_time)
+find_package(LibLZMA REQUIRED)
 
 # Set the source and header files
 #===================================================
@@ -89,6 +90,6 @@ add_definitions(-DBOOST_DATE_TIME_NO_LIB)
 # Make library
 #===================================================
 add_library(FLIMDecayModel STATIC ${SOURCE} ${HEADERS})
-target_link_libraries(FLIMDecayModel Qt5::Core ${Boost_LIBRARIES} ${OpenCV_LIBRARIES} ${MKL_LIBRARIES})
+target_link_libraries(FLIMDecayModel Qt5::Core ${Boost_LIBRARIES} ${OpenCV_LIBRARIES} ${MKL_LIBRARIES} ${LIBLZMA_LIBRARIES})
 target_include_directories(FLIMDecayModel INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}
                                           PUBLIC ${OpenCV_INCLUDE_DIRS} ${MKL_INCLUDE_DIRS})

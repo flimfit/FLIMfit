@@ -109,16 +109,9 @@ function compile(exit_on_error)
                     copyfile('/usr/local/opt/qt/lib/QtCore.framework/','Libraries/QtCore.framework/');
                     system('install_name_tool -change /usr/local/opt/qt/lib/QtCore.framework/Versions/5/QtCore @loader_path/QtCore.framework/Versions/5/QtCore Libraries/FLIMfitMex.mexmaci64');
 
-                    % Manually fix MKL references
-                    mklroot = getenv('MKLROOT');
-                    if ~isempty(mklroot)
-                        for lib = {'FLIMfitMex', 'FlimReader'}
-                            for mkllib = {'libmkl_intel_lp64', 'libmkl_sequential', 'libmkl_core', 'libmkl_rt'}
-                                system(cell2mat(['install_name_tool -change @rpath/' mkllib '.dylib ' mklroot '/lib/' mkllib '.dylib Libraries/' lib '.mexmaci64']))
-                            end
-                            system(cell2mat(['DeployFiles/dylibbundler -of -x Libraries/' lib '.mexmaci64 -b  -d Libraries -p @loader_path']));
-                        end 
-                    end
+                    for lib = {'FLIMfitMex', 'FlimReader'}
+                        system(cell2mat(['DeployFiles/dylibbundler -of -x Libraries/' lib '.mexmaci64 -b  -d Libraries -p @loader_path']));
+                    end 
 
                     mcc -m FLIMfit.m -v -d DeployFiles ...
                         -a Libraries ...
@@ -131,7 +124,7 @@ function compile(exit_on_error)
                         -a ThirdParty/omero-matlab ...
                         -a GeneratedFiles/version.txt ...
                         -a 'matlab-ui-common/layout' ...
-                        -a LicenseFiles/*.txt
+                        -a LicenseFiles/*.txt 
             end
 
             while ~exist(exe,'file')

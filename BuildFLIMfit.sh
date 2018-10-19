@@ -13,11 +13,12 @@ export CXX=/usr/local/opt/llvm/bin/clang++
 export LDFLAGS="-L$MATLAB_OMP_ROOT -L/usr/local/opt/llvm/lib -Wl,-rpath,$MATLAB_OMP_ROOT:/usr/local/opt/llvm/lib"
 export PATH="/usr/local/opt/qt5/bin:$PATH"
 export MKLROOT=/opt/intel/mkl
+TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake
 
 [ "$1" == "--clean" ] && rm -rf GeneratedProjects/Unix
 if ! cmake -GNinja -H. -BGeneratedProjects/Unix \
-    -DBUILD_OPENCV:bool=TRUE \
-    -DOpenMP_omp_LIBRARY=$MATLAB_OMP_ROOT/libiomp5.dylib; then
+    -DOpenMP_omp_LIBRARY=$MATLAB_OMP_ROOT/libiomp5.dylib \
+    -DCMAKE_TOOLCHAIN_FILE="$TOOLCHAIN_FILE"; then
    echo 'Error configuring project'
    exit 1
 fi
