@@ -38,10 +38,10 @@ layout.Heights = [-1 30];
 
 if analytical
     
-    for i=1:n_chan
-        tabs.Selection = i;
-        [analytical_parameters(i), chi2(i)] = estimate_analytical_irf(t,data(:,i),T,fit_ax(i),res_ax(i));
-    end
+%    for i=1:n_chan
+%        tabs.Selection = i;
+        [analytical_parameters, chi2] = estimate_analytical_irf(t,data,T,fit_ax(1),res_ax(1));
+%    end
     
 else
     
