@@ -3,10 +3,10 @@ function GenerateDetectorCorrection(file, sample)
     spectra.atto_425 = [1.5852    1.0000    0.7639];    
     spectra.atto_425_old = [0.9471;    1.0000;    0.1092];
     spectra.atto_488 = [];
-    spectra.green_chromaslide = [0.351963498827600; 1; 0.185478295978306];
+    spectra.green_chromaslide = [1.0162; 1.0000; 0.9410];
+    spectra.green_chromaslide_old = [0.351963498827600; 1; 0.185478295978306];
 
     ref_ch = 2;
-
     % Get file if not specified
     if nargin < 1
         [file, path] = uigetfile('*.*');
@@ -44,44 +44,50 @@ function GenerateDetectorCorrection(file, sample)
         I(:,:,i) = imfilter(squeeze(I(:,:,i)),kern,'replicate','same');
     end
     
+    %%
+    
     I_ref = I(:,:,ref_ch);
-    I_ref = nanmean(I_ref(:));
+   % I_ref = nanmean(I_ref(:));
     
     % Normalise to reference channel and then reference sample
-    correction = ref_spectra .* I_ref ./ I;
-    %correction = correction .* ref_spectra;
+    correction = I * ref_spectra(ref_ch) ./ ref_spectra;
     
     
-    for i=1:size(correction,3)
-        [~,fit] = FitZernike(correction(:,:,i));
-        fit_correction(:,:,i) = fit;
+    fit_correction = ones(size(I));
+     for i=1:size(correction,3)
+        if i ~= ref_ch
+            [~,fit] = FitZernike(I_ref,correction(:,:,i));
+            fit_correction(:,:,i) = fit;
+        end
     end 
-    
-    
+        
+    correction = fit_correction;
+
     if any(~isfinite(correction(:)))
         warndlg('Correction image contained non-finite values');
     end
-    
-    % Display results
+
     figure
+    % Display results
     for i=1:size(correction,3)
         subplot(1,size(correction,3),i)
-        imagesc(squeeze(fit_correction(:,:,i)))
+        imagesc(squeeze(correction(:,:,i)))
 
         %imagesc(squeeze(fit_correction(:,:,i) - correction(:,:,i)))
         daspect([1 1 1])
-        %caxis([-0.5 0.5])
+        %caxis([0.8 1.2])
         colorbar
     end
-    
-    correction = permute(fit_correction,[2,1,3]);
+        
+    correction = permute(correction,[2,1,3]);
+    %correction = flip(correction,2);
     
     names = arrayfun(@(ch) ['Channel ' num2str(ch)], 1:size(correction,3), 'UniformOutput', false);
     description = 'Detector Correction File';
     
     [path,filename] = fileparts(file);
-    output_file = [path filename '_detector_correction.tif'];
+    output_file = [path filesep filename '_detector_correction2.tif'];
     
     SaveFPTiffStack(output_file, correction, names, description);
 
-end
+%end
