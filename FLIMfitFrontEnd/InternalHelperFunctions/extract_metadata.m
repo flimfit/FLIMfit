@@ -188,12 +188,13 @@ try
         d =  metadata.(names{j});
        
         try
-            nums = cellfun(@str2num,d,'UniformOutput',true);
-            metadata.(names{j}) = nums;  
+            d = cellfun(@str2num,d,'UniformOutput',true);
         catch %#ok
-            d(cellfun(@isempty,d)) = {''};
-            metadata.(names{j}) = d;  
+            if ~isnumeric(d)
+                d(cellfun(@isempty,d)) = {''};
+            end
         end
+        metadata.(names{j}) = d;
     end
     
     % put rep fields at end

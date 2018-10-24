@@ -55,7 +55,7 @@ classdef flim_data_series_controller < handle
             handles = args2struct(varargin);
             assign_handles(obj,handles);
             
-            if isempty(obj.data_series) 
+            if ~ishandle(obj.data_series) 
                 obj.data_series = flim_data_series();
             end
             

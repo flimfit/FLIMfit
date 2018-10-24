@@ -113,7 +113,7 @@ classdef flim_fit_graph_controller < abstract_plot_controller
                 f = obj.result_controller;  
                 r = f.fit_result;
                 
-                data = join(r.region_stats.w_mean,r.metadata,'Key','image');
+                data = join(r.region_stats.(mean_param),r.metadata,'Key','image');
                                 
                 % Get values for the selected parameter
                 md = data.(obj.ind_param);

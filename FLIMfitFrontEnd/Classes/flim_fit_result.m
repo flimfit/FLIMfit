@@ -106,7 +106,7 @@ classdef (Abstract) flim_fit_result < handle
                 idx = find(obj.metadata.image == dataset);
             end
             
-            [param_data,mask] = get_image_result_indexing(obj,dataset,param);
+            [param_data,mask] = get_image_result_indexing(obj,idx,param);
         end
         
         function save(obj,file)

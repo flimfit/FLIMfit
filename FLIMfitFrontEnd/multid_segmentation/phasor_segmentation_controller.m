@@ -41,10 +41,10 @@ classdef phasor_segmentation_controller < flim_data_series_observer
         
         function obj = phasor_segmentation_controller(handles)
             
-            obj = obj@flim_data_series_observer(handles.data_series_controller);
-            
+            obj = obj@flim_data_series_observer(handles.data_series_controller);      
             assign_handles(obj,handles);
-               
+            obj.data_series_list.set_source(obj.data_series);
+            
             set(obj.ok_button,'Callback',@obj.ok_pressed);
             set(obj.cancel_button,'Callback',@obj.cancel_pressed);
             
