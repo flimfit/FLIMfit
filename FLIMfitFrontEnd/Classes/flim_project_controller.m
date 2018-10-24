@@ -62,6 +62,7 @@ classdef flim_project_controller < flim_data_series_observer
             
             if (~isempty(obj.result_controller.fit_result))
                 obj.result_controller.fit_result.save([folder 'fit_results.hdf5']);
+                obj.result_controller.save_param_table([folder 'fit_results.xlsx']);
             end
         end
         
