@@ -8,8 +8,12 @@ function [pattern,name] = get_library_pattern
     pattern_library = getpref('FLIMfit','pattern_library');    
     keys = pattern_library.keys();
     
-    
-    [sel,ok] = listdlg('ListString',keys,'SelectionMode','single','Name','Pattern Library','PromptString','Select Pattern');
+    if isempty(keys)
+        warndlg('No patterns found, please create or import a pattern first','Pattern Library')
+        ok = false;
+    else
+        [sel,ok] = listdlg('ListString',keys,'SelectionMode','single','Name','Pattern Library','PromptString','Select Pattern');
+    end
     
     if ok
         name = keys{sel};

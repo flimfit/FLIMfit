@@ -395,10 +395,19 @@ classdef flim_model_controller < handle
             models = dir([model_folder '*.xml']);
             models = {models.name};
             models = strrep(models,'.xml','');
-            [selection,ok] = listdlg('ListString',models,'SelectionMode','single',...
-                'Name','Load Model','PromptString','Select Model');
+            
+            if isempty(models)
+                warndlg('No models found, please create or import a model first','Model Library')
+                ok = false;
+            else
+                [selection,ok] = listdlg('ListString',models,'SelectionMode','single',...
+                    'Name','Load Model','PromptString','Select Model');
+            end
             
             if ok
+                if ~isdeployed % so we can dynamically unload mex file
+                    obj.new_model();
+                end
                 obj.load([model_folder models{selection} '.xml']);
             end
         end
