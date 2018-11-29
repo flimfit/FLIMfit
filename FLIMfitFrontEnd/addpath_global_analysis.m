@@ -53,8 +53,8 @@ function addpath_global_analysis()
         if ~exist(thirdpartydir,'dir')
             mkdir(thirdpartydir)
         end
-        get_bioformats(thirdpartydir,'5.8.2');
-        get_omero(thirdpartydir,'5.3');
+        get_bioformats(thirdpartydir,'5.9.2');
+        get_omero(thirdpartydir,'5.3','0.1.7');
 
             
         if (verLessThan('matlab', '8.4'))
