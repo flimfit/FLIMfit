@@ -1,4 +1,4 @@
-function[success, target] = load_flim_cube(obj, target, image, read_selected, write_selected, reader_settings, dims, ZCT)
+function[success, target, intensity_normalisation] = load_flim_cube(obj, target, image, read_selected, write_selected, reader_settings, dims, ZCT)
 
     % Loads FLIM_data from an OMERO image or set of images
 
@@ -51,6 +51,8 @@ function[success, target] = load_flim_cube(obj, target, image, read_selected, wr
         sizeY = dims.sizeXY(2);
         modulo = dims.modulo;
     end
+    
+    intensity_normalisation = [];
     
     success = true;
     
