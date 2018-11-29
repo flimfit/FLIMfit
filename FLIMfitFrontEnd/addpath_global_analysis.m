@@ -54,7 +54,7 @@ function addpath_global_analysis()
             mkdir(thirdpartydir)
         end
         get_bioformats(thirdpartydir,'5.9.2');
-        get_omero(thirdpartydir,'5.3','0.1.7');
+        get_omero(thirdpartydir,'5.4');
 
             
         if (verLessThan('matlab', '8.4'))
