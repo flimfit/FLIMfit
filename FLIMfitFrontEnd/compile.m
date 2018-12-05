@@ -53,11 +53,12 @@ function compile(exit_on_error)
         fclose(fid);
 
         if contains(computer,'PCWIN')
-            platform = 'WIN';
+            platform = 'pcwin64';
             lib_ext = '.dll';
             exe_ext = '.exe';
+            %platform = 'maci64';
         elseif contains(computer,'MAC')
-            platform = 'MAC';
+            platform = 'maci64';
             lib_ext = '.dylib';
             exe_ext = '.app';
         else
@@ -85,11 +86,11 @@ function compile(exit_on_error)
 
             % Try and delete executable if it already exists
             switch platform
-                case 'WIN'
+                case 'pcwin64'
                     if exist(exe,'file')
                         delete(exe);
                     end
-                case 'MAC'
+                case 'maci64'
                     if exist(exe,'dir')
                         rmdir(exe,'s');
                     end
@@ -97,7 +98,7 @@ function compile(exit_on_error)
 
             % Build executable
             switch platform
-                case 'WIN'
+                case 'pcwin64'
                     mcc -m FLIMfit.m -v -d DeployFiles ...
                         -a Libraries/* ...
                         -a FLIMGlobalAnalysisProto_PCWIN64.m ...
@@ -115,7 +116,7 @@ function compile(exit_on_error)
                         -a 'Toolboxes/GUI Layout Toolbox/layout' ...
                         -a LicenseFiles/*.txt
 
-                case 'MAC'
+                case 'maci64'
                     
                     mklroot = getenv('MKLROOT');
                     for lib = {'FLIMGlobalAnalysis_64.dylib', 'FlimReader.mexmaci64'}
@@ -163,7 +164,7 @@ function compile(exit_on_error)
 
 
         switch platform
-            case 'WIN'
+            case 'pcwin64'
                 % Make installer using Inno Setup
 
                 get_file('..\InstallerSupport\gs916w64.exe','http://downloads.flimfit.org/gs/gs916w64.exe')
@@ -211,7 +212,7 @@ function compile(exit_on_error)
                 system(cmd);
 
 
-            case 'MAC'
+            case 'maci64'
 
                 % wait for the build to complete
                 MacOS_folder = [ './' exe filesep 'Contents' filesep 'MacOS'];
@@ -267,11 +268,10 @@ function compile(exit_on_error)
                 disp('Signing executable...')
                 [~,response] = system(['codesign -s P6MM899VL9 "' final_file '"/']);
                 disp(response);
-                
-                cd('Libraries')
-                zip(['flimfit_libraries_maci64_' v '.zip'],{'*.dylib','*.mexmaci64'})
-                cd('..')
         end
+        
+        zip(['flimfit_libraries_' platform '_' v '.zip'],['Libraries' filesep '*'])
+        
     end
     
 end
