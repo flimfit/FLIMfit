@@ -118,7 +118,7 @@ function compile(exit_on_error)
                 case 'MAC'
                     
                     mklroot = getenv('MKLROOT');
-                    for lib = {'FLIMGlobalAnalysis_64.dylib', 'FlimReaderMex.mexmaci64'}
+                    for lib = {'FLIMGlobalAnalysis_64.dylib', 'FlimReader.mexmaci64'}
                         if ~isempty(mklroot)
                             for mkllib = {'libmkl_intel_lp64', 'libmkl_sequential', 'libmkl_core', 'libmkl_rt'}
                                 system(cell2mat(['install_name_tool -change @rpath/' mkllib '.dylib ' mklroot '/lib/' mkllib '.dylib Libraries/' lib]))
