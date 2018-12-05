@@ -291,7 +291,7 @@ function[success, target, intensity_normalisation] = load_flim_cube(obj, target,
             
            
 
-        case {'.pt3', '.ptu', '.bin2', '.ffd', '.ffh'}
+        case {'.pt3', '.ptu', '.bin2', '.ffd', '.ffh', '.spc', '.sdt'}
             
             r = FlimReader(file);
             FlimReader(r,'SetSpatialBinning',reader_settings.spatial_binning);
