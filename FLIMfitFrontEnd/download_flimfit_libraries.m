@@ -4,7 +4,7 @@ function download_flimfit_libraries(prompt_user)
         prompt_user = false;
     end
 
-    if ~isdeployed && ~exist(['Libraries' filesep 'FLIMGlobalAnalysis.h'],'file')
+    if ~isdeployed && ~exist(['Libraries' filesep 'FLIMfitMex.' mexext ],'file')
         
         if prompt_user
            answer = questdlg('FLIMfit libraries are not compiled, would you like to download them?','FLIMfit Libraries','Yes','No','Yes');
