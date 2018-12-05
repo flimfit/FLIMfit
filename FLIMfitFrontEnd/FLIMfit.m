@@ -26,6 +26,7 @@ function ui = FLIMfit()
 
 % Author : Sean Warren
 
+download_flimfit_libraries(true)
 addpath_global_analysis();
 
 % workaround for this bug: https://www.mathworks.com/support/bugreports/1293244
