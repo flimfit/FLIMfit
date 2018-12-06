@@ -6,25 +6,16 @@ function [irf_final,t_final] = estimate_irf_interface(t, data, T, default_path)
     fh = figure('Name','Estimate IRF','NumberTitle','off','Menu','none','Toolbar','none','Position',pos);
 
     layout = uix.VBox('Parent',fh);
-    
-    n_chan = size(data,2);
+    fit_layout = uix.VBox('Parent',layout);
+    fit_box = uix.BoxPanel('Parent',fit_layout,'Title','Fit');
+    fit_ax = axes('Parent',fit_box);
 
-    tabs = uix.TabPanel('Parent',layout);
-    
-    for i=1:n_chan
-        ch_layout = uix.VBox('Parent',tabs);
+    res_box = uix.BoxPanel('Parent',fit_layout,'Title','Residual');
+    res_ax = axes('Parent',res_box);
+
+    fit_layout.Heights = [-2.5 -1];
+
         
-        fit_box = uix.BoxPanel('Parent',ch_layout,'Title','Fit');
-        fit_ax(i) = axes('Parent',fit_box);
-        
-        res_box = uix.BoxPanel('Parent',ch_layout,'Title','Residual');
-        res_ax(i) = axes('Parent',res_box);
-        
-        titles{i} = ['Channel ' num2str(i)];
-        ch_layout.Heights = [-2.5 -1];
-    end
-    tabs.TabTitles = titles;
-    
     button_layout = uix.HBox('Parent',layout);
     uix.Empty('Parent',button_layout);
     uicontrol(button_layout,'Style','pushbutton','String','Cancel','Callback', @(~,~) close(fh));
@@ -32,10 +23,10 @@ function [irf_final,t_final] = estimate_irf_interface(t, data, T, default_path)
     button_layout.Widths = [-1 200 200];
     layout.Heights = [-1 30];
 
-    
-    for i=1:n_chan
-        tabs.Selection = i;
-        [irf(:,i), t_final, chi2(i)] = estimate_irf(t,data(:,i),T,fit_ax(i),res_ax(i));
+    if size(data,2) == 2
+        [irf, t_final, chi2] = estimate_irf_polarised(t,data,T,fit_ax,res_ax);
+    else
+        [irf, t_final, chi2] = estimate_irf(t,data,T,fit_ax,res_ax);
     end
     
     valid = max(irf,[],2) > 1e-10; 
