@@ -243,7 +243,7 @@ int AnisotropyDecayGroup::calculateDerivatives(double_iterator b, int bdim, doub
       }
 
    col += addContributionDerivativesForAnisotropy(b + col*bdim, bdim, kap_derv);
-   col += addRotationalCorrelationTimeDerivatives(b + col*bdim, bdim, &kap_derv[col]);
+   col += addRotationalCorrelationTimeDerivatives(b + col*bdim, bdim, kap_derv);
 
    return col;
 }
@@ -263,7 +263,7 @@ int AnisotropyDecayGroup::addLifetimeDerivativesForAnisotropy(int j, double_iter
    return col;
 }
 
-int AnisotropyDecayGroup::addContributionDerivativesForAnisotropy(double_iterator b, int bdim, double_iterator kap_derv)
+int AnisotropyDecayGroup::addContributionDerivativesForAnisotropy(double_iterator b, int bdim, double_iterator& kap_derv)
 {
    if (n_exponential < 2)
       return 0;
@@ -305,7 +305,7 @@ int AnisotropyDecayGroup::addContributionDerivativesForAnisotropy(double_iterato
 }
 
 
-int AnisotropyDecayGroup::addRotationalCorrelationTimeDerivatives(double_iterator b, int bdim, double kap_derv[])
+int AnisotropyDecayGroup::addRotationalCorrelationTimeDerivatives(double_iterator b, int bdim, double_iterator& kap_derv)
 {
    int col = 0;
 
@@ -329,7 +329,7 @@ int AnisotropyDecayGroup::addRotationalCorrelationTimeDerivatives(double_iterato
 // TODO: call this
 void AnisotropyDecayGroup::setupChannelFactors()
 {
-   double g_factor = dp->irf->g_factor;
+   auto& g_factor = dp->irf->getGFactor();
    double angle = dp->irf->polarisation_angle;
    int n_chan = dp->n_chan;
 
@@ -356,9 +356,12 @@ void AnisotropyDecayGroup::setupChannelFactors()
          break;
 
       case Perpendicular:
-         ss_channel_factors[i] *= g_factor / 3.0;
-         pol_channel_factors[i] *= g_factor * perp;
+         ss_channel_factors[i] *= 1.0 / 3.0;
+         pol_channel_factors[i] *= perp;
          break;
       }
+
+      ss_channel_factors[i] *= g_factor[i];
+      pol_channel_factors[i] *= g_factor[i];
    }
 }

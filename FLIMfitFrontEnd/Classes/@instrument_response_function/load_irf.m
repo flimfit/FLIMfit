@@ -54,6 +54,7 @@ function load_irf(obj,file_or_image,load_as_image)
         obj.is_analytical = true;
         obj.gaussian_parameters = params;
         obj.n_chan = length(params);
+        obj.g_factor = ones([1, obj.n_chan]);
         
     else
         
@@ -106,6 +107,7 @@ function load_irf(obj,file_or_image,load_as_image)
         obj.irf = irf;
         obj.irf_name = 'irf';
         obj.is_analytical = false;
+        obj.g_factor = ones([1, obj.n_chan]);
 
         
     end

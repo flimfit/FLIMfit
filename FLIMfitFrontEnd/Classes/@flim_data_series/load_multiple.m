@@ -83,7 +83,7 @@ function load_multiple(obj, polarisation_resolved, data_setting_file, channels)
         if ~all(C == -1)
             metadata.C = repmat(chan_info(C),[n_images 1]);
         end
-        metadata.T = repmat(Z(:),[n_images 1]);   
+        metadata.T = repmat(T(:),[n_images 1]);   
         metadata = extract_metadata(names',metadata);
         obj.metadata = struct2table(metadata);
     end

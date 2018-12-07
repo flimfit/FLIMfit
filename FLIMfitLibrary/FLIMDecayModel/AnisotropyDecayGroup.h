@@ -36,8 +36,8 @@ protected:
    void setupParameters();
    
    int addLifetimeDerivativesForAnisotropy(int idx, double_iterator b, int bdim, double& kap);
-   int addContributionDerivativesForAnisotropy(double_iterator b, int bdim, double_iterator kap);
-   int addRotationalCorrelationTimeDerivatives(double_iterator b, int bdim, double kap_derv[]);
+   int addContributionDerivativesForAnisotropy(double_iterator b, int bdim, double_iterator& kap);
+   int addRotationalCorrelationTimeDerivatives(double_iterator b, int bdim, double_iterator& kap_derv);
 
    void setupChannelFactors();
 

@@ -273,6 +273,8 @@ std::vector<T> getVector(const mxArray* v)
       return getUVector<T, U, uint16_t>(v);
    else if (mxIsUint8(v))
       return getUVector<T, U, uint8_t>(v);
+   else if (mxIsLogical(v))
+      return getUVector<T, U, bool>(v);
 
    return std::vector<T>();
 }

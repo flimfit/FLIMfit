@@ -58,20 +58,23 @@ std::shared_ptr<InstrumentResponseFunction> getAnalyticalIRF(const mxArray* irf_
 {
    AssertInputCondition(mxIsStruct(irf_struct));
 
-   int n_chan = mxGetNumberOfElements(irf_struct);
+   mxArray* guassian_struct = getFieldFromStruct(irf_struct, 0, "gaussian_parameters");
 
+   int n_chan = mxGetNumberOfElements(guassian_struct);
    std::vector<GaussianParameters> params;
-   params.reserve(n_chan);
+
    for (int i = 0; i < n_chan; i++)
-   {
       params.push_back(GaussianParameters(
-         getValueFromStruct(irf_struct, i, "mu"),
-         getValueFromStruct(irf_struct, i, "sigma"),
-         getValueFromStruct(irf_struct, i, "offset", 0)));
-   }
+         getValueFromStruct(guassian_struct, i, "mu"),
+         getValueFromStruct(guassian_struct, i, "sigma"),
+         getValueFromStruct(guassian_struct, i, "offset", 0)));
 
    auto irf = std::make_shared<InstrumentResponseFunction>();
    irf->setGaussianIRF(params);
+
+   auto g_factor = getVectorFromStruct<double>(irf_struct, "g_factor");
+   irf->setGFactor(g_factor);
+
    return irf;
 }
 
@@ -105,6 +108,9 @@ std::shared_ptr<InstrumentResponseFunction> getIRF(const mxArray* irf_struct)
    double ref_lifetime_guess = getValueFromStruct(irf_struct, 0, "ref_lifetime_guess", 80.0);
    
    irf->setReferenceReconvolution(ref_reconvolution, ref_lifetime_guess);
+
+   auto g_factor = getVectorFromStruct<double>(irf_struct, "g_factor");
+   irf->setGFactor(g_factor);
 
    // TODO: irf.SetIRFShiftMap()
 

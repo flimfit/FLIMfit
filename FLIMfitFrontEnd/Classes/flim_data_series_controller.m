@@ -145,15 +145,23 @@ classdef flim_data_series_controller < handle
         
         function update_polarisation(obj)
             n_chan = obj.data_series.n_chan;
+            
+            g_factor = obj.data_series.irf.g_factor;
+            if size(g_factor,2) ~= n_chan; g_factor = ones(1,n_chan); end
+            
             for i=1:length(obj.data_series.polarisation)
                 pol_str{i,1} = char(obj.data_series.polarisation(i)); %#ok
             end
-            obj.pol_table.Data = [ num2cell((1:n_chan)') pol_str ];
+            obj.pol_table.Data = [ num2cell((1:n_chan)') pol_str num2cell(g_factor') ];
         end
         
         function pol_table_updated(obj,~,~)
             pol = obj.pol_table.Data(:,2);
             pol = cellfun(@(p) Polarisation.(p),pol);
+            g_factor = obj.pol_table.Data(:,3);
+            g_factor = cell2mat(g_factor);
+            
+            obj.data_series.irf.g_factor = g_factor;
             obj.data_series.polarisation = pol;
         end
         

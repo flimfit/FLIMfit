@@ -48,7 +48,6 @@ classdef irf_controller < control_binder & flim_data_series_observer
             obj.bind_control(handles,'t_irf_min','edit');
             obj.bind_control(handles,'t_irf_max','edit');
             obj.bind_control(handles,'irf_background','edit');
-            obj.bind_control(handles,'g_factor','edit');
             obj.bind_control(handles,'pol_angle','edit');
             obj.bind_control(handles,'afterpulsing_correction','popupmenu');
             obj.bind_control(handles,'ref_lifetime','edit');

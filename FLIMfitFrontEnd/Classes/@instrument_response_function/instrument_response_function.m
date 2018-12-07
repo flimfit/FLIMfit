@@ -1,36 +1,6 @@
 classdef instrument_response_function < handle
     
     properties
-        t_irf = [-1; 0; 1];
-        irf double = [0; 1; 0];
-        irf_name;
-        t0_image;
-        polarisation_resolved = false; 
-        n_chan = 1;
-        data_t_min = 0; % first data point
-        
-        is_analytical = false;
-        gaussian_parameters = struct('mu',{},'sigma',{},'offset',{});
-    end
-    
-    properties(SetObservable)
-        t_irf_min = 0;
-        t_irf_max = 0;
-
-        irf_type = 0;
-        irf_background = 0;
-        afterpulsing_correction = false;
-        ref_lifetime = 80;
-        
-        g_factor = 1;
-        pol_angle = 0;
-        
-        t0 = 0;
-        use_image_t0_correction = 0;
-    end
-    
-    %{
-    properties
         t_irf (:,1) double = [-1; 0; 1];
         irf double = [0; 1; 0];
         irf_name char;
@@ -40,7 +10,7 @@ classdef instrument_response_function < handle
         data_t_min (1,1) double = 0; % first data point
         
         is_analytical (1,1) logical = false;
-        gaussian_parameters {mustBeGaussianParams(gaussian_parameters)} = struct('mu',1000,'sigma',100);
+        gaussian_parameters {mustBeGaussianParams(gaussian_parameters)} = struct('mu',{},'sigma',{},'offset',{});
     end
     
     properties(SetObservable)
@@ -52,13 +22,13 @@ classdef instrument_response_function < handle
         afterpulsing_correction (1,1) logical = false;
         ref_lifetime (1,1) double = 80;
         
-        g_factor (1,1) double = 1;
+        g_factor (1,:) double = 1;
+        pol_angle (1,1) double = 0;
         
         t0 (1,1) double = 0;
         use_image_t0_correction (1,1) logical = 0;
     end
-    %}
-    
+        
     properties(Transient)
         has_image_irf = 0;
         image_irf;

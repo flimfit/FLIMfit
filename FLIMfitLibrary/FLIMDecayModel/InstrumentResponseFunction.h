@@ -74,12 +74,15 @@ public:
    void setIRF(int n_t, int n_chan, double timebin_t0, double timebin_width, it irf);
 
    void setImageIRF(int n_t, int n_chan, int n_irf_rep, double timebin_t0, double timebin_width, double_iterator irf);
-   void setGaussianIRF(std::vector<GaussianParameters> gaussian_params);
+   void setGaussianIRF(const std::vector<GaussianParameters>& gaussian_params);
 
    void setIRFShiftMap(double* t0);
    void setReferenceReconvolution(int ref_reconvolution, double ref_lifetime_guess);
 
    void setPolarisation(double g_factor, double polarisation_angle);
+   void setGFactor(const std::vector<double>& g_factor);
+
+   std::vector<double>& getGFactor() { return g_factor; };
 
    double_iterator getIRF(int irf_idx, double t0_shift, double_iterator storage);
    double getT0();
@@ -96,7 +99,6 @@ public:
    int n_irf;
    int n_irf_rep;
 
-   double g_factor = 1.0;
    double polarisation_angle = 0.0;
 
    std::vector<GaussianParameters> gaussian_params;
@@ -116,6 +118,8 @@ private:
 
    std::vector<double, boost::alignment::aligned_allocator<double, 16> > irf;
    
+   std::vector<double> g_factor;
+
    int     image_irf;
    double* t0_image;
 
@@ -132,7 +136,12 @@ private:
       ar & n_irf;
       ar & n_chan;
       ar & n_irf_rep;
-      ar & g_factor;
+
+      if (version >= 4)
+         ar & g_factor;
+      else if (Archive::is_loading::value)
+         g_factor.resize(n_chan, 1.0);
+
       ar & type;
       ar & irf;
 
@@ -170,6 +179,8 @@ void InstrumentResponseFunction::setIRF(int n_t, int n_chan_, double timebin_t0_
          throw std::runtime_error("IRF is not correctly normalised");
    }
 
+   g_factor.assign(n_chan, 1.0);
+
    //calculateGFactor();
 }
 
@@ -194,4 +205,4 @@ void InstrumentResponseFunction::copyIRF(int n_irf_raw, it irf_)
 
 }
 
-BOOST_CLASS_VERSION(InstrumentResponseFunction, 3)
+BOOST_CLASS_VERSION(InstrumentResponseFunction, 4)

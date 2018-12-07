@@ -52,18 +52,27 @@ InstrumentResponseFunction::InstrumentResponseFunction() :
 }
 
 
-void InstrumentResponseFunction::setGaussianIRF(std::vector<GaussianParameters> gaussian_params_)
+void InstrumentResponseFunction::setGaussianIRF(const std::vector<GaussianParameters>& gaussian_params_)
 {
    gaussian_params = gaussian_params_;
    type = Gaussian;
+
+   n_chan = (int) gaussian_params.size();
+   g_factor.resize(n_chan);
 }
+
+void InstrumentResponseFunction::setGFactor(const std::vector<double>& g_factor_)
+{
+   if (g_factor_.size() != n_chan)
+      throw std::runtime_error("Unexpected number of g_factor channels");
+
+   g_factor = g_factor_;
+}
+
 
 int InstrumentResponseFunction::getNumChan()
 {
-   if (isGaussian())
-      return (int) gaussian_params.size();
-   else
-      return n_chan;
+   return n_chan;
 }
 
 void InstrumentResponseFunction::setReferenceReconvolution(int ref_reconvolution, double ref_lifetime_guess)

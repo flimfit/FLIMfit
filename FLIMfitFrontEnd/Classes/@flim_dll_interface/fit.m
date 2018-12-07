@@ -137,19 +137,20 @@ function fit(obj, data_series, fit_params, roi_mask, selected)
     transform.threshold = d.thresh_min;
     transform.limit = d.gate_max;
 
+    irf = struct();
     if d.irf.is_analytical
         irf_type = 'analytical_irf';
-        irf = d.irf.gaussian_parameters;
+        irf.gaussian_parameters = d.irf.gaussian_parameters;
     else
         irf_type = 'irf';
-        irf = struct();
         irf.irf = d.irf.tr_irf;
         irf.timebin_t0 = d.irf.tr_t_irf(1);
         irf.timebin_width = d.irf.tr_t_irf(2) - d.irf.tr_t_irf(1);
         irf.ref_reconvolution = d.irf.irf_type;
         irf.ref_lifetime_guess = d.irf.ref_lifetime;
     end
-
+    irf.g_factor = d.irf.g_factor;
+    
     if all(size(d.tvb_profile) == d.data_size(1:2)')
         tvb = d.tvb_profile;
     else
