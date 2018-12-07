@@ -176,6 +176,8 @@ int AnisotropyDecayGroup::getLinearOutputs(float_iterator lin_variables, float_i
    double I0 = lin_variables[0];
    double r0 = 0.0;
 
+   output[output_idx++] = (float)I0;
+
    int n_r = n_anisotropy_populations + include_r_inf;
 
    for (int j = 1; j<n_r + 1; j++)
@@ -187,7 +189,6 @@ int AnisotropyDecayGroup::getLinearOutputs(float_iterator lin_variables, float_i
    output[output_idx] = (float) r0;
    output_idx += (n_r + 1);
 
-   output[output_idx] = (float) I0;
 
    return output_idx;
 }
@@ -333,7 +334,7 @@ void AnisotropyDecayGroup::setupChannelFactors()
    int n_chan = dp->n_chan;
 
    double para = (3.0 * cos(angle) - 1.0) / 6.0;
-   double perp = (g_factor * 3.0 * cos(angle * M_PI / 180 + M_PI * 0.5) - 1.0) / 6.0;
+   double perp = (3.0 * cos(angle * M_PI / 180 + M_PI * 0.5) - 1.0) / 6.0;
 
    auto& polarisation = dp->getPolarisation();
 
@@ -356,8 +357,8 @@ void AnisotropyDecayGroup::setupChannelFactors()
 
       case Perpendicular:
          ss_channel_factors[i] *= g_factor / 3.0;
-         pol_channel_factors[i] *= perp;
+         pol_channel_factors[i] *= g_factor * perp;
          break;
       }
    }
-   }
+}
