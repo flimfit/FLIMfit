@@ -35,7 +35,8 @@ function [Z,C,T,channels] = zct_selection_dialog(zct_size,options)
         c = options.chan_info;
     end
 
-    fh = figure('NumberTitle','off','Name','Select images to load','MenuBar','none','CloseRequestFcn',@close_fcn);
+    fh = figure('NumberTitle','off','Name','Select images to load',...
+        'MenuBar','none','CloseRequestFcn',@close_fcn,'Visible','off');
     
     layout = uix.VBox('Parent',fh,'Padding',5,'Spacing',10);
     sel_layout = uix.HBox('Parent',layout,'Spacing',5);
@@ -76,27 +77,25 @@ function [Z,C,T,channels] = zct_selection_dialog(zct_size,options)
     c_opt_layout.Widths = [50 -1];
     c_layout.Heights = [30 -1];
     uix.Empty('Parent',button_layout)
-    uicontrol('Style','pushbutton','String','OK','Parent',button_layout,'Callback',@(~,~) close(fh));
+    uicontrol('Style','pushbutton','String','OK','Parent',button_layout,'Callback',@(~,~) uiresume(fh));
     button_layout.Widths = [-1 200];
     
+    movegui(fh,'center');    
+    resume_gui_on_enter(fh);
+    fh.Visible = 'on';
     uiwait(fh);
-        
-    function close_fcn(obj,~)
-        
-        Z = z_check.get_check();
-        C = c_check.get_check();
-        T = t_check.get_check();
-        
-        if c_type.Value == 1
-            channels = C;
-            C = -1;
-        else
-            channels = -1;
-        end
-        
-        delete(obj);
-        
-    end
-
     
+    Z = z_check.get_check();
+    C = c_check.get_check();
+    T = t_check.get_check();
+        
+    if c_type.Value == 1
+        channels = C;
+        C = -1;
+    else
+        channels = -1;
+    end
+        
+    delete(fh);
+        
 end
