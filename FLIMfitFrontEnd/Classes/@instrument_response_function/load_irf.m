@@ -72,7 +72,8 @@ function load_irf(obj,file_or_image,load_as_image)
       
         options.expected_channels = obj.n_chan;
         options.allow_multiple_images = false;
-        [z,c,t,channels] = zct_selection_dialog(reader.sizeZCT,reader.chan_info,options);
+        options.chan_info = chan_info;
+        [z,c,t,channels] = zct_selection_dialog(reader.sizeZCT,options);
         
         if nargin < 3
             load_as_image = false;

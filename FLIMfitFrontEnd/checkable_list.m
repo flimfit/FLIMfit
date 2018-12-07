@@ -18,18 +18,23 @@ classdef checkable_list < handle
     
     methods
 
-        function obj = checkable_list(parent,options,lims)
+        function obj = checkable_list(parent,options,lims,initial)
                         
             if nargin < 3
                 lims = [1 length(options)];
             elseif length(lims) == 1
                 lims(2) = length(options);
             end
-            
+                        
             obj.lims = lims;
             assert(lims(2) >= lims(1));
             
-            obj.check_order = 1:lims(2);
+            idx = 1:length(options);
+            if nargin < 4 || (sum(initial) > lims(2))
+                initial = idx <= lims(2);
+            end
+            
+            obj.check_order = idx(initial);
             
             panel = uipanel('Parent',parent,'BorderType','none');
             sub_layout = uix.HBox('Parent',panel,'Padding',5);
@@ -43,7 +48,7 @@ classdef checkable_list < handle
             
             for i=1:length(options)
                 obj.checkboxes(i) = uicontrol('Style','check','String',options{i},'Callback',@(src,evt) obj.checked(src,i),...
-                    'Parent',obj.check_layout,'BackgroundColor','w','Value',i<=lims(2));
+                    'Parent',obj.check_layout,'BackgroundColor','w','Value',initial(i));
             end
             obj.check_layout.Heights = 20*ones(1,length(options));
             sub_layout.Widths = [-1 20];

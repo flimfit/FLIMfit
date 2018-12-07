@@ -66,6 +66,10 @@ classdef (Abstract) base_data_reader < handle
             norm = [];
         end
         
+        function recommended_channels = getRecommendedChannels(obj)
+            recommended_channels = true(1,length(obj.chan_info));
+        end
+        
         
     end
         

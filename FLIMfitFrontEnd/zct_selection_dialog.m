@@ -1,8 +1,16 @@
-function [Z,C,T,channels] = zct_selection_dialog(zct_size,chan_info,options)
+function [Z,C,T,channels] = zct_selection_dialog(zct_size,options)
 
-    if nargin < 3
+    if nargin < 2
+        options = struct();
+    end
+    if ~isfield(options,'allow_multiple_images')
         options.allow_multiple_images = true;
+    end
+    if ~isfield(options,'expected_channels')
         options.expected_channels = [];
+    end
+    if ~isfield(options,'initial_channels')
+        options.initial_channels = true(1,zct_size(2));
     end
 
     assert(length(zct_size) == 3)
@@ -14,8 +22,6 @@ function [Z,C,T,channels] = zct_selection_dialog(zct_size,chan_info,options)
     prod_zt = zct_size(1) * zct_size(3);
     prod_zct = prod(zct_size);
     
-    
-    
     if prod_zct == 1 || ...
        ((prod_zt == 1) && any(zct_size(2) == options.expected_channels))
         Z = z;
@@ -25,8 +31,8 @@ function [Z,C,T,channels] = zct_selection_dialog(zct_size,chan_info,options)
         return;
     end
     
-    if nargin >= 3 && numel(chan_info) == zct_size(2)
-        c = chan_info;
+    if isfield(options,'chan_info') && numel(options.chan_info) == zct_size(2)
+        c = options.chan_info;
     end
 
     fh = figure('NumberTitle','off','Name','Select images to load','MenuBar','none','CloseRequestFcn',@close_fcn);
@@ -65,7 +71,7 @@ function [Z,C,T,channels] = zct_selection_dialog(zct_size,chan_info,options)
         lims = [options.expected_channels options.expected_channels];
     end
     
-    c_check = checkable_list(c_layout,c,lims);
+    c_check = checkable_list(c_layout,c,lims,options.initial_channels);
     
     c_opt_layout.Widths = [50 -1];
     c_layout.Heights = [30 -1];

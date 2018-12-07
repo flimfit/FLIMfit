@@ -79,6 +79,10 @@ classdef flimreader_reader < base_data_reader
         function norm = getIntensityNormalisation(obj, zct)
             norm = FlimReader(obj.reader,'GetIntensityNormalisation');
         end
+            
+        function recommended_channels = getRecommendedChannels(obj)
+            recommended_channels = FlimReader(obj.reader,'GetRecommendedChannels');
+        end
         
         
 

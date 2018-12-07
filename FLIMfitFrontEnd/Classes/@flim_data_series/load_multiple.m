@@ -49,7 +49,9 @@ function load_multiple(obj, polarisation_resolved, data_setting_file, channels)
     
     % Determine which planes we need to load 
     if isempty(obj.ZCT) || isempty(obj.channels)
-        [z,c,t,channels] = zct_selection_dialog(reader.sizeZCT,chan_info);
+        options.chan_info = chan_info;
+        options.initial_channels = reader.getRecommendedChannels();
+        [z,c,t,channels] = zct_selection_dialog(reader.sizeZCT,options);
         [Z,C,T] = meshgrid(z,c,t);
         obj.ZCT = [Z(:) C(:) T(:)];
         obj.channels = channels;

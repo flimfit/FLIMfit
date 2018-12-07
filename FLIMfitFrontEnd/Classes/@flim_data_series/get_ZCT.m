@@ -23,69 +23,68 @@
     % and The Wellcome Trust through a grant entitled 
     % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
  
-            if nargin < 3
-                polarisation_resolved = false;
-            end
-            
-            if nargin < 4
-                chan_info = [];
-            end
-            
-            % allow selection of multiple planes by default
-            if nargin < 5 
-                multiple_planes = true;
-            end
+    if nargin < 3
+        polarisation_resolved = false;
+    end
 
-         
-            sizeZCT = dims.sizeZCT;
-            sizeZ = sizeZCT(1);            
-            sizeC = sizeZCT(2);  
-            sizeT = sizeZCT(3);  
-            sizet = length(dims.delays);
-            
-            ZCT{1} = 1;
-            ZCT{2} = 1;
-            ZCT{3} = 1;
-            
-            if ~isempty(dims.modulo)                
-                switch dims.modulo
-                    case 'ModuloAlongZ'
-                        sizeZ = sizeZ/sizet;                 
-                    case 'ModuloAlongC'
-                        sizeC = sizeC/sizet;                                       
-                    case 'ModuloAlongT'
-                        sizeT = sizeT/sizet;
-                end
-            end 
-            
-             
-            
-           if (sizeZ + sizeC + sizeT) > 3
-                    
-                minn = [ 1 1 1 ];   % select one from each by default
-                    
-                if  multiple_planes 
-                    % if single file in data set allow any selection
-                    if length(obj.file_names) == 1
-                        maxx = [ sizeZ sizeC sizeT ];   
-                    else
-                        % otherwise allow any Z or T but restrict Channels
-                        maxx = [ sizeZ 1 sizeT ];
-                    end
-                else
-                    maxx = minn;
-                end
-                
-                
-                if obj.all_Z_volume_loading
-                    ZCT = { (1:sizeZ) 1 1 };
-                else
-                    ZCT = ZCT_selection([sizeZ sizeC sizeT], maxx, minn, polarisation_resolved, chan_info);
-                end;
-                
+    if nargin < 4
+        chan_info = [];
+    end
+
+    % allow selection of multiple planes by default
+    if nargin < 5 
+        multiple_planes = true;
+    end
+
+
+    sizeZCT = dims.sizeZCT;
+    sizeZ = sizeZCT(1);            
+    sizeC = sizeZCT(2);  
+    sizeT = sizeZCT(3);  
+    sizet = length(dims.delays);
+
+    ZCT{1} = 1;
+    ZCT{2} = 1;
+    ZCT{3} = 1;
+
+    if ~isempty(dims.modulo)                
+        switch dims.modulo
+            case 'ModuloAlongZ'
+                sizeZ = sizeZ/sizet;                 
+            case 'ModuloAlongC'
+                sizeC = sizeC/sizet;                                       
+            case 'ModuloAlongT'
+                sizeT = sizeT/sizet;
+        end
+    end 
+
+
+
+   if (sizeZ + sizeC + sizeT) > 3
+
+        minn = [ 1 1 1 ];   % select one from each by default
+
+        if  multiple_planes 
+            % if single file in data set allow any selection
+            if length(obj.file_names) == 1
+                maxx = [ sizeZ sizeC sizeT ];   
+            else
+                % otherwise allow any Z or T but restrict Channels
+                maxx = [ sizeZ 1 sizeT ];
             end
+        else
+            maxx = minn;
+        end
+
+
+        if obj.all_Z_volume_loading
+            ZCT = { (1:sizeZ) 1 1 };
+        else
+            ZCT = ZCT_selection([sizeZ sizeC sizeT], maxx, minn, polarisation_resolved, chan_info);
+        end;
+
+    end
             
-           
-          
+                  
 end
 
