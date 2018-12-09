@@ -83,6 +83,11 @@ function init_dataset(obj,setting_file_name)
     
     % If a data setting file exists load it
     
+    if obj.polarisation_resolved
+        obj.polarisation(1) = Polarisation.Parallel;
+        obj.polarisation(2) = Polarisation.Perpendicular;
+    end
+    
     if nargin < 2 || isempty(setting_file_name)
         if obj.polarisation_resolved
             setting_file_name = [obj.root_path 'polarisation_data_settings.xml'];
