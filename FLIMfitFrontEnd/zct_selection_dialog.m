@@ -76,7 +76,7 @@ function [Z,C,T,channels] = zct_selection_dialog(zct_size,options)
     
     c_opt_layout.Widths = [50 -1];
     c_layout.Heights = [30 -1];
-    uix.Empty('Parent',button_layout)
+    uix.Empty('Parent',button_layout);
     uicontrol('Style','pushbutton','String','OK','Parent',button_layout,'Callback',@(~,~) uiresume(fh));
     button_layout.Widths = [-1 200];
     
