@@ -53,7 +53,7 @@ Source: "{#RepositoryRoot}\FLIMfitStandalone\FLIMfit_{#AppVersion}\FLIMfit.exe";
 Source: "C:\Program Files\MATLAB\R{#MatlabVer}\bin\win64\tbb.dll"; DestDir: "{app}"; Flags: ignoreversion 64bit
 Source: "{#RepositoryRoot}\InstallerSupport\FLIMfit-icon.ico"; DestDir: "{app}"
 Source: "{#RepositoryRoot}\InstallerSupport\gs916w64.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall
-Source: "{#RepositoryRoot}\FLIMfitFrontEnd\java.opts"; DestDir: "{app}";
+Source: "{#RepositoryRoot}\FLIMfitFrontEnd\DeployFiles\java.opts"; DestDir: "{app}";
 
 
 [Icons]
