@@ -11,8 +11,7 @@ function download_flimfit_libraries(prompt_user)
            if strcmp(answer,'No'); return; end
         end
         
-        [~,v] = system('git describe','-echo');
-        v = strtrim(v);
+        v = get_git_version();
         platform = lower(computer());
         
         url = ['https://storage.googleapis.com/flimfit-downloads/latest/' v '/libraries/flimfit_libraries_' platform '_' v '.zip'];
@@ -22,3 +21,5 @@ function download_flimfit_libraries(prompt_user)
         unzip(file)
         
     end
+    
+end

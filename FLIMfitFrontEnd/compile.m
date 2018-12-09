@@ -45,9 +45,7 @@ function compile(exit_on_error)
         
         disp( 'Starting Matlab compilation.' );
 
-        [~,v] = system('git describe','-echo');
-        v = v(1:end-1);
-        v = strtrim(v);
+        v = get_git_version();
 
         fid = fopen(['GeneratedFiles' filesep 'version.txt'],'w');
         fwrite(fid,v);
