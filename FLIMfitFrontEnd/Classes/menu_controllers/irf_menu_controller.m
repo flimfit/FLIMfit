@@ -106,41 +106,15 @@ classdef irf_menu_controller < handle
         
         
         function menu_irf_fit_gaussian_irf(obj)
-            
-            d = obj.data_series_controller.data_series;
-            mask = obj.data_masking_controller.roi_controller.roi_mask;
-
-            T = 1e6 / d.rep_rate;
-            
-            t = d.tr_t(:);
-            data = d.get_roi(mask,obj.data_series_list.selected);
-            data = sum(double(data),3);
-            
-            analytical = false;
-            
-            estimate_irf_interface(t,data,T,analytical,default_path);
-            
-        end
-
-        function menu_irf_fit_analytical_irf(obj)
-            
-            d = obj.data_series_controller.data_series;
-            mask = obj.data_masking_controller.roi_controller.roi_mask;
-
-            T = 1e6 / d.rep_rate;
-            
-            t = d.tr_t(:);
-            data = d.get_roi(mask,obj.data_series_list.selected);
-            data = sum(double(data),3);
-            
-            analytical = true;
-            
-            estimate_irf_interface(t,data,T,analytical,default_path);
-            
+            obj.fit_irf(false);
         end
         
-        function menu_irf_fit_pol_resolved_irf(obj)
-
+        function menu_irf_fit_analytical_irf(obj)
+            obj.fit_irf(true);
+        end
+        
+        function fit_irf(obj,analytical)
+                    
             d = obj.data_series_controller.data_series;
             mask = obj.data_masking_controller.roi_controller.roi_mask;
 
@@ -149,11 +123,10 @@ classdef irf_menu_controller < handle
             t = d.tr_t(:);
             data = d.get_roi(mask,obj.data_series_list.selected);
             data = sum(double(data),3);
-            
-            estimate_polarisation_resolved_irf_interface(t,data,T,default_path);
+                        
+            estimate_irf_interface(t,data,d.polarisation,T,analytical,default_path);
             
         end
-
         
     end
     

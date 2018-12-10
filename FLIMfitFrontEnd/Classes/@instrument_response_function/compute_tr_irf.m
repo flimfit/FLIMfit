@@ -238,8 +238,8 @@ function compute_tr_irf(obj)
                 %}
             end
 
-            if obj.polarisation_resolved
-                obj.tr_irf(:,1) = obj.tr_irf(:,1) * obj.g_factor;
+            for i=1:size(obj.tr_irf,2)
+                obj.tr_irf(:,i) = obj.tr_irf(:,i) * obj.g_factor(i);
             end
         end
     end

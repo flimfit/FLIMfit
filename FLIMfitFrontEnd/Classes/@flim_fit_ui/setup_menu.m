@@ -139,7 +139,6 @@ function handles = setup_menu(obj,handles)
     
     handles.menu_irf_fit_gaussian_irf = uimenu(menu_irf,'Label','Estimate IRF ...','Separator','on');
     handles.menu_irf_fit_analytical_irf = uimenu(menu_irf,'Label','Estimate IRF (Analytical Gaussian)...');
-    handles.menu_irf_fit_pol_resolved_irf = uimenu(menu_irf,'Label','Estimate Polarisation Resolved IRF (Analytical Gaussian)...');
     
     handles.menu_irf_estimate_background = uimenu(menu_irf,'Label','Estimate IRF Background','Separator','on');
     handles.menu_irf_estimate_g_factor = uimenu(menu_irf,'Label','Estimate G Factor');

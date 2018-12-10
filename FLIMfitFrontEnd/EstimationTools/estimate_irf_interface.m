@@ -1,4 +1,4 @@
-function estimate_irf_interface(t, data, T, analytical, default_path)
+function estimate_irf_interface(t, data, polarisation, T, analytical, default_path)
 
 if any(data==0)
     warndlg('Decay contains zeros, please average over a larer region','Warning')
@@ -40,7 +40,7 @@ if analytical
     
 %    for i=1:n_chan
 %        tabs.Selection = i;
-        [analytical_parameters, chi2] = estimate_analytical_irf(t,data,T,fit_ax(1),res_ax(1));
+        [analytical_parameters, chi2] = estimate_analytical_irf(t,data,polarisation,T,fit_ax(1),res_ax(1));
 %    end
     
 else
