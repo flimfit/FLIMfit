@@ -81,6 +81,16 @@ function [analytical_params,chi2_final] = estimate_analytical_irf(t, decay, pola
             I(:,i) = I(:,i) + p.offset(i);
         end
         I(:,2) = I(:,2) * p.g;
+      
+        if polarisation_resolved
+            I0 = I(:) \ decay(:);
+            analytical_decay = I0 * I;
+        else
+            for i=1:n_chan
+                I0 = I(:,i) \ decay(:,i);
+                analytical_decay(:,i) = I0 * I(:,i);
+            end
+        end
         
         %{
         n = 1.333; % refractive index of water
@@ -97,8 +107,6 @@ function [analytical_params,chi2_final] = estimate_analytical_irf(t, decay, pola
         I = IA;
         %}
         
-        I0 = I(:) \ decay(:);
-        analytical_decay = I0 * I;
         
         n_free = numel(decay) - length(x);
 
