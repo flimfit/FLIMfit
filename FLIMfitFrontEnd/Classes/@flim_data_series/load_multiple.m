@@ -1,4 +1,4 @@
-function load_multiple(obj, polarisation_resolved, data_setting_file, channels)   
+function load_multiple(obj, polarisation_resolved, data_setting_file)   
     %> Load a series of FLIM data files
     
     % Copyright (C) 2013 Imperial College London.
@@ -79,11 +79,15 @@ function load_multiple(obj, polarisation_resolved, data_setting_file, channels)
     % Extract metadata 
     if isempty(obj.metadata)
         metadata = struct();
-        metadata.Z = repmat(Z(:),[n_images 1]);
+        if ~all(Z(:)==1)
+            metadata.Z = repmat(Z(:),[n_images 1]);
+        end
         if ~all(C == -1)
             metadata.C = repmat(chan_info(C),[n_images 1]);
         end
-        metadata.T = repmat(T(:),[n_images 1]);   
+        if ~all(T(:)==1)
+            metadata.T = repmat(T(:),[n_images 1]);   
+        end
         metadata = extract_metadata(names',metadata);
         obj.metadata = struct2table(metadata);
     end
