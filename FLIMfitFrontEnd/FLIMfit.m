@@ -26,8 +26,8 @@ function ui = FLIMfit()
 
 % Author : Sean Warren
 
-download_flimfit_libraries(true)
 addpath_global_analysis();
+download_flimfit_libraries(true);
 
 upgrade_pattern_library();
 
