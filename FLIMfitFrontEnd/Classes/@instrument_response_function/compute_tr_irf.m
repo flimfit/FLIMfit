@@ -29,6 +29,10 @@ function compute_tr_irf(obj)
 
     if obj.is_init
         
+        if numel(obj.g_factor) ~= obj.n_chan
+            obj.g_factor = ones(1,obj.n_chan);
+        end
+       
         if obj.is_analytical
                         
             sigma = [obj.gaussian_parameters.sigma];
@@ -242,5 +246,6 @@ function compute_tr_irf(obj)
                 obj.tr_irf(:,i) = obj.tr_irf(:,i) * obj.g_factor(i);
             end
         end
+               
     end
 end

@@ -138,9 +138,15 @@ private:
       ar & n_irf_rep;
 
       if (version >= 4)
+      {
          ar & g_factor;
+      }
       else if (Archive::is_loading::value)
+      {
+         double g;
+         ar & g;
          g_factor.resize(n_chan, 1.0);
+      }
 
       ar & type;
       ar & irf;
