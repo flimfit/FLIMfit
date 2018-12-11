@@ -182,7 +182,11 @@ classdef flim_data_decay_view < handle & abstract_display_controller ...
                             obj.fit = obj.fit_controller.fitted_anisotropy(obj.t,mask,obj.data_series_list.selected);
                     end
 
-                    if ~isempty(obj.fit) && all(size(obj.fit)==size(obj.data))
+                    if ~all(size(obj.fit)==size(obj.data))
+                        obj.fit = [];
+                    end
+                    
+                    if ~isempty(obj.fit) 
                         dataz = obj.data;
                         dataz(dataz<0) = 0;
                         obj.residual = (obj.fit-dataz)./sqrt(dataz);
