@@ -47,7 +47,7 @@ try
     end
     
     common_substring = strings{1};
- 
+     
     for i=1:n
         s = strings{i};
         
@@ -208,6 +208,8 @@ catch e
 
     warning('Error while trying to extract metadata! Falling back to filenames');
     metadata.FileName = strings;
+    metadata.image = (1:n)';
+
     disp(getReport(e));
 end
 
