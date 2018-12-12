@@ -16,6 +16,7 @@ function download_flimfit_libraries(prompt_user)
         if strcmp(lib_ver,ver); return; end
         
         disp(['Old library version found (' lib_ver '), clearing']);
+        clear FLIMfitMex FlimReader
         delete('Libraries/*.*');
 
     end
