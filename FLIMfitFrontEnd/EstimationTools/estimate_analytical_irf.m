@@ -24,7 +24,7 @@ function [analytical_params,chi2_final] = estimate_analytical_irf(t, decay, pola
     params.tau = 3500;
     params.theta = 200;
     params.sigma = 600;
-    params.g = 1.0;
+    params.g = ones([1 n_chan-1]);
     params.offset = 1e-5 * ones([1 n_chan]);
     
     [~,idx] = max(decay);
@@ -66,6 +66,7 @@ function [analytical_params,chi2_final] = estimate_analytical_irf(t, decay, pola
         p = obj.get(x);
         
         nu = 3 / 2 * cos(pol_angle).^2 - 1 / 2; % angle to excitation 
+        p.g = [1 p.g];
         
         for i=1:n_chan
             irf(:,i) = normpdf(t_irf, p.t0(i), p.sigma);
@@ -80,7 +81,7 @@ function [analytical_params,chi2_final] = estimate_analytical_irf(t, decay, pola
             
             I(:,i) = I(:,i) + p.offset(i);
         end
-        I(:,2) = I(:,2) * p.g;
+        I = I .* p.g;
       
         if polarisation_resolved
             I0 = I(:) \ decay(:);
