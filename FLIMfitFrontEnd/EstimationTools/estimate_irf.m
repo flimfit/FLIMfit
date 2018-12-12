@@ -7,11 +7,11 @@ function [irf,t_irf,chi2_final] = estimate_irf(td, d, T, fit_ax, res_ax)
     end
        
     t_end = max(td);
-    t_start = -round(0.2 * max(td) / dt) * dt;
+    t_start = -round(0.2 * numel(td)) * dt;
     t = t_start:t_end;
     
     t_irf = (t_start:dt:t_end)';
-    t_sel = arrayfun(@(x) any(td==x), t_irf);
+    t_sel = arrayfun(@(x) any(abs(td-x)<1e-3), t_irf);
     
     dvalid = d > 0;
     
