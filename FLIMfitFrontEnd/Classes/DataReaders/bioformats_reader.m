@@ -33,7 +33,7 @@ classdef bioformats_reader < base_data_reader
                     end
 
                     % set series for each file to that selected 
-                    obj.image_series = ones(1,length(obj.file_names)) .* image_series; 
+                    obj.image_series = ones(1,length(obj.filename)) .* image_series; 
                 end
             else
                 obj.image_series = 1;
