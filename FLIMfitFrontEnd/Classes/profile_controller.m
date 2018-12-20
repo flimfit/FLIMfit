@@ -43,6 +43,7 @@ classdef profile_controller < handle
             profile_def.Fitting.Maximum_Iterations = 100; 
             profile_def.Fitting.Initial_Step_Size = 0.01; 
             profile_def.Fitting.Confidence_Interval = 0.05;
+            profile_def.Fitting.Use_Maximum_Likelihood_Refinement = false;
 
             % Display Preferences
             profile_def.Display.Invert_Colourscale = false;
