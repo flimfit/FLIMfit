@@ -101,13 +101,8 @@ function compute_tr_irf(obj)
             % Subtract background
             clamp = (obj.t_irf < obj.t_irf_min) | (obj.t_irf > obj.t_irf_max);
 
-            if length(obj.irf_background) == 2
-                bg = reshape(obj.irf_background,[1,2]);
-                bg = repmat(bg,[length(obj.tr_t_irf),1]);
-            else
-                bg = obj.irf_background; %repmat(obj.irf_background,[length(obj.tr_t_irf),size(obj.tr_irf,2)]);
-            end
-
+            bg = obj.irf_background; 
+            
             if ~obj.afterpulsing_correction
                 obj.tr_irf = obj.tr_irf - bg;
                 obj.tr_irf(obj.tr_irf<0) = 0;

@@ -18,7 +18,7 @@ classdef instrument_response_function < handle
         t_irf_max (1,1) double = 0;
 
         irf_type = 0;
-        irf_background (1,1) double = 0;
+        irf_background (1,:) double = 0;
         afterpulsing_correction (1,1) logical = false;
         ref_lifetime (1,1) double = 80;
         

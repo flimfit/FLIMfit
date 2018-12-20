@@ -33,7 +33,7 @@ function estimate_irf_background(obj)
 
 % Author : Sean Warren
 
-    bg = zeros(size(obj.irf));
+    bg = zeros([1 size(obj.irf,2)]);
     for i=1:size(obj.irf,2)
 
         ir = double(obj.irf(:,i));
@@ -59,12 +59,12 @@ function estimate_irf_background(obj)
             % Fit model to data.
             [fitresult] = fit( xData, yData, ft, opts );
 
-            bg(i) = fitresult.c;
+            bg(1,i) = fitresult.c;
             
         end
         
     end
 
-    obj.irf_background = max(bg);
+    obj.irf_background = bg;
     
 end
