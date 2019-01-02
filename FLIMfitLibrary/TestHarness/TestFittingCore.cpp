@@ -185,11 +185,11 @@ int testFittingCoreDouble()
       auto results = controller.getResults();
       auto stats = results->getStats();
 
-      //pass &= checkResult(results, "[1] tau_1", tau[0]);
-      //pass &= checkResult(results, "[1] tau_2", tau[1]);
-      pass &= checkResult(results, "[1] beta_1", beta1);
+      //pass &= checkResult(results, "G1_tau_1", tau[0]);
+      //pass &= checkResult(results, "G1_tau_2", tau[1]);
+      pass &= checkResult(results, "G1_beta_1", beta1);
       if (use_background)
-         pass &= checkResult(results, "[2] offset", N_bg, 0.5);
+         pass &= checkResult(results, "G2_offset", N_bg, 0.5);
 
       if (!pass)
          throw std::runtime_error("Failed test");
@@ -203,7 +203,7 @@ int testFittingCoreSingle(double tau, int N, bool use_gaussian_irf)
 {
    // Create simulator
 
-   int n_x = 40;
+   int n_x = 5;
    int n_chan = 2;
 
    FLIMSimulationTCSPC sim(n_chan);
@@ -250,7 +250,7 @@ int testFittingCoreSingle(double tau, int N, bool use_gaussian_irf)
 
    std::vector<double> test = { 1.2 * tau };
    auto group = std::make_shared<MultiExponentialDecayGroup>((int)test.size());
-   group->setFitChannelFactors(true);
+   group->setFitChannelFactors(false);
    model->addDecayGroup(group);
 
    auto params = group->getParameters();
@@ -260,7 +260,7 @@ int testFittingCoreSingle(double tau, int N, bool use_gaussian_irf)
       params[i]->setInitialValue(test[i]);
    }
 
-   params[1]->setFittingType(FittedGlobally);
+   //params[1]->setFittingType(FittedGlobally);
 
    auto bg = std::make_shared<BackgroundLightDecayGroup>();
    bg->getParameter("offset")->setFittingType(FittedLocally);
@@ -269,7 +269,8 @@ int testFittingCoreSingle(double tau, int N, bool use_gaussian_irf)
       model->addDecayGroup(bg);
 
    std::vector<FitSettings> settings;
-   settings.push_back(FitSettings(VariableProjection, Pixelwise, GlobalAnalysis, AverageWeighting, 4));
+   //settings.push_back(FitSettings(VariableProjection, Pixelwise, GlobalAnalysis, AverageWeighting, 4));
+   settings.push_back(FitSettings(MaximumLikelihood, Pixelwise, GlobalAnalysis, AverageWeighting, 1));
    //settings.push_back(FitSettings(VariableProjection, Imagewise, GlobalAnalysis, AverageWeighting, 1));
    //settings.push_back(FitSettings(VariableProjection, Global, GlobalAnalysis, AverageWeighting, 1));
    //settings.push_back(FitSettings(VariableProjection, Pixelwise, GlobalAnalysis, PixelWeighting, 4));
@@ -409,11 +410,11 @@ int testFittingCoreMultiChannel()
       auto results = controller.getResults();
       auto stats = results->getStats();
 
-      pass &= checkResult(results, "[1] tau_1", tau[0]);
-      pass &= checkResult(results, "[2] tau_1", tau[1]);
-      //checkResult(results, "[1] I_0", N / tau[0] * 1000);
-      //checkResult(results, "[2] I_0", N / tau[1] * 1000);
-      pass &= checkResult(results, "[3] I_0", 0.1);
+      pass &= checkResult(results, "G1_tau_1", tau[0]);
+      pass &= checkResult(results, "G2_tau_1", tau[1]);
+      //checkResult(results, "G1_I_0", N / tau[0] * 1000);
+      //checkResult(results, "G2_I_0", N / tau[1] * 1000);
+      //pass &= checkResult(results, "G3_I_0", 0.1);
 
       //      pass &= checkResult(results, "[1] beta_1", beta1);
 
