@@ -66,7 +66,7 @@ MaximumLikelihoodFitter::MaximumLikelihoodFitter(std::shared_ptr<DecayModel> mod
    work = new double[ LM_DER_WORKSZ(n_param, nfunc) ];
    expA = new double[nfunc];
 
-   int b_size = ndim * (pmax + 3);
+   int b_size = ndim * (p + 3);
    b.resize(b_size);
 
    nnls = std::make_unique<NonNegativeLeastSquares>(l, n);

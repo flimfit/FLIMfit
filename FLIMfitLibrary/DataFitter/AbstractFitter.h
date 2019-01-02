@@ -122,7 +122,6 @@ protected:
    int lmax;
    int n_param;
    int p;
-   int pmax;
 
    int max_region_size;
 

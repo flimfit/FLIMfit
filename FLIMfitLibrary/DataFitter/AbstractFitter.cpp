@@ -368,7 +368,7 @@ void AbstractFitter::getDerivatives(std::shared_ptr<DecayModel> model, int irf_i
 
       auto src = b.begin() + ndim * (valid_cols + ignore_cols);
       auto dest = b.begin() + ndim * valid_cols;
-      int size = ndim * (pmax - (valid_cols + ignore_cols)) * sizeof(double);
+      int size = ndim * (p - (valid_cols + ignore_cols)) * sizeof(double);
 
       std::move(src, src + size, dest);      
    }
