@@ -179,7 +179,6 @@ int (*linsolver)(LM_REAL *A, LM_REAL *B, LM_REAL *x, int m)=NULL;
    tmp=hx[i]-x[i];
    if (x[i]>LM_CNST(EPSILON) && hx[i]>LM_CNST(EPSILON))
 	   tmp -= (LM_REAL) (x[i]*log(hx[i]/x[i]));
-   tmp= (LM_REAL) fabs(tmp);
    e[i]=tmp;
    p_eL2+=2*tmp;
    
@@ -237,11 +236,10 @@ int (*linsolver)(LM_REAL *A, LM_REAL *B, LM_REAL *x, int m)=NULL;
 
       for(l=n; l-->0; )
       {
-        if (x[l]>LM_CNST(EPSILON) && hx[l]>LM_CNST(EPSILON))
+        if (hx[l]>LM_CNST(EPSILON))
         {
            LM_REAL alf_fact = x[l]/(hx[l]*hx[l]);
            LM_REAL beta_fact = -(1-x[l]/hx[l]);
-
               
            jaclm=jac+l*m;
            for(i=m; i-->0; )
@@ -374,8 +372,7 @@ if(!(k%100)){
           tmp=hx[i]-x[i];
           if (x[i]>LM_CNST(EPSILON) && hx[i]>LM_CNST(EPSILON))
             tmp-= (LM_REAL) (x[i]*log(hx[i]/x[i]));
-          tmp= (LM_REAL) fabs(tmp);
-          e[i]=tmp;
+          hx[i]=tmp;
           pDp_eL2+=2*tmp;
           
           //hx[i]=tmp=x[i]-hx[i];

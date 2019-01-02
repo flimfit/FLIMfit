@@ -536,7 +536,7 @@ int factorise_jacobian(minpack_funcderstx_mn fcn, void *p, int m, int n, int s, 
    (*fcn)(p, m, n, s, x, fvec, wa3, 1, 0);
    rwupdt(n, fjac, ldfjac, wa3, qtf, fvec, wa1, wa2);
 
-   int sm = ceil((double)s / n_jac_group);
+   int sm = (int) ceil((double)s / n_jac_group);
 
    if (sm == 1)
    {
