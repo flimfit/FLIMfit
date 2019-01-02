@@ -46,14 +46,15 @@
 void MLEfuncsCallback(double *alf, double *fvec, int nl, int nfunc, void* pa)
 {
    MaximumLikelihoodFitter* f = (MaximumLikelihoodFitter*)pa;
-   f->setVariables(alf);
+
+   f->setScaledVariables(alf);
    f->mle_funcs(alf, fvec, nl, nfunc);
 }
 
 void MLEjacbCallback(double *alf, double *fjac, int nl, int nfunc, void* pa)
 {
    MaximumLikelihoodFitter* f = (MaximumLikelihoodFitter*) pa;
-   f->setVariables(alf);
+   f->setScaledVariables(alf);
    f->mle_jacb(alf, fjac, nl, nfunc);
 }
 
@@ -62,9 +63,10 @@ MaximumLikelihoodFitter::MaximumLikelihoodFitter(std::shared_ptr<DecayModel> mod
 {
    nfunc = n + 1; // +1 for kappa
 
-   dy = new double[nfunc];
-   work = new double[ LM_DER_WORKSZ(n_param, nfunc) ];
-   expA = new double[nfunc];
+   dy.resize(nfunc);
+   work.resize(LM_DER_WORKSZ(n_param, nfunc));
+   expA.resize(n_param);
+   alf_unscaled.resize(n_param);
 
    int b_size = ndim * (p + 3);
    b.resize(b_size);
@@ -86,38 +88,40 @@ void MaximumLikelihoodFitter::fitFcn(int nl, std::vector<double>& alf, int& nite
       b[i] = y[i];
 
    double rnorm;
-   std::vector<double> x(l);
 
-   nnls->compute(a.data(), n, nmax, b.data(), x.data(), rnorm);
+   // For maximum likihood set intensity initial guesses to nnls estimate
+   nnls->compute(a.data(), n, nmax, b.data(), work.data(), rnorm);
 
    scaling = 1;
    for (int i = 0; i < l; i++)
-      scaling += x[i];
+      scaling += work[i];
    scaling = scaling / 10000.0;
 
-   // For maximum likihood set initial guesses for contributions 
-   // to sum to maximum intensity, evenly distributed
    if (!getting_errs)
    {
-      double mx = 0;
-      for(int j=0; j<n; j++)
-      {
-         if (dy[j]>mx)
-            mx = dy[j]; 
-      }
-
-      mx *= counts_per_photon; 
-
 #if CONSTRAIN_FRACTIONS
       for(int j=0; j<l; j++)
-         alf[nl+j] = log(x[j]);
+         alf[nl+j] = log(work[j]);
 #else
       for(int j=0; j<l; j++)
          alf[nl+j] = x[j] / scaling;
 #endif
    }
 
+   scale.clear();
+   scale.reserve(nl + l);
+   auto& params = model->getAllParameters();
+   for (auto& p : params)
+      if (p->isFittedGlobally())
+         scale.push_back(p->transformed_scale);
+
+   for (int i = 0; i < l; i++)
+      scale.push_back(1);
     
+   for (int i = 0; i < n_param; i++)
+      alf[i] /= scale[i];
+
+
    double opt[4];
    opt[0] = options.initial_step_size;
    opt[1] = DBL_EPSILON;
@@ -125,7 +129,8 @@ void MaximumLikelihoodFitter::fitFcn(int nl, std::vector<double>& alf, int& nite
    opt[3] = DBL_EPSILON;
    
 
-   int ret = dlevmar_der(MLEfuncsCallback, MLEjacbCallback, alf.data(), dy, n_param, n+1, options.max_iterations, opt, info, work, NULL, this);
+   int ret = dlevmar_der(MLEfuncsCallback, MLEjacbCallback, alf.data(), dy.data(), n_param, n+1,
+                         options.max_iterations, opt, info, work.data(), NULL, this);
    
    					           /* O: information regarding the minimization. Set to NULL if don't care
                       * info[0]= ||e||_2 at initial p.
@@ -151,6 +156,9 @@ void MaximumLikelihoodFitter::fitFcn(int nl, std::vector<double>& alf, int& nite
          ret = -1; //TODO: //throw std::runtime_error("Non-finite entry in returned minimisation parameters");
 
    *cur_chi2 = (info[1] / chi2_norm);
+
+   for (int i = 0; i < n_param; i++)
+      alf[i] *= scale[i];
 
    if(!getting_errs)
    {
@@ -220,44 +228,37 @@ void MaximumLikelihoodFitter::mle_jacb(double* alf, double *fjac, int n_param, i
 
    int m = 0;
    int k_sub = 0;
-   for (int k=0; k<nl; k++)
+   for (int k = 0; k < nl; k++)
    {
-         for(int j=0; j<l; j++)
+      for (int j = 0; j < l; j++)
+      {
+         if (inc[k + j * MAX_VARIABLES] != 0)
          {
-            if (inc[k + j * MAX_VARIABLES] != 0)
-            {
-               for (int i = 0; i < n; i++)
-                  fjac[n_param*i + k] += expA[j] * b[ndim*m + i];
-               fjac[n_param*n+k] = kap[k+1];
-               m++;
-            }
-         }
-         if (inc[k + l * MAX_VARIABLES] != 0)
-         {
-            for (int i=0; i<n; i++)
-               fjac[n_param*i+k] += b[ndim*m+i];
-            fjac[n_param*n+k] = kap[k+1];
+            for (int i = 0; i < n; i++)
+               fjac[n_param*i + k] += expA[j] * b[ndim*m + i] * scale[k];
+            fjac[n_param*n + k] = kap[k + 1];
             m++;
          }
-         k_sub++;      
+      }
+      if (inc[k + l * MAX_VARIABLES] != 0)
+      {
+         for (int i = 0; i < n; i++)
+            fjac[n_param*i + k] += b[ndim*m + i] * scale[k];
+         fjac[n_param*n + k] = kap[k + 1];
+         m++;
+      }
+      k_sub++;
    }
    // Set derv's for I
    for(int j=0; j<l; j++)
    {
 #if CONSTRAIN_FRACTIONS
          for (int i=0; i<n; i++)
-            fjac[n_param*i+j+k_sub] = expA[j] * a[i+nmax*j];
+            fjac[n_param*i+j+k_sub] = expA[j] * a[nmax*j + i];
 #else
          for (int i=0; i<n; i++)
-            fjac[n_param*i+j+k_sub] = a[i+nmax*j] * scaling;
+            fjac[n_param*i+j+k_sub] = a[nmax*j + i] * scaling;
 #endif
          fjac[n_param*n+j+k_sub] = 0; // kappa derv. for I
    }
-}
-
-MaximumLikelihoodFitter::~MaximumLikelihoodFitter()
-{
-   delete[] dy;
-   delete[] work;
-   delete[] expA;
 }

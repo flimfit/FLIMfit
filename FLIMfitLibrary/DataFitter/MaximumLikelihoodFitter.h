@@ -29,7 +29,7 @@
 
 #pragma once
 
-#define CONSTRAIN_FRACTIONS 0
+#define CONSTRAIN_FRACTIONS 1
 
 #include "AbstractFitter.h"
 #include "nnls.h"
@@ -39,7 +39,6 @@ class MaximumLikelihoodFitter : public AbstractFitter
 public:
 
    MaximumLikelihoodFitter(std::shared_ptr<DecayModel> model, FittingOptions options, std::shared_ptr<ProgressReporter> reporter);
-   ~MaximumLikelihoodFitter();
 
    void fitFcn(int nl, std::vector<double>& alf, int& niter, int& ierr);
 
@@ -55,9 +54,8 @@ private:
 
    // Buffers used by levmar algorithm
    double info[LM_INFO_SZ];
-   double* dy;
-   double* work;
-   double* expA;
+   std::vector<double> dy, work, expA, scale, alf_unscaled;
+
 
    int nfunc;
    double scaling;
@@ -66,4 +64,23 @@ private:
 
    friend void MLEfuncsCallback(double *alf, double *fvec, int nl, int nfunc, void* pa);
    friend void MLEjacbCallback(double *alf, double *fjac, int nl, int nfunc, void* pa);
+
+   template<typename it>
+   void setScaledVariables(it alf_)
+   {
+      std::copy(alf_, alf_ + nl, alf.begin());
+
+      int idx = 0;
+      for (int i = 0; i<nl; i++)
+      {
+         alf[i] *= scale[i];
+
+         if (i == fixed_param)
+            params[i] = fixed_value_cur;
+         else
+            params[i] = alf[idx++];
+      }
+
+      model->setVariables(params);
+   }
 };
