@@ -341,6 +341,10 @@ classdef flim_data_decay_view < handle & abstract_display_controller ...
                    high = 1;
                end
 
+               if display_mode == 2
+                   low = min(obj.data(obj.data > 0));
+               end
+               
                obj.ylim_highlight = [low high];
 
             else
