@@ -318,41 +318,45 @@ int FretDecayGroup::setVariables(const_double_iterator param_values)
    // Set tau's for FRET
    k_transfer_0.resize(n_fret_populations);
    for (int i = 0; i<n_fret_populations; i++)
-   {
       k_transfer_0[i] = tauT_parameters[i]->getTransformedValue<double>(param_values, idx);
-      
-      for (int k = 0; k < n_kappa; k++)
-      {
-         for (int j = 0; j<n_exponential; j++)
-         {
-            double rate = k_decay[j] + k_transfer(i, k);
-            fret_buffer[i][k][j]->compute(rate, irf_idx, t0_shift, reference_lifetime);
-         }
-      }
-   }
 
    if (include_acceptor)
    {
       k_A.resize(n_acceptor_exponential);
       betaA.resize(n_acceptor_exponential);
-      
+
       Q = Q_parameter->getValue<double>(param_values, idx);
       Qsigma = Qsigma_parameter->getValue<double>(param_values, idx);
 
       for (int i = 0; i < n_acceptor_exponential; i++)
-      {
          k_A[i] = tauA_parameters[i]->getTransformedValue<double>(param_values, idx);
-         acceptor_buffer[i]->compute(k_A[i], irf_idx, t0_shift, reference_lifetime);
-      }
 
       if (n_acceptor_exponential > 1)
          for (int i = 0; i < n_acceptor_exponential; i++)
             betaA[i] = betaA_parameters[i]->getValue<double>(param_values, idx);
       else
          betaA[0] = 1.0;
-      }
+   }
 
    return idx;
+}
+
+void FretDecayGroup::precompute()
+{
+   MultiExponentialDecayGroupPrivate::precompute();
+
+   for (int i = 0; i<n_fret_populations; i++)
+      for (int k = 0; k < n_kappa; k++)
+         for (int j = 0; j<n_exponential; j++)
+         {
+            double rate = k_decay[j] + k_transfer(i, k);
+            fret_buffer[i][k][j]->compute(rate, irf_idx, t0_shift, reference_lifetime);
+         }
+
+   if (include_acceptor)
+      for (int i = 0; i < n_acceptor_exponential; i++)
+         acceptor_buffer[i]->compute(k_A[i], irf_idx, t0_shift, reference_lifetime);
+
 }
 
 double FretDecayGroup::a_star(int i, int k, int j, int m)

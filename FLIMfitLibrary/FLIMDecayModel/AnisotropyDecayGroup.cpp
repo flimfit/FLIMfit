@@ -101,20 +101,22 @@ int AnisotropyDecayGroup::setVariables(const_double_iterator param_value)
    int idx = MultiExponentialDecayGroupPrivate::setVariables(param_value);
     
    k_theta.resize(n_anisotropy_populations);
+   for (int i = 0; i<n_anisotropy_populations; i++)
+      k_theta[i] = theta_parameters[i]->getTransformedValue<double>(param_value, idx);
+
+   return idx; 
+}
+
+void AnisotropyDecayGroup::precompute()
+{
+   MultiExponentialDecayGroupPrivate::precompute();
 
    for (int i = 0; i<n_anisotropy_populations; i++)
-   {
-      k_theta[i] = theta_parameters[i]->getTransformedValue<double>(param_value, idx);
-      // TODO: constrain above 60ps
-
       for (int j = 0; j < n_exponential; j++)
       {
          double rate = k_decay[j] + k_theta[i];
          anisotropy_buffer[i][j]->compute(rate, irf_idx, t0_shift, reference_lifetime);
       }
-   }
-
-   return idx; 
 }
 
 

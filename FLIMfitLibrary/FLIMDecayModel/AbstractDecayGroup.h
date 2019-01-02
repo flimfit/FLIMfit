@@ -87,6 +87,7 @@ public:
    virtual void init() = 0;
 
    virtual int setVariables(const_double_iterator variables) = 0;
+   virtual void precompute() = 0;
    virtual int calculateModel(double_iterator a, int adim, double& kap) = 0;
    virtual int calculateDerivatives(double_iterator b, int bdim, double_iterator& kap_derv) = 0;
    virtual void addConstantContribution(float_iterator a) {}

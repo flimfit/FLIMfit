@@ -43,6 +43,7 @@ public:
    virtual void setChannelFactors(int index, const std::vector<double>& channel_factors);
 
    virtual int setVariables(const_double_iterator variables);
+   virtual void precompute();
    virtual int calculateModel(double_iterator a, int adim, double& kap);
    virtual int calculateDerivatives(double_iterator b, int bdim, double_iterator& kap_derv);
    virtual int getNonlinearOutputs(float_iterator nonlin_variables, float_iterator output, int& nonlin_idx);

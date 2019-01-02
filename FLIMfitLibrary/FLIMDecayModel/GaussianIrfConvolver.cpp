@@ -12,8 +12,8 @@ GaussianChannelConvolver::GaussianChannelConvolver(const GaussianParameters& par
    sigma = params.sigma;
    mu = params.mu;
    T = T_;
-   t0_shift = std::numeric_limits<double>::infinity();
-
+   rate = t0_shift = std::numeric_limits<double>::infinity();
+  
    a = 1.0 / (sqrt(2) * sigma);
 
    dt = timepoints[1] - timepoints[0];
@@ -23,8 +23,13 @@ GaussianChannelConvolver::GaussianChannelConvolver(const GaussianParameters& par
    n_tm = (int)std::ceil((n_t + 1) / 4.0);
 }
 
-void GaussianChannelConvolver::compute(double rate, double t0_shift_)
-{
+void GaussianChannelConvolver::compute(double rate_, double t0_shift_)
+{   
+   // Don't compute if rate, t0 are the same
+   if ((rate_ == rate) && (t0_shift_ == t0_shift))
+      return;
+
+   rate = rate_;
    double d_rate = eps * rate;
    double rate_p = rate + d_rate;
 
@@ -182,19 +187,15 @@ GaussianIrfConvolver::GaussianIrfConvolver(std::shared_ptr<TransformedDataParame
 };
 
 
-void GaussianIrfConvolver::compute(double rate_, int irf_idx, double t0_shift, double ref_lifetime)
+void GaussianIrfConvolver::compute(double rate_, int irf_idx, double t0_shift_, double ref_lifetime)
 {
-   // Don't compute if rate is the same
-   if (rate_ == rate)
-      return;
-
    if (!std::isfinite(rate_))
       throw(std::runtime_error("Rate not finite"));
 
    rate = rate_;
 
    for (auto& c : convolver)
-      c.compute(rate, t0_shift);
+      c.compute(rate, t0_shift_);
 
 }
 

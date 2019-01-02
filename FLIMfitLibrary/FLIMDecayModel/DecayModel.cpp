@@ -36,10 +36,10 @@ using namespace std;
 
 DecayModel::DecayModel()
 {
-   //std::vector<ParameterFittingType> fixed_or_global = { Fixed, FittedGlobally };
+   std::vector<ParameterFittingType> fixed_or_global = { Fixed, FittedGlobally };
    std::vector<ParameterFittingType> fixed = { Fixed };
    reference_parameter = std::make_shared<FittingParameter>("ref_lifetime", 100, 1e-3, fixed, Fixed);
-   t0_parameter = std::make_shared<FittingParameter>("t0", 0, 1, fixed, Fixed);
+   t0_parameter = std::make_shared<FittingParameter>("t0", 0, 1, fixed_or_global, Fixed);
 
    parameters = { t0_parameter };
 }
@@ -304,6 +304,7 @@ void DecayModel::setVariables(const std::vector<double>& alf)
    for (auto& s : spectral_correction)
       idx += s->setVariables(param_values + idx);
 
+   // Disable caching for now
    last_variables.clear();
    last_variables.resize(decay_groups.size());
 
@@ -328,7 +329,9 @@ void DecayModel::setVariables(const std::vector<double>& alf)
       }
       idx += n_var;
 
+      decay_groups[i]->precompute();
    }
+
 }
 
 int DecayModel::calculateModel(double_iterator a, int adim, double_iterator kap, int irf_idx)
@@ -407,6 +410,7 @@ int DecayModel::addT0Derivatives(double_iterator b, int bdim, std::vector<double
    for (int i = 0; i < decay_groups.size(); i++)
    {
       decay_groups[i]->setT0Shift(t0_shift + dt);
+      decay_groups[i]->precompute();
       col += decay_groups[i]->calculateModel(b + col * bdim, bdim, kap);
    }
 
@@ -419,6 +423,7 @@ int DecayModel::addT0Derivatives(double_iterator b, int bdim, std::vector<double
    for (int i = 0; i < decay_groups.size(); i++)
    {
       decay_groups[i]->setT0Shift(t0_shift);
+      decay_groups[i]->precompute();
       col += decay_groups[i]->calculateModel(b + col * bdim, bdim, kap);
 
    }

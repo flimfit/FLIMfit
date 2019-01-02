@@ -28,17 +28,12 @@ void PatternDecayGroup::init()
 
    if (pattern.size() != dp->n_chan)
       throw(std::runtime_error("Incorrect number of channels in pattern"));
-
-   compute();
 }
 
-void PatternDecayGroup::compute()
+void PatternDecayGroup::precompute()
 {
-   if (last_t0 == t0_shift) return;
-
    decay.clear();
    decay.resize(dp->n_meas, 0.0);
-
 
    auto buffer = AbstractConvolver::make(dp);
    std::vector<double> channel_factors(dp->n_chan);
@@ -62,8 +57,6 @@ void PatternDecayGroup::compute()
       for (int j = 0; j < dp->n_t; j++)
          decay[i*dp->n_t + j] += pattern[i].offset;
    }
-
-   last_t0 = t0_shift;
 }
 
 int PatternDecayGroup::setVariables(const_double_iterator variables)
@@ -76,7 +69,7 @@ int PatternDecayGroup::calculateModel(double_iterator a, int adim, double& kap)
    if (fit->isFixed())
       return 0;
 
-   compute();
+   precompute();
 
    for (int i = 0; i < dp->n_meas; i++)
       a[i] = decay[i];
@@ -94,7 +87,7 @@ void PatternDecayGroup::addConstantContribution(float_iterator a)
    if (fit->isFittedLocally())
       return;
 
-   compute();
+   precompute();
 
    float fact = fit->getInitialValue();
 

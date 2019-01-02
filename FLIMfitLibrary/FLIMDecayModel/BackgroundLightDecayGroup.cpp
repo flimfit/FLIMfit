@@ -109,6 +109,11 @@ int BackgroundLightDecayGroup::setVariables(const_double_iterator param_values)
    return idx;
 }
 
+void BackgroundLightDecayGroup::precompute()
+{
+
+}
+
 void BackgroundLightDecayGroup::setupIncMatrix(std::vector<int>& inc, int& inc_row, int& inc_col)
 {
    for (int i = 0; i < 3; i++)

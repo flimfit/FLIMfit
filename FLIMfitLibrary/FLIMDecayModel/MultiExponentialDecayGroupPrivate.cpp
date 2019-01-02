@@ -233,10 +233,7 @@ int MultiExponentialDecayGroupPrivate::setVariables(const_double_iterator param_
    // Get lifetimes
    k_decay.resize(n_exponential);
    for (int i = 0; i < n_exponential; i++)
-   {
       k_decay[i] = tau_parameters[i]->getTransformedValue<double>(param_value, idx);
-      //TODO: k_decay[i] = k_decay[i] < 5.0 ? 5.0 : tau_raw[i];
-   }
 
    /*
    // Keep tau's in order
@@ -251,8 +248,6 @@ int MultiExponentialDecayGroupPrivate::setVariables(const_double_iterator param_
       }
    }
    */
-   for (int i = 0; i < n_exponential; i++)
-      buffer[i]->compute(k_decay[i], irf_idx, t0_shift, reference_lifetime); // TODO: only when changed
 
    // Get contributions
    if (contributions_global)
@@ -267,6 +262,12 @@ int MultiExponentialDecayGroupPrivate::setVariables(const_double_iterator param_
    }
 
    return idx;
+}
+
+void MultiExponentialDecayGroupPrivate::precompute()
+{
+   for (int i = 0; i < n_exponential; i++)
+      buffer[i]->compute(k_decay[i], irf_idx, t0_shift, reference_lifetime); // TODO: only when changed
 }
 
 int MultiExponentialDecayGroupPrivate::getNonlinearOutputs(float_iterator param_values, float_iterator output, int& param_idx)
