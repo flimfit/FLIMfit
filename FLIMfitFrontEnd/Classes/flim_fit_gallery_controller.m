@@ -146,6 +146,9 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
                     meta = [];
                 else
                     meta = r.metadata.(overlay);
+                    if isnumeric(meta)
+                        meta = arrayfun(@num2str,meta,'UniformOutput',false);
+                    end
                 end
                 
                 cbar_size = 20;

@@ -175,12 +175,12 @@ classdef flim_result_controller < flim_data_series_observer
                 param = find(param_idx);
             end
             
-            param = obj.get_intensity_idx(param);
+            intensity_param = obj.get_intensity_idx(param);
             
             if isa(obj.data_series_controller.data_series,'OMERO_data_series') && ~isempty(obj.data_series_controller.data_series.fitted_data)
-                [param_data, mask] = obj.data_series_controller.data_series.get_image(im,param,indexing);
+                [param_data, mask] = obj.data_series_controller.data_series.get_image(im,intensity_param,indexing);
             else
-                [param_data, mask] = obj.fit_result.get_image(im,param,indexing); % the original line - YA May 30 2013
+                [param_data, mask] = obj.fit_result.get_image(im,intensity_param,indexing); % the original line - YA May 30 2013
                 param_data = obj.normalise_intensity(param_data,im,indexing);
             end
             

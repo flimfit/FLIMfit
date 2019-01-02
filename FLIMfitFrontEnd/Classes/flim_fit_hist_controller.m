@@ -72,7 +72,7 @@ classdef flim_fit_hist_controller < abstract_plot_controller
                     sel = obj.selected;
                     indexing = 'dataset';
                 else
-                    sel = obj.fit_controller.selected;
+                    sel = f.selected;
                     indexing = 'result';
                 end
                 
