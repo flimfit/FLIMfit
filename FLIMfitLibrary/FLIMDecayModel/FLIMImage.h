@@ -79,6 +79,7 @@ public:
    void setName(const std::string& name_) { name = name_; }
    DataClass getDataClass() { return data_class; }
    cv::Mat getAcceptor() { return acceptor; }
+   cv::Mat getRatio();
    const std::vector<mask_type>& getSegmentationMask() { return mask; }
    std::shared_ptr<AcquisitionParameters> getAcquisitionParameters() const { return acq; }
    
@@ -121,6 +122,7 @@ protected:
    std::string name;
    cv::Mat intensity;
    cv::Mat acceptor;
+   cv::Mat ratio;
    
    std::string map_file_name;
    boost::interprocess::file_mapping data_map_file;
@@ -291,17 +293,31 @@ void FLIMImage::compute()
 {
    int n_px = acq->n_px;
    int n_meas = acq->n_meas_full;
+   int n_chan = acq->n_chan;
+   int n_t = acq->n_t_full;
+   bool has_ratio = acq->n_chan > 1;
+
    intensity = cv::Mat(acq->n_x, acq->n_y, CV_32F);
-   intensity = cv::Scalar(0);
    
+   if (has_ratio)
+      ratio = cv::Mat(acq->n_x, acq->n_y, CV_32F);
+
    T* data = getDataPointer<T>();
    
-   for (int i=0; i<n_px; i++)
-      for (int j=0; j<n_meas; j++)
+   for (int i = 0; i < n_px; i++)
+   {
+      T I[2] = { 0, 0 };
+      for (int c = 0; c < n_chan; c++)
       {
-         //assert(std::isfinite(data[i*n_meas + j]));
-         intensity.at<float>(i) += data[i*n_meas + j];
+         int idx = c > 0 ? 1 : 0;
+         for (int j = 0; j < n_t; j++)
+            I[idx] += data[i*n_meas + c*n_t + j];
       }
+
+      intensity.at<float>(i) = I[0] + I[1];
+      if (has_ratio)
+         ratio.at<float>(i) = ((float)I[1]) / I[0];
+   }
    
    releasePointer<T>();
 }

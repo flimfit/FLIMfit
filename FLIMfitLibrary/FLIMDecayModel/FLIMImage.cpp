@@ -146,6 +146,12 @@ cv::Mat FLIMImage::getIntensity()
    return intensity;
 }
 
+cv::Mat FLIMImage::getRatio()
+{
+   waitForData();
+   return ratio;
+}
+
 void FLIMImage::waitForData()
 {
    // See if the image data has been set

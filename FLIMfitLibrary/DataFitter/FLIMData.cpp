@@ -195,8 +195,8 @@ int FLIMData::getNumAuxillary()
 {
    int num_aux = 1;  // intensity
 
-   if (has_acceptor)
-      num_aux++;
+   num_aux += has_acceptor; // acceptor
+   num_aux += (dp->n_chan > 1); // ratio     
 
    return num_aux;
 }
@@ -467,10 +467,12 @@ int FLIMData::getMaskedData(int im, int region, float_iterator masked_data, int_
    auto transformer = getPooledTransformer(iml);
    int s = getRegionCount(im, region);
 
-   float_iterator masked_intensity, masked_r_ss, masked_acceptor;
+   float_iterator masked_intensity, masked_r_ss, masked_acceptor, masked_ratio;
    float_iterator aux_data = results.getAuxDataPtr(im, region);
    auto& mask = results.getMask(im);
    
+   bool has_ratio = dp->n_chan > 1;
+
    int n_aux = getNumAuxillary();
 
    masked_intensity = aux_data++;
@@ -478,13 +480,17 @@ int FLIMData::getMaskedData(int im, int region, float_iterator masked_data, int_
    if (has_acceptor)
       masked_acceptor = aux_data++;
 
+   if (has_ratio)
+      masked_ratio = aux_data++;
+
    mask = transformer.getMask();
    auto& tr_data = transformer.getTransformedData();
 //   auto& r_ss = transformer.getSteadyStateAnisotropy();
    
    cv::Mat acceptor = images[iml]->getAcceptor();
    cv::Mat intensity = images[iml]->getIntensity();
-   
+   cv::Mat ratio = images[iml]->getRatio();
+
    int n_meas = transformer.getNumMeasurements();
    
    // Store masked values
@@ -505,7 +511,10 @@ int FLIMData::getMaskedData(int im, int region, float_iterator masked_data, int_
 
          if (has_acceptor)
             masked_acceptor[idx*n_aux] = acceptor.at<float>(p);
-            
+         
+         if (has_ratio)
+            masked_ratio[idx*n_aux] = ratio.at<float>(p);
+
          for(int i=0; i<n_meas; i++)
             masked_data[idx*n_meas+i] = tr_data[p*n_meas+i];
 
@@ -527,8 +536,11 @@ std::vector<std::string> FLIMData::getAuxParamNames()
    std::vector<std::string> param_names;
    param_names.push_back("I");
 
-   if ( has_acceptor )
+   if (has_acceptor)
       param_names.push_back("acceptor");
+
+   if (dp->n_chan > 1)
+      param_names.push_back("ratio");
 
 //   if ( polarisation_resolved )
 //      param_names.push_back("r_ss");
