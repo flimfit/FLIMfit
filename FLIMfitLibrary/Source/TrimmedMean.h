@@ -145,16 +145,16 @@ void TrimmedMean(T x[], T w[], int n, int K, T conf_factor, ImageStats<T>& stats
 	  double a = 0;
       for(int i=0; i<n; i++)
       {
-         wt = Weighted(x[i], OS1, OS2, w1, w2);
-         
-         acc(x[i], weight = wt);
-         w_acc(x[i], weight = (wt*w[i]));
+         if (boost::math::isfinite(x[i]*x[i]))
+         {
+            wt = Weighted(x[i], OS1, OS2, w1, w2);
+            
+            acc(x[i], weight = wt);
+            w_acc(x[i], weight = (wt*w[i]));
 
-         acc_m2(x[i]*x[i], weight = wt);
-         w_acc_m2(x[i]*x[i], weight = (wt*w[i]));
-
-		 a = a + x[i]*x[i];
-
+            acc_m2(x[i]*x[i], weight = wt);
+            w_acc_m2(x[i]*x[i], weight = (wt*w[i]));
+         }
       } 
 
       p_mean = mean(acc);

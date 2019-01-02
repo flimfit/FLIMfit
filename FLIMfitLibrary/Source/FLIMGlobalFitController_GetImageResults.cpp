@@ -55,15 +55,8 @@ int CalculateRegionStats(int n, int s, float data[], float intensity[], ImageSta
   
    for(int i=0; i<n; i++)
    {
-      int idx = 0;
-      for(int j=0; j<s; j++)
-      {
-         // Only include finite numbers
-         if ( boost::math::isfinite(data[i+j*n]) && boost::math::isfinite(data[i+j*n]*data[i+j*n]) )
-            buf[idx++] = data[i+j*n];
-      }
-      int K = int (0.05 * idx);
-      TrimmedMean(buf, intensity, idx, K, (float) conf_factor, stats, region);
+      int K = int (0.05 * n);
+      TrimmedMean(data, intensity, n, K, (float) conf_factor, stats, region);
    }
    return n;
 }
