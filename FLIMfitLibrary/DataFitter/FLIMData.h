@@ -56,15 +56,16 @@ class PoolTransformer
 {
 public:
    
-   PoolTransformer(DataTransformationSettings transform) :
-   transformer(transform)
+   PoolTransformer(DataTransformationSettings transform, int im_, std::shared_ptr<FLIMImage> image)
    {
-      
+      im = im_;
+      transformer = std::make_shared<DataTransformer>(transform);
+      transformer->setImage(image);
    }
    
-   int refs = 0;
-   int im = -1;
-   DataTransformer transformer;
+   int refs = 1;
+   int im;
+   std::shared_ptr<DataTransformer> transformer;
 };
 
 class FLIMData
@@ -87,7 +88,7 @@ public:
    int getRegionPos(int im, int region);
    int getRegionCount(int im, int region);
 
-   int getRegionData(int thread, int group, int region, std::shared_ptr<RegionData> region_data, FitResults& results, int n_thread);
+   int getRegionData(int thread, int group, int region, std::shared_ptr<RegionData> region_data, std::shared_ptr<FitResults> results, int n_thread);
 
    void updateRegions();
    
@@ -131,7 +132,7 @@ public:
    
 private:
 
-   int getMaskedData(int im, int region, float_iterator masked_data, int_iterator irf_idx, FitResults& results);
+   int getMaskedData(int im, int region, float_iterator masked_data, int_iterator irf_idx, std::shared_ptr<FitResults> results);
    void setData(const std::vector<std::shared_ptr<FLIMImage>>& images);
    
    void resizeBuffers();
@@ -151,7 +152,7 @@ private:
    std::vector<PoolTransformer> transformer_pool;
    std::vector<int> pool_use_count;
    
-   DataTransformer& getPooledTransformer(int im);
+   std::shared_ptr<DataTransformer> getPooledTransformer(int im);
    void releasePooledTranformer(int im);
    std::mutex pool_mutex;
    

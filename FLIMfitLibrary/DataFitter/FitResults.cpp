@@ -60,14 +60,7 @@ FitResults::FitResults(std::shared_ptr<DecayModel> model, std::shared_ptr<FLIMDa
 
    determineParamNames();
   
-   int alf_size;
-   
-   if (pixelwise)
-      alf_size = n_px;
-   else
-      alf_size = n_regions;
-   alf_size *= nl;
-
+   int alf_size = (pixelwise ? n_px : n_regions) * nl;
    int lin_size = n_px * lmax;
 
    n_aux = data->getNumAuxillary();
@@ -75,13 +68,15 @@ FitResults::FitResults(std::shared_ptr<DecayModel> model, std::shared_ptr<FLIMDa
 
    mask.resize(n_im);
 
-   lin_params.resize(lin_size, std::numeric_limits<float>::quiet_NaN());
-   chi2.resize(n_px, std::numeric_limits<float>::quiet_NaN());
-   aux_data.resize(aux_size, std::numeric_limits<float>::quiet_NaN());
+   auto nan = std::numeric_limits<float>::quiet_NaN();
+
+   lin_params.resize(lin_size, nan);
+   chi2.resize(n_px, nan);
+   aux_data.resize(aux_size, nan);
 
    ierr.resize(n_regions);
    success.resize(n_regions);
-   alf.resize(alf_size, std::numeric_limits<float>::quiet_NaN());
+   alf.resize(alf_size, nan);
    
    if (calculate_errors)
    {
@@ -121,7 +116,6 @@ void FitResults::getNonLinearParams(int image, int region, int pixel, std::vecto
       idx = data->getRegionIndex(image, region);
 
    params.resize(nl);
-
    for(int i=0; i<nl; i++)
       params[i] = alf[idx*nl + i];
 }
@@ -147,11 +141,7 @@ void FitResults::getPointers(int image, int region, int pixel, float_iterator& n
 
    int start = data->getRegionPos(image, region) + pixel;
 
-   int idx;
-   if (pixelwise)
-      idx = start;
-   else
-      idx = data->getRegionIndex(image, region);
+   int idx = pixelwise ? start : data->getRegionIndex(image, region);
 
    non_linear_params = alf.begin() + idx * nl;
    linear_params     = lin_params.begin() + start * lmax;

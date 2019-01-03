@@ -205,7 +205,7 @@ public:
       refresh();
    };
    
-   const std::vector<float>& getTransformedData()
+   const std::vector<float>::iterator getTransformedData()
    {
       switch (image->getDataClass())
       {
@@ -220,7 +220,7 @@ public:
             break;
       }
       
-      return transformed_data;
+      return transformed_data.begin();
    }
 
    const std::vector<mask_type>& getMask() { return final_mask; }
@@ -339,9 +339,8 @@ void DataTransformer::transformData()
    y_smoothed_buf.resize(acq->n_px);
    tr_row_buf.resize(acq->n_y);
 
-
    transformed_data.resize(n_x * n_y * dp->n_meas);
-   float* tr_data = transformed_data.data();
+   auto tr_data = transformed_data.begin();
 
    T* tr_buf = image->getDataPointerForRead<T>();
    T* cur_data_ptr = tr_buf;
@@ -353,7 +352,7 @@ void DataTransformer::transformData()
 
    if ((s == 0) || (n_x < s_min) || (n_y < s_min))
    {
-      float* tr_ptr = tr_data;
+      auto tr_ptr = tr_data;
       // Copy data from source to tr_data, skipping cropped time points
       for(int y=0; y<n_y; y++)
          for(int x=0; x<n_x; x++)

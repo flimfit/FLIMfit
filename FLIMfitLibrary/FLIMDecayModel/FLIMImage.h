@@ -314,7 +314,7 @@ void FLIMImage::compute()
             I[idx] += data[i*n_meas + c*n_t + j];
       }
 
-      intensity.at<float>(i) = I[0] + I[1];
+      intensity.at<float>(i) = (float) (I[0] + I[1]);
       if (has_ratio)
          ratio.at<float>(i) = ((float)I[1]) / I[0];
    }

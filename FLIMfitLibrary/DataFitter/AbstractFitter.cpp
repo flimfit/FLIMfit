@@ -183,7 +183,7 @@ int AbstractFitter::fit(std::shared_ptr<RegionData> region_data, FitResultsRegio
    float_iterator alf_results;
    results.getPointers(alf_results, lin_params, chi2);
 
-   chi2_norm = n - ((float)(nl))/s - l;
+   chi2_norm = n - ((float) nl)/s - l;
 
    // Assign initial guesses to nonlinear variables  
    std::vector<double> initial_alf(nl + l);

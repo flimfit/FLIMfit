@@ -50,7 +50,6 @@
 #include <atomic>
 
 #define USE_GLOBAL_BINNING_AS_ESTIMATE    false
-#define _CRTDBG_MAPALLOC
 
 class ErrMinParams;
 
@@ -113,9 +112,9 @@ private:
    int cur_region;
    int next_pixel;
    int next_region;
-   int threads_active;
-   int threads_started;
-   int threads_running;
+   std::atomic<int> threads_active;
+   std::atomic<int> threads_started;
+   std::atomic<int> threads_running;
    std::vector<int> cur_im;
 
    bool is_init = false;

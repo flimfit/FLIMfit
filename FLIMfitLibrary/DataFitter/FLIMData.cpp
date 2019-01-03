@@ -415,7 +415,7 @@ int FLIMData::getImLoc(int im)
    return -1;
 }
 
-int FLIMData::getRegionData(int thread, int group, int region, std::shared_ptr<RegionData> region_data, FitResults& results, int n_thread)
+int FLIMData::getRegionData(int thread, int group, int region, std::shared_ptr<RegionData> region_data, std::shared_ptr<FitResults> results, int n_thread)
 {
    int s = 0;
    int s_expected;
@@ -431,10 +431,7 @@ int FLIMData::getRegionData(int thread, int group, int region, std::shared_ptr<R
       s_expected = getRegionCount(group, region);
       region_data->GetPointersForInsertion(s_expected, masked_data, irf_idx);
 
-      s = getMaskedData( group, region, masked_data, irf_idx, results);
-      
-      
-      assert( s == s_expected );
+      s = getMaskedData(group, region, masked_data, irf_idx, results);
    }
    else if ( global_scope == Global )
    {
@@ -461,15 +458,15 @@ int FLIMData::getRegionData(int thread, int group, int region, std::shared_ptr<R
 }
 
 
-int FLIMData::getMaskedData(int im, int region, float_iterator masked_data, int_iterator irf_idx, FitResults& results)
+int FLIMData::getMaskedData(int im, int region, float_iterator masked_data, int_iterator irf_idx, std::shared_ptr<FitResults> results)
 {
    int iml = use_im[im];
    auto transformer = getPooledTransformer(iml);
    int s = getRegionCount(im, region);
 
    float_iterator masked_intensity, masked_r_ss, masked_acceptor, masked_ratio;
-   float_iterator aux_data = results.getAuxDataPtr(im, region);
-   auto& mask = results.getMask(im);
+   float_iterator aux_data = results->getAuxDataPtr(im, region);
+   auto& mask = results->getMask(im);
    
    bool has_ratio = dp->n_chan > 1;
 
@@ -483,23 +480,21 @@ int FLIMData::getMaskedData(int im, int region, float_iterator masked_data, int_
    if (has_ratio)
       masked_ratio = aux_data++;
 
-   mask = transformer.getMask();
-   auto& tr_data = transformer.getTransformedData();
+   mask = transformer->getMask();
+
+   float_iterator tr_data = transformer->getTransformedData();
 //   auto& r_ss = transformer.getSteadyStateAnisotropy();
    
    cv::Mat acceptor = images[iml]->getAcceptor();
    cv::Mat intensity = images[iml]->getIntensity();
    cv::Mat ratio = images[iml]->getRatio();
 
-   int n_meas = transformer.getNumMeasurements();
+   int n_meas = transformer->getNumMeasurements();
    
    // Store masked values
    int idx = 0;
 
-   if (tr_data.empty())
-      throw std::runtime_error("Error retrieving transformed data");
-
-   int n_px = static_cast<int>(mask.size());
+   int n_px = (int) mask.size();
    for(int p=0; p<n_px; p++)
    {
       if (region < 0 || mask[p] == region || (merge_regions && mask[p] > 0))
@@ -549,12 +544,12 @@ std::vector<std::string> FLIMData::getAuxParamNames()
 }
 
 
-DataTransformer& FLIMData::getPooledTransformer(int im)
+std::shared_ptr<DataTransformer> FLIMData::getPooledTransformer(int im)
 {
    std::lock_guard<std::mutex> lk(pool_mutex);
    
-   int n_pool = static_cast<int>(transformer_pool.size());
-   for (int i=0; i<n_pool; i++)
+   size_t n_pool = transformer_pool.size();
+   for (size_t i=0; i<n_pool; i++)
    {
       if (transformer_pool[i].im == im)
       {
@@ -564,21 +559,18 @@ DataTransformer& FLIMData::getPooledTransformer(int im)
    }
    
    // No pooled transformers for the current image... see if there are any we can replace
-   for (int i=0; i<n_pool; i++)
+   for (size_t i=0; i<n_pool; i++)
    {
       if (transformer_pool[i].refs == 0)
       {
          transformer_pool[i].refs++;
          transformer_pool[i].im = im;
-         transformer_pool[i].transformer.setImage(images[im]);
+         transformer_pool[i].transformer->setImage(images[im]);
          return transformer_pool[i].transformer;
       }
    }
    
-   transformer_pool.push_back(PoolTransformer(transform));
-   transformer_pool[n_pool].refs++;
-   transformer_pool[n_pool].im = im;
-   transformer_pool[n_pool].transformer.setImage(images[im]);
+   transformer_pool.push_back(PoolTransformer(transform, im, images[im]));
    return transformer_pool[n_pool].transformer;
 }
 
@@ -586,8 +578,8 @@ void FLIMData::releasePooledTranformer(int im)
 {
    std::lock_guard<std::mutex> lk(pool_mutex);
    
-   int n_pool = static_cast<int>(transformer_pool.size());
-   for (int i=0; i<n_pool; i++)
+   size_t n_pool = transformer_pool.size();
+   for (size_t i=0; i<n_pool; i++)
    {
       if (transformer_pool[i].im == im)
       {

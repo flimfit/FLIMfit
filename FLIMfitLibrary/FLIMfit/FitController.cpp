@@ -43,8 +43,6 @@
 #include <cmath>
 #include <algorithm>
 
-using std::min;
-
 #ifdef USE_CONCURRENCY_ANALYSIS
 marker_series* writer;
 #endif
@@ -77,7 +75,6 @@ void FitController::stopFit()
 
 int FitController::runWorkers()
 {
-   
    if (fit_in_progress)
       throw(std::runtime_error("Fit already running"));
    
@@ -89,7 +86,6 @@ int FitController::runWorkers()
    has_fit = false;
    fit_in_progress = true;
    threads_running = 0;
-
 
    omp_set_num_threads(n_omp_thread);
 
@@ -147,11 +143,11 @@ void FitController::workerThread(int thread)
                   // then request data for next region
 
                   std::unique_lock<std::mutex> lk(region_mutex);
-                  while ( (threads_active > 0) ||                                  // there are threads running
+                  while ( (threads_active > 0) ||                                      // there are threads running
                           ((threads_started < n_active_thread) && (cur_region >= 0)) ) // not all threads have yet started up
                      active_lock.wait(lk);
                     
-                  data->getRegionData(0, im, r, region_data[0], *results, 1);
+                  data->getRegionData(0, im, r, region_data[0], results, 1);
                   //data->ImageDataFinished(im);
 
                   next_pixel = 0;
@@ -169,7 +165,7 @@ void FitController::workerThread(int thread)
                region_count = data->getRegionCount(im,r);
 
                int regions_per_thread = (int) ceil((double)region_count / n_thread);
-               int j_max = min( regions_per_thread * (thread + 1), region_count );
+               int j_max = std::min( regions_per_thread * (thread + 1), region_count );
 
                for(int j=regions_per_thread*thread; j<j_max; j++)
                {
@@ -227,8 +223,6 @@ processed:
                   idx = data->getRegionIndex(im,r);
                   if (idx == process_idx)  // should be processed by this thread
                   {
-                     
-
                      region_mutex.lock();
                      cur_im[thread] = im;
 
@@ -336,19 +330,16 @@ void FitController::waitForFit()
    }
 }
 
-
 void FitController::setData(std::shared_ptr<FLIMData> data_)
 {
    data = data_;
    data->setGlobalScope(global_scope);
 }
 
-
-
 void FitController::init()
 {
    cur_region = -1;
-   next_pixel  = 0;
+   next_pixel = 0;
    next_region = 0;
    threads_active = 0;
    threads_started = 0;
@@ -364,47 +355,34 @@ void FitController::init()
 
    data->updateRegions();
 
-   if (n_thread < 1)
-      n_thread = 1;
-
    int max_px_per_image = data->getMaxPxPerImage();
    int max_fit_size = data->getMaxFitSize();
    int max_region_size = data->getMaxRegionSize();
-   
-   if (n_thread > max_px_per_image)
-      n_thread = max_px_per_image;
-   
-    if (data->global_scope == Global || (data->global_scope == Imagewise && max_px_per_image > 1))
+      
+   if (data->global_scope == Global || (data->global_scope == Imagewise && max_px_per_image > 1))
       algorithm = VariableProjection;
 
-   
    int n_regions_total = data->getNumRegionsTotal();
-   
-   
-   if (data->global_scope == Pixelwise)
-   {
-      n_fits = data->n_masked_px;
-      n_fitters = min(max_region_size,n_thread);
-   }
-   else
-   {
-      n_fits = n_regions_total;
-      n_fitters = min(n_regions_total,n_thread);
-   }
-
    
    if (n_regions_total == 0)
       throw(std::runtime_error("No Regions in Data"));
 
    // Only create as many threads as there are regions if we have
    // fewer regions than maximum allowed number of thread
-   //---------------------------------------
-
-   
-   if (n_fitters == 1)
-      n_omp_thread = n_thread;
+   if (data->global_scope == Pixelwise)
+   {
+      n_fits = data->n_masked_px;
+      n_fitters = std::min(max_region_size,n_thread);
+   }
    else
-      n_omp_thread = 1;
+   {
+      n_fits = n_regions_total;
+      n_fitters = std::min(n_regions_total,n_thread);
+   }
+  
+   n_thread = std::max(n_thread, 1);
+   n_thread = std::min(n_thread, max_px_per_image);
+   n_omp_thread = (n_fitters > 1) ? 1 : n_thread;
    
    // TODO: add exception handling here
    results = std::make_shared<FitResults>(model, data, calculate_errors);
@@ -442,8 +420,6 @@ void FitController::init()
    is_init = true;
 }
 
-
-
 FitController::~FitController()
 {
    // wait for threads to terminate
@@ -454,14 +430,10 @@ FitController::~FitController()
    cleanupTempVars();
 }
 
-
 int FitController::getErrorCode()
 {
    return error;
 }
-
-
-
 
 void FitController::cleanupTempVars()
 {

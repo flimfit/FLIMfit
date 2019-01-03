@@ -141,11 +141,10 @@ class FitResultsRegion
    friend class FitResults;
 
 public:
-   FitResultsRegion() : 
-      results(0), image(0), region(0), pixel(0), is_pixel(false) {};
+   FitResultsRegion() {} 
 
    FitResultsRegion(FitResults* results, int image, int region) : 
-      results(results), image(image), region(region), pixel(0), is_pixel(false) {};
+      results(results), image(image), region(region) {};
 
   FitResultsRegion(FitResults* results, int image, int region, int pixel) : 
       results(results), image(image), region(region), pixel(pixel), is_pixel(true) {};
@@ -154,9 +153,9 @@ public:
   void setFitStatus(int code);
 
 private:
-   FitResults* results;
-   int image;
-   int region;
-   int pixel;
-   bool is_pixel;
+   FitResults* results = 0;
+   int image = 0;
+   int region = 0;
+   int pixel = 0;
+   bool is_pixel = false;
 };
