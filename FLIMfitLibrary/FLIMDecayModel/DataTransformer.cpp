@@ -52,3 +52,74 @@ const std::vector<float>& DataTransformer::getSteadyStateAnisotropy()
    */
    return r_ss;
 }
+
+
+DataTransformer::DataTransformer(DataTransformationSettings& transform_)
+{
+   transform = transform_;
+   refresh();
+}
+
+DataTransformer::DataTransformer(std::shared_ptr<DataTransformationSettings> transform_)
+{
+   transform = *transform_.get();
+   refresh();
+}
+
+
+void DataTransformer::setImage(std::shared_ptr<FLIMImage> image_)
+{
+   if (image == image_)
+      return;
+
+   image = image_;
+   refresh();
+}
+
+void DataTransformer::setTransformationSettings(DataTransformationSettings& transform_)
+{
+   transform = transform_;
+   refresh();
+}
+
+const std::vector<float>::iterator DataTransformer::getTransformedData()
+{
+   switch (image->getDataClass())
+   {
+   case FLIMImage::DataFloat:
+      transformData<float>();
+      break;
+   case FLIMImage::DataUint32:
+      transformData<uint32_t>();
+      break;
+   case FLIMImage::DataUint16:
+      transformData<uint16_t>();
+      break;
+   }
+
+   return transformed_data.begin();
+}
+
+void DataTransformer::refresh()
+{
+   //already_transformed = false;
+
+   if (image == nullptr)
+      return;
+
+   auto acq = image->getAcquisitionParameters();
+   dp = std::make_shared<TransformedDataParameters>(acq, transform);
+
+   switch (image->getDataClass())
+   {
+   case FLIMImage::DataFloat:
+      calculateMask<float>();
+      break;
+   case FLIMImage::DataUint32:
+      calculateMask<uint32_t>();
+      break;
+   case FLIMImage::DataUint16:
+      calculateMask<uint16_t>();
+      break;
+   }
+}

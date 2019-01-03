@@ -14,10 +14,10 @@ public:
    DataTransformationSettings(std::shared_ptr<InstrumentResponseFunction> irf = nullptr);
    
    int smoothing_factor = 0;
-   int t_start = 0;
-   int t_stop = 25000;
-   int threshold = 0;
-   int limit = 0;
+   double t_start = 0;
+   double t_stop = 25000;
+   double threshold = 0;
+   double limit = 0;
    std::shared_ptr<FLIMBackground> background;
    std::shared_ptr<InstrumentResponseFunction> irf;
 };
@@ -30,9 +30,10 @@ class QDataTransformationSettings : public QObject, public DataTransformationSet
 public:
 
    Q_PROPERTY(int smoothing_factor MEMBER smoothing_factor USER true);
-   Q_PROPERTY(int t_start MEMBER t_stop USER true);
-   Q_PROPERTY(int threshold MEMBER threshold USER true);
-   Q_PROPERTY(int limit MEMBER limit USER true);
+   Q_PROPERTY(double t_start MEMBER t_start USER true);
+   Q_PROPERTY(double t_stop MEMBER t_stop USER true);
+   Q_PROPERTY(double threshold MEMBER threshold USER true);
+   Q_PROPERTY(double limit MEMBER limit USER true);
    Q_PROPERTY(std::shared_ptr<FLIMBackground> background MEMBER background USER true);
 
 private:
@@ -42,14 +43,34 @@ private:
    friend class boost::serialization::access;
 };
 
+BOOST_CLASS_VERSION(QDataTransformationSettings, 2);
+
 template<class Archive>
 void QDataTransformationSettings::serialize(Archive & ar, const unsigned int version)
 {
    ar & smoothing_factor;
-   ar & t_start;
-   ar & t_stop;
-   ar & threshold;
-   ar & limit;
+
+   if (version < 2)
+   {
+      int i_t_start, i_t_stop, i_threshold, i_limit;
+      ar & i_t_start;
+      ar & i_t_stop;
+      ar & i_threshold;
+      ar & i_limit;
+      
+      t_start = (double) i_t_start;
+      t_stop = (double) i_t_stop;
+      threshold = (double) i_threshold;
+      limit = (double) i_limit;
+   }
+   else
+   {
+      ar & t_start;
+      ar & t_stop;
+      ar & threshold;
+      ar & limit;
+   }
+
    ar & background;
    ar & irf;
 }
@@ -59,11 +80,9 @@ void QDataTransformationSettings::serialize(Archive & ar, const unsigned int ver
 class TransformedDataParameters : public DataTransformationSettings
 {
 public:
-   TransformedDataParameters(std::shared_ptr<AcquisitionParameters> acq_, const DataTransformationSettings& transform) :
-   DataTransformationSettings(transform)
-   {
-      acq = acq_;
-      
+   TransformedDataParameters(std::shared_ptr<AcquisitionParameters> acq, const DataTransformationSettings& transform) :
+      DataTransformationSettings(transform), acq(acq)
+   {      
       n_chan = acq->n_chan;
       
       const std::vector<double>& t_full = acq->getTimePoints();
@@ -177,51 +196,12 @@ void TransformedDataParameters::serialize(Archive & ar, const unsigned int versi
 class DataTransformer
 {
 public:
-   DataTransformer(DataTransformationSettings& transform_)
-   {
-      transform = transform_;
-      refresh();
-   }
+   DataTransformer(DataTransformationSettings& transform_);
+   DataTransformer(std::shared_ptr<DataTransformationSettings> transform_);
 
-   DataTransformer(std::shared_ptr<DataTransformationSettings> transform_)
-   {
-      transform = *transform_.get();
-      refresh();
-   }
-
-   
-   void setImage(std::shared_ptr<FLIMImage> image_)
-   {
-      if (image == image_)
-         return;
-      
-      image = image_;
-      refresh();
-   };
-
-   void setTransformationSettings(DataTransformationSettings& transform_)
-   {
-      transform = transform_;
-      refresh();
-   };
-   
-   const std::vector<float>::iterator getTransformedData()
-   {
-      switch (image->getDataClass())
-      {
-         case FLIMImage::DataFloat:
-            transformData<float>();
-            break;
-         case FLIMImage::DataUint32:
-            transformData<uint32_t>();
-            break;
-         case FLIMImage::DataUint16:
-            transformData<uint16_t>();
-            break;
-      }
-      
-      return transformed_data.begin();
-   }
+   void setImage(std::shared_ptr<FLIMImage> image_);
+   void setTransformationSettings(DataTransformationSettings& transform_);
+   const std::vector<float>::iterator getTransformedData();
 
    const std::vector<mask_type>& getMask() { return final_mask; }
    
@@ -231,29 +211,7 @@ public:
    
 private:
 
-   void refresh()
-   {
-      //already_transformed = false;
-      
-      if (image == nullptr)
-         return;
-      
-      auto acq = image->getAcquisitionParameters();
-      dp = std::make_shared<TransformedDataParameters>(acq, transform);
-      
-      switch (image->getDataClass())
-      {
-         case FLIMImage::DataFloat:
-            calculateMask<float>();
-            break;
-         case FLIMImage::DataUint32:
-            calculateMask<uint32_t>();
-            break;
-         case FLIMImage::DataUint16:
-            calculateMask<uint16_t>();
-            break;
-      }
-   }
+   void refresh();
    
    
    template <typename T>
