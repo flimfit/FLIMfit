@@ -42,7 +42,7 @@ class MeasuredIrfConvolver : public AbstractConvolver
 public:
    MeasuredIrfConvolver(std::shared_ptr<TransformedDataParameters> dp);
 
-   void compute(double rate, int irf_idx, double t0_shift, double ref_lifetime);
+   void compute(double rate, int irf_idx = 0, double t0_shift = 0, double ref_lifetime = 0);
 
    void addDecay(double fact, const std::vector<double>& channel_factors, double_iterator a) const;
    void addDerivative(double fact, const std::vector<double>& channel_factors, double_iterator b) const;
@@ -54,8 +54,8 @@ private:
    void computeIRFFactors(double rate, int irf_idx, double t0_shift);
    void computeModelFactors(double rate);
 
-   void convolve(int k, int i, double pulse_fact, double& c) const;
-   void convolveDerivative(double t, int k, int i, double pulse_fact, double pulse_fact_der, double ref_fact_a, double ref_fact_b, double& c) const;
+   double convolve(int k, int i, double pulse_fact) const;
+   double convolveDerivative(double t, int k, int i, double pulse_fact, double pulse_fact_der, double ref_fact_a, double ref_fact_b) const;
 
 
    std::vector<aligned_vector<double>> irf_exp_factor;
@@ -64,6 +64,9 @@ private:
    std::vector<aligned_vector<double>> cum_irf_exp_t_factor;
    aligned_vector<double> model_decay;
    aligned_vector<double> irf_working;
+
+   static const double x_max;
+
 
    double ref_lifetime;
    int n_irf;

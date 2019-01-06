@@ -45,3 +45,6 @@ add_subdirectory("FLIMfit")
 #add_subdirectory("FLIMfitQT")
 add_subdirectory("FLIMfitMex")
 add_subdirectory("TestHarness")
+
+#add_subdirectory("bm3d")
+#add_subdirectory("vbm3d")

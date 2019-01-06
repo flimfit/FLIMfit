@@ -2,7 +2,7 @@
 #include "mkl_vml_functions.h"
 #include "mkl.h"
 
-#define AVX 1
+#define AVX 0
 
 GaussianChannelConvolver::GaussianChannelConvolver(const GaussianParameters& params, const std::vector<double>& timepoints, double T_)
 {
@@ -12,8 +12,9 @@ GaussianChannelConvolver::GaussianChannelConvolver(const GaussianParameters& par
    sigma = params.sigma;
    mu = params.mu;
    T = T_;
-   rate = t0_shift = std::numeric_limits<double>::infinity();
-  
+   t0_shift = std::numeric_limits<double>::infinity();
+   rate = -1;
+   
    a = 1.0 / (sqrt(2) * sigma);
 
    dt = timepoints[1] - timepoints[0];
@@ -64,11 +65,10 @@ void GaussianChannelConvolver::compute(double rate_, double t0_shift_)
 }
 
 
-void GaussianChannelConvolver::computeQ(double rate_, aligned_vector<double>& Q)
+void GaussianChannelConvolver::computeQ(double rate, aligned_vector<double>& Q)
 {
    Q.resize(n_tm * 4);
 
-   rate = rate_;
    double tau = 1.0 / rate;
 
    double b = (sigma * sigma * rate + mu + t0_shift) * a;
