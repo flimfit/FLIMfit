@@ -402,7 +402,7 @@ int DecayModel::addT0Derivatives(double_iterator b, int bdim, std::vector<double
    // Compute numerical derivatives for t0
 
    double kap = 0;
-   double dt = 1;
+   double dt = 10;
 
    // Add decay shifted by one bin
    int col = 0;
@@ -428,7 +428,7 @@ int DecayModel::addT0Derivatives(double_iterator b, int bdim, std::vector<double
    }
 
    for (int i = 0; i<bdim*col; i++)
-      b[i] *= -dt;
+      b[i] /= -dt;
 
    return col;
 }
