@@ -626,6 +626,7 @@ void DecayModel::validateDerivatives()
    aligned_vector<double> ap(dim * (n_cols + 1)); 
    aligned_vector<double> b(dim*n_der);
    std::vector<double> err(dim);
+   std::vector<double> bobs(dim);
    std::vector<double> kap(1+n_nonlinear+100);
 
    std::vector<double> alf(n_nonlinear);
@@ -672,14 +673,16 @@ void DecayModel::validateDerivatives()
             for (int k = 0; k<dim; ++k)
                err[k] = 0.0;
 
-            temp = abs(alf[i]);
-            if (temp == 0.0) temp = 1.0;
+            double alf_t = abs(alf[i]);
+            if (alf_t == 0.0) alf_t = 1.0;
 
             for (int k = 0; k<dim; ++k)
-               err[k] += temp*fjac[k];
+               err[k] += alf_t * fjac[k];
 
             for (int k = 0; k<dim; ++k)
             {
+               bobs[k] = (fvecp[k] - fvec[k]) / (eps * alf_t);
+
                temp = 1.0;
                if (fvec[k] != 0.0 && fvecp[k] != 0.0 && fabs(fvecp[k] - fvec[k]) >= epsf*fabs(fvec[k]))
                   temp = eps*fabs((fvecp[k] - fvec[k]) / eps - err[k]) / (fabs(fvec[k]) + fabs(fvecp[k]));
@@ -696,7 +699,6 @@ void DecayModel::validateDerivatives()
             for (int k = 0; k < dim; k++)
                mean_err += err[k];
             mean_err /= dim;
-
 
             if (mean_err < 0.5)
             {
