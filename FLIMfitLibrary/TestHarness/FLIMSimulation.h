@@ -69,7 +69,7 @@ protected:
 class FLIMSimulationTCSPC : public FLIMSimulation
 {
 public:
-   FLIMSimulationTCSPC(int n_chan = 1);
+   FLIMSimulationTCSPC(int n_chan = 1, int n_t = 64);
 
    int GetTimePoints(std::vector<double>& t, std::vector<double>& t_int);
 

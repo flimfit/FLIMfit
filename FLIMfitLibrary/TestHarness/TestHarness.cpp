@@ -42,7 +42,7 @@
 extern int testFittingCoreDouble();
 extern void testDecayResampler();
 extern int testFittingCoreSingle(double tau, int N, bool use_gaussian_irf);
-extern int testModelDerivatives();
+extern int testModelDerivatives(bool use_gaussian_irf);
 extern int testFittingCoreMultiChannel();
 
 #define CATCH_CONFIG_MAIN
@@ -51,15 +51,50 @@ extern int testFittingCoreMultiChannel();
 
 TEST_CASE("Gaussian IRF", "[irf]")
 {
-   FLIMSimulationTCSPC sim;
-   sim.GenerateIRF(10000);
+   int n_chan = 2;
+   std::vector<double> channel_factors{ 1.0, 2.0 };
 
-   auto params = sim.getIrfParameters();
+   FLIMSimulationTCSPC sim(n_chan, 512);
 
-   auto irf_normal = sim.GenerateIRF(10000);
+   std::vector<std::shared_ptr<InstrumentResponseFunction>> irfs{
+         sim.GetGaussianIRF(),
+         sim.GenerateIRF(1e7)
+   };
 
-   auto irf_gaussian = std::make_shared<InstrumentResponseFunction>();
-   irf_gaussian->setGaussianIRF({params});
+   auto acq = std::make_shared<AcquisitionParameters>(sim);
+   auto image = std::make_shared<FLIMImage>(acq, FLIMImage::InMemory, FLIMImage::DataUint16);
+
+   std::vector<std::vector<double>> decays;
+   std::vector<double> diff(acq->n_meas_full);
+
+   for (int i = 0; i < irfs.size(); i++)
+   {
+      DataTransformationSettings transform(irfs[i]);
+      auto data = std::make_shared<FLIMData>(image, transform);
+      auto dp = data->GetTransformedDataParameters();
+
+      std::vector<double> a(acq->n_meas_full, 0.0);;
+
+      auto conv = AbstractConvolver::make(dp);
+
+      double tau = 4000;
+      conv->compute(1.0 / tau);
+      conv->addDecay(2, channel_factors, a.begin());
+
+      tau = 600;
+      conv->compute(1.0 / tau);
+      conv->addDecay(0.5, channel_factors, a.begin());
+
+      decays.push_back(a);
+   }
+
+
+   for (int i = 0; i < diff.size(); i++)
+      diff[i] = (decays[1][i] - decays[0][i]) / decays[0][i];
+
+   for (int i = 0; i < diff.size(); i++)
+      if (fabs(diff[i]) > 0.05)
+         throw std::runtime_error("Difference too large");
 
 }
 
@@ -92,15 +127,16 @@ TEST_CASE("Convolution", "[model]")
 
 TEST_CASE("Model", "[model]") 
 {
-   testModelDerivatives();
+   for (bool gaussian_irf : {false, true})
+      testModelDerivatives(gaussian_irf);
 }
 
 TEST_CASE("Single fit", "[fitting]") 
 {
-   for (int N_ : {100, 200, 2000, 5000, 10000})
-      testFittingCoreSingle(1000, N_, true);
-   for (int N_ : {100, 200, 2000, 5000, 10000})
-      testFittingCoreSingle(4000, N_, true);
+   for (bool gaussian_irf : {false, true})
+      for (int tau : {1000, 4000})
+         for (int N : {100, 200, 2000, 5000, 10000})
+            testFittingCoreSingle(tau, N, gaussian_irf);
 }
 
 TEST_CASE("Double fit", "[fitting]")
@@ -108,41 +144,7 @@ TEST_CASE("Double fit", "[fitting]")
    testFittingCoreDouble();
 }
 
-TEST_CASE("Multichannel fit", "[fitting2]")
+TEST_CASE("Multichannel fit", "[fitting]")
 {
    testFittingCoreMultiChannel();
-}
-
-
-int main0()
-{
-
-   std::vector<double> test = { 1500, 2000 };
-
-   auto group = std::make_shared<MultiExponentialDecayGroup>((int)test.size());
-
-
-   std::vector<Pattern> patterns(1, Pattern({ 1500, 0.5, 2000, 0.5, 0 }));
-
-   //auto pgroup = std::make_shared<PatternDecayGroup>(patterns);
-   //model->addDecayGroup(pgroup);
-
-   
-   
-   auto params = group->getParameters();
-   for (int i=0; i<params.size(); i++)
-   {
-      params[i]->setFittingType(FittedGlobally);
-      params[i]->setInitialValue(test[i]);
-//      std::cout << params[i]->name << " " << params[i]->fitting_type << "\n";
-   }
-   
-
-   //auto bg_group = std::make_shared<BackgroundLightDecayGroup>();
-   //model->addDecayGroup(bg_group);
-   //bg_group->getParameter("offset")->fitting_type = FittedLocally;
-   //bg_group->getParameter("scatter")->fitting_type = FittedLocally;
-   //bg_group->getParameter("tvb")->fitting_type = FittedLocally;
-
-   return 0;
 }

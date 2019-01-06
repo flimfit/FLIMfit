@@ -1,12 +1,12 @@
 #include "FLIMSimulation.h"
 #include "FlagDefinitions.h"
 
-FLIMSimulationTCSPC::FLIMSimulationTCSPC(int n_chan) :
+FLIMSimulationTCSPC::FLIMSimulationTCSPC(int n_chan, int n_t) :
    FLIMSimulation(DATA_TYPE_TCSPC, n_chan)
 {
    double Tmax = 12500;
 
-   n_t_full = 64;
+   n_t_full = n_t;
    dt = Tmax / n_t_full;
 
 

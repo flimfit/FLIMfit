@@ -48,50 +48,61 @@ bool checkResult(std::shared_ptr<FitResults> results, const std::string& param_n
    auto stats = results->getStats();
    int param_idx = results->getParamIndex(param_name);
 
-   if (param_idx >= 0)
+   bool pass = true;
+
+   if (param_idx == -1)
    {
-      float mean = stats.GetStat(0, param_idx, PARAM_MEAN);
-      float std = stats.GetStat(0, param_idx, PARAM_STD);
-      float err = stats.GetStat(0, param_idx, PARAM_ERR_LOWER);
-      float n = results->getRegionSummary()[0].size;
+      printf("FAIL: Expected parameter %s not found", param_name.c_str());
+      return false;
+   }
+   
+   for (int i = 0; i < stats.GetNumRegions(); i++)
+   {
+      float mean = stats.GetStat(i, param_idx, PARAM_MEAN);
+      float std = stats.GetStat(i, param_idx, PARAM_STD);
+      float err = stats.GetStat(i, param_idx, PARAM_ERR_LOWER);
+      float n = results->getRegionSummary()[i].size;
 
       float diff = mean - expected_value;
       float std_use = std;
+
       // If global, use expected value
-      //if (expected_std > 0)
-      //   std_use = expected_std;
       if (!isfinite(std_use))
-         std_use = 1;
+      {
+         if (expected_std > 0)
+            std_use = expected_std;
+         else
+            std_use = 1;
+      }
 
-      double t = diff * sqrt(n) / std_use;
-      boost::math::students_t dist(n-1);
+      double t = diff * sqrt(n - 1) / (1.5 * std_use);
+      boost::math::students_t dist(n - 1);
       double q = boost::math::cdf(complement(dist, fabs(t)));
-
-      bool pass = q > 0.001;
+      bool this_pass = q > 0.001;
 
       float rel = fabs(diff) / expected_value;
-      //bool pass = (rel <= rel_tol) && std::isfinite(mean);
 
-      //if (expected_std > 0)
-      // pass &= (std <= 2 * expected_std);
 
-      printf("Compare %s\n", param_name.c_str());
-      printf("   | Expected  : %f\n", expected_value);
-      printf("   | Fitted    : %f\n", mean);
-      printf("   | Std D.    : %f (%f), %f\n", std, std / sqrt(n-1), expected_std);
-      printf("   | Rel Error : %f\n", rel);
-      printf("   | p         : %f\n", q);
 
-      if (pass)
-         printf("   | PASS\n");
-      else
-         printf("   | FAIL\n");
+      if (true)
+      {
+         printf("Compare %s\n", param_name.c_str());
+         printf("   | Expected  : %f\n", expected_value);
+         printf("   | Fitted    : %f\n", mean);
+         printf("   | Std D.    : %f (%f), %f\n", std, std / sqrt(n - 1), expected_std);
+         printf("   | Rel Error : %f\n", rel);
+         printf("   | p         : %f\n", q);
+         if (this_pass)
+            printf("   | PASS\n");
+         else
+            printf("   | FAIL\n");
 
-      return (pass);
+      }
+
+      pass &= this_pass;
    }
 
-   printf("FAIL: Expected parameter %s not found", param_name.c_str());
-   return false;
+   return pass;
 }
 
 int testFittingCoreDouble()
@@ -132,7 +143,7 @@ int testFittingCoreDouble()
    }
 
    // Make data
-   std::shared_ptr<InstrumentResponseFunction> irf = sim.GetGaussianIRF(); //sim.GenerateIRF(1e5);
+   std::shared_ptr<InstrumentResponseFunction> irf = sim.GetGaussianIRF();
    DataTransformationSettings transform(irf);
    auto data = std::make_shared<FLIMData>(images, transform);
    
@@ -140,17 +151,16 @@ int testFittingCoreDouble()
    auto model = std::make_shared<DecayModel>();
    model->setTransformedDataParameters(data->GetTransformedDataParameters());
     
-   std::vector<double> test = { 1000, 3000 };
+   std::vector<double> test = { 800, 4000 };
    auto group = std::make_shared<MultiExponentialDecayGroup>((int) test.size());
    model->addDecayGroup(group);
    
    auto params = group->getParameters();
    for (int i=0; i<params.size(); i++)
    {
-      params[i]->setFittingType(Fixed);
+      params[i]->setFittingType(FittedGlobally);
       params[i]->setInitialValue(test[i]);
       params[i]->initial_search = false;
-//      std::cout << params[i]->name << " " << params[i]->fitting_type << "\n";
    }
 
    auto bg = std::make_shared<BackgroundLightDecayGroup>();
@@ -163,11 +173,12 @@ int testFittingCoreDouble()
 
    FitController controller;   
 
-   std::vector<FitSettings> settings;
-   //settings.push_back(FitSettings(MaximumLikelihood, Pixelwise, GlobalAnalysis, AverageWeighting, 4));
-   settings.push_back(FitSettings(VariableProjection, Pixelwise, GlobalAnalysis, AverageWeighting, 1));
-   //settings.push_back(FitSettings(VariableProjection, Imagewise, GlobalAnalysis, AverageWeighting, 1));
-   settings.push_back(FitSettings(VariableProjection, Global, GlobalAnalysis, AverageWeighting, 1));
+   std::vector<FitSettings> settings {
+      FitSettings(MaximumLikelihood, Pixelwise, GlobalAnalysis, AverageWeighting, 4),
+      FitSettings(VariableProjection, Pixelwise, GlobalAnalysis, AverageWeighting, 1),
+      FitSettings(VariableProjection, Imagewise, GlobalAnalysis, AverageWeighting, 1),
+      FitSettings(VariableProjection, Global, GlobalAnalysis, AverageWeighting, 1)
+   };
    
    bool pass = true;
 
@@ -185,9 +196,9 @@ int testFittingCoreDouble()
       auto results = controller.getResults();
       auto stats = results->getStats();
 
-      //pass &= checkResult(results, "G1_tau_1", tau[0]);
-      //pass &= checkResult(results, "G1_tau_2", tau[1]);
-      pass &= checkResult(results, "G1_beta_1", beta1);
+      pass &= checkResult(results, "G1_tau_1", tau[0], 100);
+      pass &= checkResult(results, "G1_tau_2", tau[1], 100);
+      //pass &= checkResult(results, "G1_beta_1", beta1);
       if (use_background)
          pass &= checkResult(results, "G2_offset", N_bg, 0.5);
 
@@ -202,11 +213,12 @@ int testFittingCoreDouble()
 int testFittingCoreSingle(double tau, int N, bool use_gaussian_irf)
 {
    // Create simulator
-
+   int n_t = use_gaussian_irf ? 64 : 512;
    int n_x = 5;
-   int n_chan = 2;
+   int n_chan = 1;
+   int n_im = 3;
 
-   FLIMSimulationTCSPC sim(n_chan);
+   FLIMSimulationTCSPC sim(n_chan, n_t);
    sim.setImageSize(n_x, n_x);
 
    bool use_background = false;
@@ -216,9 +228,14 @@ int testFittingCoreSingle(double tau, int N, bool use_gaussian_irf)
 
    auto acq = std::make_shared<AcquisitionParameters>(sim);
 
+   double dt = acq->t_rep / acq->n_t_full;
+
+   double expected_I0 = N / tau * dt;
+
+
    std::vector<std::shared_ptr<FLIMImage>> images;
 
-   for (int i = 0; i < 1; i++)
+   for (int i = 0; i < n_im; i++)
    {
       auto image = std::make_shared<FLIMImage>(acq, FLIMImage::InMemory, FLIMImage::DataUint16);
 
@@ -235,11 +252,7 @@ int testFittingCoreSingle(double tau, int N, bool use_gaussian_irf)
    }
 
    // Make data
-   std::shared_ptr<InstrumentResponseFunction> irf;
-   if (use_gaussian_irf)
-      irf = sim.GetGaussianIRF();
-   else
-      irf = sim.GenerateIRF(1e6);
+   auto irf = (use_gaussian_irf) ? sim.GetGaussianIRF() : sim.GenerateIRF(1e6);
 
    DataTransformationSettings transform(irf);
    auto data = std::make_shared<FLIMData>(images, transform);
@@ -268,21 +281,23 @@ int testFittingCoreSingle(double tau, int N, bool use_gaussian_irf)
    if (use_background)
       model->addDecayGroup(bg);
 
-   std::vector<FitSettings> settings;
-   //settings.push_back(FitSettings(VariableProjection, Pixelwise, GlobalAnalysis, AverageWeighting, 4));
-   settings.push_back(FitSettings(MaximumLikelihood, Pixelwise, GlobalAnalysis, AverageWeighting, 1));
-   //settings.push_back(FitSettings(VariableProjection, Imagewise, GlobalAnalysis, AverageWeighting, 1));
-   //settings.push_back(FitSettings(VariableProjection, Global, GlobalAnalysis, AverageWeighting, 1));
-   //settings.push_back(FitSettings(VariableProjection, Pixelwise, GlobalAnalysis, PixelWeighting, 4));
-   //settings.push_back(FitSettings(VariableProjection, Imagewise, GlobalAnalysis, PixelWeighting, 4));
-
+   std::vector<FitSettings> settings {
+      FitSettings(VariableProjection, Pixelwise, GlobalAnalysis, AverageWeighting, 4),
+      FitSettings(VariableProjection, Imagewise, GlobalAnalysis, AverageWeighting, 1),
+      FitSettings(VariableProjection, Global, GlobalAnalysis, AverageWeighting, 1),
+      FitSettings(MaximumLikelihood, Pixelwise, GlobalAnalysis, AverageWeighting, 4)
+   };
+   
    FitController controller;
+   FittingOptions options;
 
+   options.use_ml_refinement = true;
 
    bool pass = true;
    for (auto s : settings)
    {
       controller.setFitSettings(s);
+      controller.setFittingOptions(options);
       controller.setModel(model);
       controller.setData(data);
       controller.init();
@@ -295,9 +310,10 @@ int testFittingCoreSingle(double tau, int N, bool use_gaussian_irf)
       auto stats = results->getStats();
 
       double expected_std = tau / sqrt(N);
-      pass &= checkResult(results, "[1] tau_1", tau, expected_std);
+      pass &= checkResult(results, "G1_tau_1", tau, expected_std);
+      pass &= checkResult(results, "G1_I_0", expected_I0);
       if (use_background)
-         pass &= checkResult(results, "[2] offset", N_bg, 0.5);
+         pass &= checkResult(results, "G2_offset", N_bg, 0.5);
 
       if (!pass)
          throw std::runtime_error("Failed test");
@@ -310,7 +326,7 @@ int testFittingCoreSingle(double tau, int N, bool use_gaussian_irf)
 
 int testFittingCoreMultiChannel()
 {
-   std::vector<double> tau = { 1000 , 3000 };
+   std::vector<double> tau = { 1000, 3000 };
    std::vector<double> test = { 700, 4000 };
 
    //std::vector<std::vector<double>> channel_factors = { { 0.5, 0.25, 0.25 },{ 0.25, 0.5, 0.25 }, { 0.33, 0.33, 0.34 } };
@@ -359,7 +375,8 @@ int testFittingCoreMultiChannel()
 
 
    // Make data
-   std::shared_ptr<InstrumentResponseFunction> irf = sim.GetGaussianIRF(); //sim.GenerateIRF(1e5);
+   // std::shared_ptr<InstrumentResponseFunction> irf = sim.GenerateIRF(1e5);
+   std::shared_ptr<InstrumentResponseFunction> irf = sim.GetGaussianIRF();
    DataTransformationSettings transform(irf);
    auto data = std::make_shared<FLIMData>(images, transform);
 
@@ -381,15 +398,11 @@ int testFittingCoreMultiChannel()
       params[0]->initial_search = false;
    }
 
+   std::vector<FitSettings> settings {
+      FitSettings(VariableProjection, Global, GlobalAnalysis, AverageWeighting, 8)
+   };
 
    FitController controller;
-
-   std::vector<FitSettings> settings;
-   //settings.push_back(FitSettings(MaximumLikelihood, Pixelwise, GlobalAnalysis, AverageWeighting, 4));
-   //settings.push_back(FitSettings(VariableProjection, Pixelwise, GlobalAnalysis, PixelWeighting, 1));
-   //settings.push_back(FitSettings(VariableProjection, Imagewise, GlobalAnalysis, AverageWeighting, 1));
-   settings.push_back(FitSettings(VariableProjection, Global, GlobalAnalysis, AverageWeighting, 8));
-
    FittingOptions opts;
    opts.initial_step_size = 0.01;
 
@@ -410,13 +423,12 @@ int testFittingCoreMultiChannel()
       auto results = controller.getResults();
       auto stats = results->getStats();
 
-      pass &= checkResult(results, "G1_tau_1", tau[0]);
-      pass &= checkResult(results, "G2_tau_1", tau[1]);
+      pass &= checkResult(results, "G1_tau_1", tau[0], 100);
+      pass &= checkResult(results, "G2_tau_1", tau[1], 100);
       //checkResult(results, "G1_I_0", N / tau[0] * 1000);
       //checkResult(results, "G2_I_0", N / tau[1] * 1000);
       //pass &= checkResult(results, "G3_I_0", 0.1);
-
-      //      pass &= checkResult(results, "[1] beta_1", beta1);
+      //pass &= checkResult(results, "G1_beta_1", beta1);
 
       if (!pass)
          throw std::runtime_error("Failed test");

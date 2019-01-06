@@ -41,12 +41,11 @@
 #include "FLIMImage.h"
 #include "PatternDecayGroup.h"
 
-void validate(std::vector<std::shared_ptr<AbstractDecayGroup>> groups)
+void validate(std::vector<std::shared_ptr<AbstractDecayGroup>> groups, bool gaussian_irf)
 {
 
-   FLIMSimulationTCSPC sim;
-   //std::shared_ptr<InstrumentResponseFunction> irf = sim.GenerateIRF(1e5);
-   std::shared_ptr<InstrumentResponseFunction> irf = sim.GetGaussianIRF();
+   FLIMSimulationTCSPC sim(1, 512);
+   auto irf = gaussian_irf ? sim.GetGaussianIRF() : sim.GenerateIRF(1e5);
    auto acq = std::make_shared<AcquisitionParameters>(sim);
    auto image = std::make_shared<FLIMImage>(acq, FLIMImage::InMemory, FLIMImage::DataUint16);
 
@@ -58,7 +57,7 @@ void validate(std::vector<std::shared_ptr<AbstractDecayGroup>> groups)
 
    for (auto& g : groups)
    {
-      auto params = g->getParameters();
+      auto& params = g->getParameters();
       std::for_each(params.begin(), params.end(), [](auto& p) { p->setFittingType(FittedGlobally); });
       model->addDecayGroup(g);
    }
@@ -68,15 +67,14 @@ void validate(std::vector<std::shared_ptr<AbstractDecayGroup>> groups)
 
 }
 
-void validate(std::shared_ptr<AbstractDecayGroup> g)
+void validate(std::shared_ptr<AbstractDecayGroup> g, bool gaussian_irf)
 {
 
    //std::cout << "\nTesting derivatives for " << g->objectName().toStdString() << "\n================\n";
    
    int n_chan = 2;
-   FLIMSimulationTCSPC sim(n_chan);
-   //std::shared_ptr<InstrumentResponseFunction> irf = sim.GenerateIRF(1e5);
-   std::shared_ptr<InstrumentResponseFunction> irf = sim.GetGaussianIRF();
+   FLIMSimulationTCSPC sim(n_chan, 512);
+   auto irf = gaussian_irf ? sim.GetGaussianIRF() : sim.GenerateIRF(1e5);
    auto acq = std::make_shared<AcquisitionParameters>(sim);
    auto image = std::make_shared<FLIMImage>(acq, FLIMImage::InMemory, FLIMImage::DataUint16);
 
@@ -121,49 +119,55 @@ void validate(std::shared_ptr<AbstractDecayGroup> g)
 
 }
 
-int testModelDerivatives()
+int testModelDerivatives(bool gaussian_irf)
 {
    
    // Fitting channel factors
    {
       auto group = std::make_shared<MultiExponentialDecayGroup>(2);
       group->setFitChannelFactors(true);
-      validate(group);
+      validate(group, gaussian_irf);
    }
 
    // Test multiexponential group
    for (int n_exp : { 1,3 })
    {
       auto group = std::make_shared<MultiExponentialDecayGroup>(n_exp);
-      validate(group);
+      validate(group, gaussian_irf);
 
       // with global beta
       group->setContributionsGlobal(true);
-      validate(group);
+      validate(group, gaussian_irf);
    }
-
+   
+   
+   // Test some basic combinations of FRET groups
+   {
+      std::vector<std::shared_ptr<AbstractDecayGroup>> groups;
+      groups.push_back(std::make_shared<FretDecayGroup>(1, 1, true));
+      validate(groups, gaussian_irf);
+   }
 
    // Test FRET group
    for (int n_fret : {1, 2})
       for (int n_exp : {1, 3})
          for (int n_acc : {1, 2})
          {
-            auto group = std::make_shared<FretDecayGroup>(n_exp, n_fret, true);
+            auto group = std::make_shared<FretDecayGroup>(n_exp, n_fret, false);
             group->setNumAcceptorExponential(n_acc);
             group->setUseStaticModel(false);
-
-
             group->setIncludeAcceptor(false);
-            //validate(group);
+            validate(group, gaussian_irf);
 
             group->setIncludeAcceptor(true);
-            validate(group);
+            validate(group, gaussian_irf);
 
-            group->setUseStaticModel(false);
-            validate(group);
+            group->setIncludeDonorOnly(true);
+            validate(group, gaussian_irf);
 
-            group->setIncludeDonorOnly(false);
-            validate(group);
+            group->setUseStaticModel(true);
+            //validate(group, gaussian_irf);
+
          }
    
    // Test anisotropy group
@@ -171,31 +175,30 @@ int testModelDerivatives()
       for (int n_pol : {1, 2})
       {
          auto group = std::make_shared<AnisotropyDecayGroup>(n_exp, n_pol);
-         validate(group);
+         validate(group, gaussian_irf);
       }
-
-
+      
+   // Test combination of multiexponential groups
+   {
+      std::vector<std::shared_ptr<AbstractDecayGroup>> groups;
+      groups.push_back(std::make_shared<MultiExponentialDecayGroup>(3, true));
+      groups.push_back(std::make_shared<MultiExponentialDecayGroup>(2, true));
+      validate(groups, gaussian_irf);
+   }
    // Test some basic combinations of FRET groups
    {
       std::vector<std::shared_ptr<AbstractDecayGroup>> groups;
       groups.push_back(std::make_shared<FretDecayGroup>(1, 1, true));
       groups.push_back(std::make_shared<FretDecayGroup>(1, 2, true));
-      validate(groups);
+      validate(groups, gaussian_irf);
    }
 
    {
       std::vector<std::shared_ptr<AbstractDecayGroup>> groups;
       groups.push_back(std::make_shared<FretDecayGroup>(2, 1, false));
       groups.push_back(std::make_shared<FretDecayGroup>(1, 1, false));
-      validate(groups);
+      validate(groups, gaussian_irf);
    }
 
-   // Test combination of multiexponential groups
-   {
-      std::vector<std::shared_ptr<AbstractDecayGroup>> groups;
-      groups.push_back(std::make_shared<MultiExponentialDecayGroup>(3, true));
-      groups.push_back(std::make_shared<MultiExponentialDecayGroup>(2, true));
-      validate(groups);
-   }
    return 0;
 }
