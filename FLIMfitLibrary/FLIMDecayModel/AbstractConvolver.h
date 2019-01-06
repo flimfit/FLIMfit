@@ -21,7 +21,7 @@ protected:
    AbstractConvolver(std::shared_ptr<TransformedDataParameters> dp);
 
 public:
-   virtual void compute(double rate, int irf_idx, double t0_shift, double reference_lifetime) = 0;
+   virtual void compute(double rate, int irf_idx = 0, double t0_shift = 0, double reference_lifetime = 0) = 0;
 
    virtual void addDecay(double fact, const std::vector<double>& channel_factors, double_iterator a) const = 0;
    virtual void addDerivative(double fact, const std::vector<double>& channel_factors, double_iterator b) const = 0;
