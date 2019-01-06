@@ -294,6 +294,8 @@ terminated:
 
    threads_running--;
 
+   std::lock_guard<std::recursive_mutex> lk(cleanup_mutex);
+
    // If we're the last thread running cleanup temporary variables
    
    std::thread::id cur_id = std::this_thread::get_id();
@@ -437,7 +439,6 @@ int FitController::getErrorCode()
 
 void FitController::cleanupTempVars()
 {
-   std::lock_guard<std::recursive_mutex> guard(cleanup_mutex);
 //   region_data.clear();
 }
 
