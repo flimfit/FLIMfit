@@ -22,6 +22,7 @@ GaussianChannelConvolver::GaussianChannelConvolver(const GaussianParameters& par
    n_t = (int) timepoints.size();
 
    n_tm = (int)std::ceil((n_t + 1) / 4.0);
+   n_tmf = (int)std::floor(n_t / 4.0);
 }
 
 void GaussianChannelConvolver::compute(double rate_, double t0_shift_)
@@ -145,17 +146,21 @@ void GaussianChannelConvolver::computeQ(double rate, aligned_vector<double>& Q)
 
 void GaussianChannelConvolver::add(double fact, double_iterator decay, const aligned_vector<double>& Q) const
 {
-#ifdef _TODO_AVX_ // decay may not be multiple of 4
-   __m256d factm = _mm256_set1_pd(fact / dt);
+   fact /= dt;
+#ifdef AVX
+   __m256d factm = _mm256_set1_pd(fact);
    __m256d* decaym = (__m256d*) &decay[0];
    __m256d* Qm = (__m256d*) Q.data();
-   for (int i = 0; i < n_tm; i++)
+   for (int i = 0; i < n_tmf; i++)
    {  
       __m256d Qfm = _mm256_mul_pd(Qm[i], factm);
       decaym[i] = _mm256_add_pd(decaym[i], Qfm);
    }
+   for (int i = n_tmf * 4; i < n_t; i++)
+   {
+      decay[i] += Q[i] * fact;
+   }
 #else
-   fact /= dt;
    for(int i=0; i<n_t; i++)
       decay[i] += Q[i] * fact;
 #endif

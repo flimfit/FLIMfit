@@ -37,6 +37,8 @@ protected:
    double T;
 
    int n_tm;
+   int n_tmf;
+
 
    aligned_vector<double> P;
    double a;
