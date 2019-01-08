@@ -53,7 +53,7 @@ void FitController::processRegion(int g, int region, int px, int thread)
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    if (data->global_scope == Pixelwise)
    {      
-      local_region_data = region_data[0]->GetPixel(px);
+      local_region_data = region_data[0]->getPixel(px);
       region_results = results->getPixel(g, region, px);
    }
    else
@@ -69,10 +69,10 @@ void FitController::processRegion(int g, int region, int px, int thread)
 
    // Check for termination requestion and that we have at least one px to fit
    //-------------------------------
-   if (local_region_data->GetSize() == 0 || reporter->shouldTerminate())
+   if (local_region_data->getSize() == 0 || reporter->shouldTerminate())
       return;
    
-   int itmax = 100;
+   int itmax = 500;
    int iter = 0; // used to use:status->iter[thread],
    double chi2 = 0; // used to use:
    

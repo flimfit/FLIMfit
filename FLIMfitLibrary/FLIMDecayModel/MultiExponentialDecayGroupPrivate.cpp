@@ -374,7 +374,7 @@ int MultiExponentialDecayGroupPrivate::calculateDerivatives(double_iterator b, i
 
 int MultiExponentialDecayGroupPrivate::addDecayGroup(const std::vector<std::shared_ptr<AbstractConvolver>>& buffers, double factor, double_iterator a, int adim, double& kap)
 {
-   return  addDecayGroup(buffers, factor, a, adim, kap, norm_channel_factors);
+   return addDecayGroup(buffers, factor, a, adim, kap, norm_channel_factors);
 }
 
 
