@@ -287,7 +287,7 @@ int DecayModel::getNumDerivatives()
 
 bool DecayModel::isSpatiallyVariant()
 {
-   return use_spectral_correction;
+   return use_spectral_correction && (zernike_order > 1);
 }
 
 void DecayModel::setVariables(const std::vector<double>& alf)
