@@ -66,21 +66,21 @@ void Aberration::setOrder(int order_)
 {
    order = order_;
 
-   if (order < 0 || order > 2)
+   if (order < 1 || order > 3)
       throw std::runtime_error("Invalid zernike order");
 
    active_parameters.clear();
 
-   if (order >= 0)
+   if (order >= 1)
    {
       active_parameters.push_back(all_parameters[0]);
    }
-   if (order >= 1)
+   if (order >= 2)
    {
       active_parameters.push_back(all_parameters[1]);
       active_parameters.push_back(all_parameters[2]);
    }
-   if (order >= 2)
+   if (order >= 3)
    {
       active_parameters.push_back(all_parameters[3]);
       active_parameters.push_back(all_parameters[4]);
