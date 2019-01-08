@@ -423,13 +423,13 @@ int FLIMData::getRegionData(int thread, int group, int region, std::shared_ptr<R
    float_iterator masked_data;
    int_iterator irf_idx;
    
-   region_data->Clear();
+   region_data->clear();
 
    
    if ( global_scope == Pixelwise || global_scope == Imagewise )
    {
       s_expected = getRegionCount(group, region);
-      region_data->GetPointersForInsertion(s_expected, masked_data, irf_idx);
+      region_data->getPointersForInsertion(s_expected, masked_data, irf_idx);
 
       s = getMaskedData(group, region, masked_data, irf_idx, results);
    }
@@ -447,7 +447,7 @@ int FLIMData::getRegionData(int thread, int group, int region, std::shared_ptr<R
          int pos = getRegionPos(i, region) - start;
          int s_expected = getRegionCount(i, region);
 
-         region_data->GetPointersForArbitaryInsertion(pos, s_expected, masked_data, irf_idx);
+         region_data->getPointersForArbitaryInsertion(pos, s_expected, masked_data, irf_idx);
 
          s += getMaskedData(i, region, masked_data, irf_idx, results);
       };

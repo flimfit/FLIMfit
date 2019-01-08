@@ -165,12 +165,12 @@ int AbstractFitter::fit(std::shared_ptr<RegionData> region_data, FitResultsRegio
 
    init();
 
-   region_data->GetAverageDecay(avg_y.begin());
+   region_data->getAverageDecay(avg_y.begin());
 
    if (global_algorithm == GlobalAnalysis)
    {
-      s = region_data->GetSize();
-      region_data->GetPointers(y, irf_idx);
+      s = region_data->getSize();
+      region_data->getPointers(y, irf_idx);
    }
    else
    {
@@ -202,8 +202,8 @@ int AbstractFitter::fit(std::shared_ptr<RegionData> region_data, FitResultsRegio
 
    if (global_algorithm == GlobalBinning)
    {
-      s = region_data->GetSize();
-      region_data->GetPointers(y, irf_idx);
+      s = region_data->getSize();
+      region_data->getPointers(y, irf_idx);
 
       getLinearParams();
    }

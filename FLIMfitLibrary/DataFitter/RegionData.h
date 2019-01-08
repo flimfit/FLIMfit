@@ -47,17 +47,17 @@ public:
    RegionData(RegionData&& other) = delete;
    RegionData& operator=( const RegionData& other ) = delete;
 
-   void Clear();
-   void GetPointersForInsertion(int n, float_iterator& y, int_iterator& irf_idx);
-   void GetPointersForArbitaryInsertion(int pos, int n, float_iterator& y, int_iterator& irf_idx);
-   void  GetPointers(float_iterator& y, int_iterator& irf_idx);
-   std::shared_ptr<RegionData> GetBinnedRegion();
-   int GetSize();
+   void clear();
+   void getPointersForInsertion(int n, float_iterator& y, int_iterator& irf_idx);
+   void getPointersForArbitaryInsertion(int pos, int n, float_iterator& y, int_iterator& irf_idx);
+   void getPointers(float_iterator& y, int_iterator& irf_idx);
+   std::shared_ptr<RegionData> getBinnedRegion();
+   int getSize();
 
 
-   void GetAverageDecay(float_iterator average_decay);
+   void getAverageDecay(float_iterator average_decay);
 
-   std::shared_ptr<RegionData> GetPixel(int px);
+   std::shared_ptr<RegionData> getPixel(int px);
 
    int data_type;
 

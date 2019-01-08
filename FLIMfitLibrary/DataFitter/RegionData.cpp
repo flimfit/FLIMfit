@@ -67,33 +67,33 @@ RegionData::RegionData(RegionData* region, int px) :
    irf_idx_it = region->irf_idx_it + px;
 }
 
-std::shared_ptr<RegionData> RegionData::GetPixel(int px)
+std::shared_ptr<RegionData> RegionData::getPixel(int px)
 {
    assert(px < n_px_cur);
    return std::make_shared<RegionData>(this, px);
 }
 
-std::shared_ptr<RegionData> RegionData::GetBinnedRegion()
+std::shared_ptr<RegionData> RegionData::getBinnedRegion()
 {
    auto binned_region = std::make_shared<RegionData>(data_type, 1, n_meas);
 
    float_iterator binned_data;
    int_iterator   binned_irf_idx;
 
-   binned_region->GetPointersForInsertion(1, binned_data, binned_irf_idx);
+   binned_region->getPointersForInsertion(1, binned_data, binned_irf_idx);
 
-   GetAverageDecay(binned_data);
+   getAverageDecay(binned_data);
    binned_irf_idx[0] = 0;
 
    return binned_region;
 }
 
-void RegionData::Clear()
+void RegionData::clear()
 {
    n_px_cur = 0;
 }
 
-void RegionData::GetPointersForInsertion(int n, float_iterator& data_, int_iterator& irf_idx_)
+void RegionData::getPointersForInsertion(int n, float_iterator& data_, int_iterator& irf_idx_)
 {
    assert(!is_shallow_ptr);
    assert( n + n_px_cur <= n_px_max );
@@ -104,7 +104,7 @@ void RegionData::GetPointersForInsertion(int n, float_iterator& data_, int_itera
    n_px_cur += n;
 }
 
-void RegionData::GetPointersForArbitaryInsertion(int pos, int n, float_iterator& data_, int_iterator& irf_idx_)
+void RegionData::getPointersForArbitaryInsertion(int pos, int n, float_iterator& data_, int_iterator& irf_idx_)
 {
    assert(!is_shallow_ptr);
    assert( n + pos <= n_px_max );
@@ -115,7 +115,7 @@ void RegionData::GetPointersForArbitaryInsertion(int pos, int n, float_iterator&
    n_px_cur = std::max(n_px_cur, pos + n);
 }
 
-void RegionData::GetAverageDecay(float_iterator average_decay)
+void RegionData::getAverageDecay(float_iterator average_decay)
 {
    std::fill_n(average_decay, n_meas, 0.0f);
 
@@ -127,13 +127,13 @@ void RegionData::GetAverageDecay(float_iterator average_decay)
       average_decay[j] /= n_px_cur;
 }
 
-void RegionData::GetPointers(float_iterator& data_, int_iterator& irf_idx_)
+void RegionData::getPointers(float_iterator& data_, int_iterator& irf_idx_)
 {
    data_ = data_it;
    irf_idx_ = irf_idx_it;
 }
 
-int RegionData::GetSize()
+int RegionData::getSize()
 {
    return n_px_cur;
 }
