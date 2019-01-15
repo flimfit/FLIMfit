@@ -31,7 +31,7 @@ project(DataFitter)
 
 find_package(OpenMP)
 
-find_package(dlib REQUIRED)
+find_package(dlib REQUIRED VERSION 19.8)
 set_target_properties(dlib::dlib PROPERTIES MAP_IMPORTED_CONFIG_RELWITHDEBINFO Release)
 
 # Set the source and header files
