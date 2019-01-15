@@ -29,6 +29,8 @@ classdef help_menu_controller < handle
     
     properties  
         data_series_controller;
+        model_controller;
+        temp_model_name;
     end
     
     methods(Access=private)
@@ -84,6 +86,19 @@ classdef help_menu_controller < handle
             check_version();
         end
         
+        function menu_help_load(obj, ~, ~)
+            obj.model_controller.new_model();
+            if ~isempty(obj.temp_model_name)
+                obj.model_controller.load(obj.temp_model_name);
+            end
+        end
+        
+        function menu_help_unload(obj, ~, ~)
+            obj.temp_model_name = tempname;
+            obj.model_controller.save(obj.temp_model_name);
+            obj.model_controller.clear_model();
+            clear FLIMFitMex
+        end
         
     end
     

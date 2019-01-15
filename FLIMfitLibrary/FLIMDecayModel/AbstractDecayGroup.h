@@ -47,8 +47,6 @@
 #define INC_ENTRIES     256
 #define MAX_VARIABLES   32
 
-typedef std::vector<double>::const_iterator const_double_iterator;
-typedef std::vector<double>::iterator double_iterator;
 typedef std::vector<float>::iterator float_iterator;
 
 class AbstractDecayGroup : public QObject

@@ -83,6 +83,7 @@ set(HEADERS
    MeasuredIrfConvolver.h
    GaussianIrfConvolver.h
    Aberration.h
+   AlignedVectors.h
 )
 
 add_definitions(-DBOOST_DATE_TIME_NO_LIB)

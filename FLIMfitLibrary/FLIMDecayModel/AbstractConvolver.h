@@ -2,18 +2,8 @@
 
 #include "InstrumentResponseFunction.h"
 #include "DataTransformer.h"
-
-#include <vector>
+#include "AlignedVectors.h"
 #include <memory>
-
-#include <boost/align/aligned_allocator.hpp>
-
-// Aligned allocated
-template<class T, std::size_t Alignment = 32>
-using aligned_vector = std::vector<T,
-   boost::alignment::aligned_allocator<T, Alignment> >;
-
-typedef std::vector<double>::iterator double_iterator;
 
 class AbstractConvolver
 {

@@ -30,7 +30,7 @@
 #pragma once
 
 
-#include <boost/align/aligned_allocator.hpp>
+#include "AlignedVectors.h"
 #include <boost/serialization/base_object.hpp>
 #include <boost/serialization/version.hpp>
 #include <vector>
@@ -62,8 +62,6 @@ enum IRFType
    Reference,
    Gaussian
 };
-
-typedef std::vector<double>::iterator double_iterator;
 
 class InstrumentResponseFunction
 {

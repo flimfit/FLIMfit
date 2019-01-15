@@ -1,8 +1,6 @@
 #include <dlib/optimization.h>
-#include <vector>
+#include "AlignedVectors.h"
 
-
-typedef std::vector<double>::iterator double_iterator;
 typedef std::vector<float>::iterator float_iterator;
 
 typedef dlib::matrix<double, 0, 1> column_vector;
