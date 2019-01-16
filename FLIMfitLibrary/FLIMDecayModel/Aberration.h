@@ -5,8 +5,6 @@
 #include "AbstractConvolver.h"
 #include "FittingParameter.h"
 
-typedef std::vector<double>::const_iterator const_double_iterator;
-
 class Aberration
 {
 public:
@@ -16,7 +14,7 @@ public:
    void setOrder(int order);
 
    void setupIncMatrix(std::vector<int>& inc, int& row, int& col);
-   int setVariables(const_double_iterator params);
+   int setVariables(std::vector<double>::const_iterator params);
 
    void apply(int x, int y, double_iterator a, int adim, int n_col);
 

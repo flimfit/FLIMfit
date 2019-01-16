@@ -8,7 +8,7 @@ template<typename it_alf, typename it_beta> // TODO: make this part of class
 int getBeta(const std::vector<std::shared_ptr<FittingParameter>>& beta_parameters, double fixed_beta, int n_beta_free, it_alf alf, it_beta beta, it_beta beta_buf)
 {
    int n_vars_used = 0;
-   
+
    alf2beta(n_beta_free, alf, beta_buf);
 
    int idx = 0;
@@ -42,7 +42,7 @@ public:
    virtual const std::vector<double>& getChannelFactors(int index);
    virtual void setChannelFactors(int index, const std::vector<double>& channel_factors);
 
-   virtual int setVariables(const_double_iterator variables);
+   virtual int setVariables(std::vector<double>::const_iterator variables);
    virtual void precompute();
    virtual int calculateModel(double_iterator a, int adim, double& kap);
    virtual int calculateDerivatives(double_iterator b, int bdim, double_iterator& kap_derv);
@@ -52,7 +52,7 @@ public:
    virtual std::vector<std::string> getLinearOutputParamNames();
 
 protected:
-  
+
    virtual void init();
    void setupParametersMultiExponential();
 
@@ -85,12 +85,12 @@ protected:
 protected:
    template<class Archive>
    void serialize(Archive & ar, const unsigned int version);
-   
-   const_double_iterator beta_param_values;
+
+   std::vector<double>::const_iterator beta_param_values;
    int n_beta_free;
    double fixed_beta;
    friend class boost::serialization::access;
-   
+
 };
 
 template<class Archive>

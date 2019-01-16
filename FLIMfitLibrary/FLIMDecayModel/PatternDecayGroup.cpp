@@ -59,7 +59,7 @@ void PatternDecayGroup::precompute()
    }
 }
 
-int PatternDecayGroup::setVariables(const_double_iterator variables)
+int PatternDecayGroup::setVariables(std::vector<double>::const_iterator variables)
 {
    return 0;
 }

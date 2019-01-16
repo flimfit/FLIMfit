@@ -64,7 +64,7 @@ TEST_CASE("Gaussian IRF", "[irf]")
    auto acq = std::make_shared<AcquisitionParameters>(sim);
    auto image = std::make_shared<FLIMImage>(acq, FLIMImage::InMemory, FLIMImage::DataUint16);
 
-   std::vector<std::vector<double>> decays;
+   std::vector<aligned_vector<double>> decays;
    std::vector<double> diff(acq->n_meas_full);
 
    for (int i = 0; i < irfs.size(); i++)
@@ -73,7 +73,7 @@ TEST_CASE("Gaussian IRF", "[irf]")
       auto data = std::make_shared<FLIMData>(image, transform);
       auto dp = data->GetTransformedDataParameters();
 
-      std::vector<double> a(acq->n_meas_full, 0.0);;
+      aligned_vector<double> a(acq->n_meas_full, 0.0);;
 
       auto conv = AbstractConvolver::make(dp);
 
@@ -117,7 +117,7 @@ TEST_CASE("Convolution", "[model]")
 
    conv.compute(tau, 0, 0, 0);
 
-   std::vector<double> a(acq->n_meas_full);
+   aligned_vector<double> a(acq->n_meas_full);
    conv.addDecay(1, { 1 }, a.begin());
 
    for (int i = 0; i < a.size(); i++)

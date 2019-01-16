@@ -45,7 +45,7 @@ AnisotropyDecayGroup::AnisotropyDecayGroup(int n_lifetime_exponential, int n_ani
    setupParameters();
 }
 
-AnisotropyDecayGroup::AnisotropyDecayGroup(const AnisotropyDecayGroup& obj) : 
+AnisotropyDecayGroup::AnisotropyDecayGroup(const AnisotropyDecayGroup& obj) :
    MultiExponentialDecayGroupPrivate(obj)
 {
    n_anisotropy_populations = obj.n_anisotropy_populations;
@@ -96,15 +96,15 @@ void AnisotropyDecayGroup::setupParameters()
    resizeLifetimeParameters(theta_parameters, n_anisotropy_populations, "theta_");
 }
 
-int AnisotropyDecayGroup::setVariables(const_double_iterator param_value)
+int AnisotropyDecayGroup::setVariables(std::vector<double>::const_iterator param_value)
 {
    int idx = MultiExponentialDecayGroupPrivate::setVariables(param_value);
-    
+
    k_theta.resize(n_anisotropy_populations);
    for (int i = 0; i<n_anisotropy_populations; i++)
       k_theta[i] = theta_parameters[i]->getTransformedValue<double>(param_value, idx);
 
-   return idx; 
+   return idx;
 }
 
 void AnisotropyDecayGroup::precompute()

@@ -53,16 +53,16 @@ public:
 
    DecayModel();
    DecayModel(const DecayModel &obj);
-   
+
    void addDecayGroup(std::shared_ptr<AbstractDecayGroup> group);
    std::shared_ptr<AbstractDecayGroup> getGroup(int idx) { return decay_groups[idx]; };
    int getNumGroups() { return static_cast<int>(decay_groups.size()); }
 
    void removeDecayGroup(int idx) { decay_groups.erase(decay_groups.begin() + idx); }
 
-   void removeDecayGroup(std::shared_ptr<AbstractDecayGroup> group) 
-   { 
-      auto iter = std::find(decay_groups.begin(), decay_groups.end(), group); 
+   void removeDecayGroup(std::shared_ptr<AbstractDecayGroup> group)
+   {
+      auto iter = std::find(decay_groups.begin(), decay_groups.end(), group);
       if (iter != decay_groups.end())
          decay_groups.erase(iter, iter);
    }
@@ -113,7 +113,7 @@ public:
 protected:
 
 
-   double getCurrentReferenceLifetime(const_double_iterator& param_values, int& idx);
+   double getCurrentReferenceLifetime(std::vector<double>::const_iterator& param_values, int& idx);
 
    int addReferenceLifetimeDerivatives(double_iterator b, int bdim, double_iterator& kap_derv);
    int addT0Derivatives(double_iterator b, int bdim, double_iterator& kap_derv);
@@ -145,11 +145,11 @@ private:
 
    template<class Archive>
    void serialize(Archive & ar, const unsigned int version);
-   
+
    friend class boost::serialization::access;
 
    std::vector<std::shared_ptr<Aberration>> spectral_correction;
-   
+
 };
 
 

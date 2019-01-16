@@ -35,7 +35,7 @@
 #include <boost/serialization/version.hpp>
 #include <vector>
 #include <cmath>
- 
+
 class GaussianParameters
 {
 public:
@@ -100,8 +100,8 @@ public:
    double polarisation_angle = 0.0;
 
    std::vector<GaussianParameters> gaussian_params;
-   
-   IRFType type; 
+
+   IRFType type;
 
 private:
    template<typename it>
@@ -114,8 +114,8 @@ private:
 
    static double cubicInterpolate(double  y[], double mu);
 
-   std::vector<double, boost::alignment::aligned_allocator<double, 16> > irf;
-   
+   aligned_vector<double> irf;
+
    std::vector<double> g_factor;
 
    int     image_irf;
@@ -124,7 +124,7 @@ private:
    double t0;
    int n_chan;
 
-   
+
    template<class Archive>
    void serialize(Archive & ar, const unsigned int version)
    {

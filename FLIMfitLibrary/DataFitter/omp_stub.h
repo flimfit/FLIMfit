@@ -44,7 +44,6 @@
 int omp_get_thread_num();
 void omp_set_num_threads(int num_threads);
 int omp_get_num_threads();
- 
 
 #endif
 
@@ -64,9 +63,10 @@ Incorporating grand central dispatch...
 
 */
 
+/*
 #include <future>
 
-#ifdef _WINDOWS
+#ifndef __APPLE__
 
 template <typename F, typename ...Args>
 auto cp_async(F&& f, Args&&... args)
@@ -84,7 +84,7 @@ auto cp_async(F&& f, Args&&... args)
 {
    using result_type = typename std::result_of<F (Args...)>::type;
    using packaged_type = std::packaged_task<result_type ()>;
-   
+
    auto p = new packaged_type(std::bind(std::forward<F>(f), std::forward<Args>(args)...));
    auto result = p->get_future();
    dispatch_async_f(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0),
@@ -93,8 +93,9 @@ auto cp_async(F&& f, Args&&... args)
                        (*f)();
                        delete f;
                     });
-   
+
    return result;
 }
 
 #endif
+*/

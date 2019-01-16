@@ -46,13 +46,13 @@
 
 class FittingError : public std::runtime_error
 {
-public: 
+public:
    FittingError(const std::string& description, int code) :
-      std::runtime_error(description), 
+      std::runtime_error(description),
       code_(code)
    {
    }
-   
+
    int code() { return code_; }
 
 protected:
@@ -95,7 +95,7 @@ protected:
 
    std::shared_ptr<DecayModel> model; // reference
    std::shared_ptr<ProgressReporter> reporter;
-   
+
    std::vector<double> alf;
    std::vector<double> err_lower;
    std::vector<double> err_upper;
@@ -108,7 +108,7 @@ protected:
    int philp1;
 
    aligned_vector<double> a;
-   std::vector<double> kap;
+   aligned_vector<double> kap;
    std::vector<double> params;
    std::vector<double> alf_err;
    std::vector<double> alf_buf;

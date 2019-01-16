@@ -7,7 +7,7 @@ class AnisotropyDecayGroup : public MultiExponentialDecayGroupPrivate
    Q_OBJECT
 
 public:
-   
+
    AnisotropyDecayGroup(int n_lifetime_exponential_ = 1, int n_anisotropy_populations_ = 1, bool include_r_inf = false);
    AnisotropyDecayGroup(const AnisotropyDecayGroup& obj);
 
@@ -21,7 +21,7 @@ public:
    void setNumAnisotropyPopulations(int n_anisotropy_populations_);
    void setIncludeRInf(bool include_r_inf_);
 
-   int setVariables(const_double_iterator variables);
+   int setVariables(std::vector<double>::const_iterator variables);
    void precompute();
    int calculateModel(double_iterator a, int adim, double& kap);
    int calculateDerivatives(double_iterator b, int bdim, double_iterator& kap_derv);
@@ -35,7 +35,6 @@ protected:
 
    void init();
    void setupParameters();
-   
    int addLifetimeDerivativesForAnisotropy(int idx, double_iterator b, int bdim, double& kap);
    int addContributionDerivativesForAnisotropy(double_iterator b, int bdim, double_iterator& kap);
    int addRotationalCorrelationTimeDerivatives(double_iterator b, int bdim, double_iterator& kap_derv);
@@ -52,13 +51,13 @@ protected:
    std::vector<std::vector<std::shared_ptr<AbstractConvolver>>> anisotropy_buffer;
    std::vector<double> ss_channel_factors;
    std::vector<double> pol_channel_factors;
-   
+
 private:
    template<class Archive>
    void serialize(Archive & ar, const unsigned int version);
-   
+
    friend class boost::serialization::access;
-   
+
 };
 
 template<class Archive>
