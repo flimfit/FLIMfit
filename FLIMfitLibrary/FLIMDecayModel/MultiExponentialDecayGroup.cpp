@@ -119,7 +119,7 @@ void MultiExponentialDecayGroup::setupIncMatrix(std::vector<int>& inc, int& row,
    }
 }
 
-int MultiExponentialDecayGroup::setVariables(const_double_iterator param_values)
+int MultiExponentialDecayGroup::setVariables(std::vector<double>::const_iterator param_values)
 {
    int idx = MultiExponentialDecayGroupPrivate::setVariables(param_values);
 

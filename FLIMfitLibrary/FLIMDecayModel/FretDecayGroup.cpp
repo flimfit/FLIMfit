@@ -69,7 +69,7 @@ FretDecayGroup::FretDecayGroup(int n_donor_exponential, int n_fret_populations, 
    n_fret_populations(n_fret_populations),
    include_donor_only(include_donor_only),
    kappa_factor(n_kappa)
-{   
+{
    std::vector<ParameterFittingType> fixed_or_global = { Fixed, FittedGlobally };
    std::vector<ParameterFittingType> fixed = { Fixed };
    A_parameter = std::make_shared<FittingParameter>("A", 1, 1, fixed, Fixed);
@@ -78,7 +78,7 @@ FretDecayGroup::FretDecayGroup(int n_donor_exponential, int n_fret_populations, 
    setupParameters();
 }
 
-FretDecayGroup::FretDecayGroup(const FretDecayGroup& obj) : 
+FretDecayGroup::FretDecayGroup(const FretDecayGroup& obj) :
    MultiExponentialDecayGroupPrivate(obj),
    kappa_factor(n_kappa)
 {
@@ -142,7 +142,7 @@ void FretDecayGroup::init()
 
    for (auto& p : tauT_parameters)
       n_nl_parameters += p->isFittedGlobally();
-   
+
    if (include_acceptor)
    {
       n_nl_parameters += Q_parameter->isFittedGlobally();
@@ -159,7 +159,7 @@ void FretDecayGroup::init()
       for (int j = 0; j < n_kappa; j++)
          fret_buffer[i][j] = AbstractConvolver::make_vector(n_exponential, dp);
    }
- 
+
    if (include_acceptor)
    {
       acceptor_buffer = AbstractConvolver::make_vector(n_acceptor_exponential, dp);
@@ -308,7 +308,7 @@ void FretDecayGroup::setupIncMatrix(std::vector<int>& inc, int& inc_row, int& in
    inc_col += n_fret_populations;
 }
 
-int FretDecayGroup::setVariables(const_double_iterator param_values)
+int FretDecayGroup::setVariables(std::vector<double>::const_iterator param_values)
 {
    int idx = MultiExponentialDecayGroupPrivate::setVariables(param_values);
 

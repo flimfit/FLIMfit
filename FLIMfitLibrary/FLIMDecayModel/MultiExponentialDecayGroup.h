@@ -1,4 +1,4 @@
-#pragma once 
+#pragma once
 
 #include "MultiExponentialDecayGroupPrivate.h"
 
@@ -29,7 +29,7 @@ public:
 protected:
 
    void setupParameters();
-   int setVariables(const_double_iterator variables);
+   int setVariables(std::vector<double>::const_iterator variables);
 
    bool fit_channel_factors = false;
    int n_chan = 1;

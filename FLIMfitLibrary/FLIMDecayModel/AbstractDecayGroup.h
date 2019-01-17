@@ -71,7 +71,7 @@ public:
    virtual AbstractDecayGroup* clone() const = 0;
 
    virtual ~AbstractDecayGroup() {};
-   
+
    std::shared_ptr<FittingParameter> getParameter(const std::string& param);
    std::vector<std::shared_ptr<FittingParameter>>& getParameters() { return parameters; }
    const std::vector<std::string>& getChannelFactorNames() { return channel_factor_names; }
@@ -84,7 +84,7 @@ public:
 
    virtual void init() = 0;
 
-   virtual int setVariables(const_double_iterator variables) = 0;
+   virtual int setVariables(std::vector<double>::const_iterator variables) = 0;
    virtual void precompute() = 0;
    virtual int calculateModel(double_iterator a, int adim, double& kap) = 0;
    virtual int calculateDerivatives(double_iterator b, int bdim, double_iterator& kap_derv) = 0;
@@ -100,7 +100,7 @@ public:
    virtual const std::vector<double>& getChannelFactors(int index) = 0;
    virtual void setChannelFactors(int index, const std::vector<double>& channel_factors) = 0;
 
-   int getInitialVariables(double_iterator variables);
+   int getInitialVariables(std::vector<double>::iterator variables);
 
    void setIRFPosition(int irf_idx_) { irf_idx = irf_idx_; }
    void setT0Shift(double t0_shift_) { t0_shift = t0_shift_; }
@@ -116,7 +116,7 @@ protected:
 
    void parametersChanged() { emit parametersUpdated(); };
    virtual int getNumPotentialChannels() { return 1; }
-   
+
    void normaliseChannelFactors(const std::vector<double>& channel_factors, std::vector<double>& norm_channel_factors);
 
    bool constrain_nonlinear_parameters = true;
@@ -133,8 +133,8 @@ protected:
    int irf_idx = 0;
    double t0_shift = 0;
    double reference_lifetime;
-   std::vector<double> irf_buf;
-   
+   aligned_vector<double> irf_buf;
+
 private:
    template<class Archive>
    void load(Archive & ar, const unsigned int version);

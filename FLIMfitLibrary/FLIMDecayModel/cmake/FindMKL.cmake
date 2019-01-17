@@ -38,6 +38,8 @@ if (MSVC)
   set(SHARED_EXT .lib)
 elseif (APPLE)
   set(SHARED_EXT .a)
+else ()
+  set(SHARED_EXT .so)
 endif ()
 
 set(INT_LIB "mkl_intel_ilp64${SHARED_EXT}")

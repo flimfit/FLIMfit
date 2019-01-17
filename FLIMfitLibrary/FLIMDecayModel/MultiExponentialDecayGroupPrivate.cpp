@@ -55,10 +55,10 @@ MultiExponentialDecayGroupPrivate::MultiExponentialDecayGroupPrivate(const Multi
 void MultiExponentialDecayGroupPrivate::resizeLifetimeParameters(std::vector<std::shared_ptr<FittingParameter>>& params, int new_size, const std::string& name_prefix, double tau0)
 {
    std::vector<ParameterFittingType> fixed_or_global = { Fixed, FittedGlobally };
-   
+
    if (params.size() > new_size)
       params.resize(new_size);
-   
+
    for (auto& p : params)
       parameters.push_back(p);
 
@@ -107,7 +107,7 @@ void MultiExponentialDecayGroupPrivate::resizeContributionParameters(std::vector
 
 
 void MultiExponentialDecayGroupPrivate::setupParametersMultiExponential()
-{   
+{
    parameters.clear();
 
    resizeLifetimeParameters(tau_parameters, n_exponential, "tau_");
@@ -115,7 +115,7 @@ void MultiExponentialDecayGroupPrivate::setupParametersMultiExponential()
    if (contributions_global)
       resizeContributionParameters(beta_parameters, n_exponential, "beta_");
    else
-      beta_parameters.clear(); 
+      beta_parameters.clear();
 }
 
 void MultiExponentialDecayGroupPrivate::init()
@@ -125,7 +125,7 @@ void MultiExponentialDecayGroupPrivate::init()
    n_nl_parameters = 0;
    for (auto& p : tau_parameters)
       n_nl_parameters += p->isFittedGlobally();
-   
+
    // Reduce degrees of freedom
    if (!beta_parameters.empty())
    {
@@ -226,7 +226,7 @@ void MultiExponentialDecayGroupPrivate::setupIncMatrix(std::vector<int>& inc, in
 }
 
 
-int MultiExponentialDecayGroupPrivate::setVariables(const_double_iterator param_value)
+int MultiExponentialDecayGroupPrivate::setVariables(std::vector<double>::const_iterator param_value)
 {
    int idx = 0;
 
@@ -243,7 +243,7 @@ int MultiExponentialDecayGroupPrivate::setVariables(const_double_iterator param_
       if (tau_parameters[i]->isFittedGlobally())
       {
          if (last_idx >= 0 && (tau[i] > tau[last_idx]))
-            tau[i] = tau[last_idx] - 50;        
+            tau[i] = tau[last_idx] - 50;
          last_idx = i;
       }
    }

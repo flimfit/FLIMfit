@@ -93,7 +93,7 @@ void BackgroundLightDecayGroup::setChannelFactors(int index, const std::vector<d
 }
 
 
-int BackgroundLightDecayGroup::setVariables(const_double_iterator param_values)
+int BackgroundLightDecayGroup::setVariables(std::vector<double>::const_iterator param_values)
 {
    int idx = 0;
 

@@ -103,13 +103,13 @@ void DecayModel::setupSpectralCorrection()
 }
 
 void DecayModel::setUseSpectralCorrection(bool use_spectral_correction_)
-{ 
-   use_spectral_correction = use_spectral_correction_; 
+{
+   use_spectral_correction = use_spectral_correction_;
    setupSpectralCorrection();
 }
 
 void DecayModel::setZernikeOrder(int zernike_order_)
-{ 
+{
    zernike_order = zernike_order_;
    for (auto& s : spectral_correction)
       s->setOrder(zernike_order);
@@ -134,15 +134,15 @@ void DecayModel::init()
 {
    if (dp->irf == nullptr)
       throw std::runtime_error("No IRF loaded");
-   
+
    if (dp->n_chan != dp->irf->getNumChan())
       throw std::runtime_error("IRF must have the same number of channels as the data");
-   
+
    last_variables.clear();
 
    for (auto g : decay_groups)
       g->init();
-   
+
    setupAdjust();
 }
 
@@ -181,7 +181,7 @@ int DecayModel::getNumNonlinearVariables()
 }
 
 
-double DecayModel::getCurrentReferenceLifetime(const_double_iterator& param_values, int& idx)
+double DecayModel::getCurrentReferenceLifetime(std::vector<double>::const_iterator& param_values, int& idx)
 {
    if (dp->irf->type != Reference)
       return 0;
@@ -223,7 +223,7 @@ void DecayModel::getOutputParamNames(std::vector<std::string>& param_names, std:
          param_group.push_back(i+1);
       }
    }
-      
+
    n_nl_output_params = (int) param_names.size();
 
    for (int i = 0; i<decay_groups.size(); i++)
@@ -294,7 +294,7 @@ void DecayModel::setVariables(const std::vector<double>& alf)
 {
    auto param_values = alf.begin();
 
-   int getting_fit = false; //TODO 
+   int getting_fit = false; //TODO
 
    int idx = 0;
    reference_lifetime = getCurrentReferenceLifetime(param_values, idx);
@@ -397,7 +397,7 @@ int DecayModel::calculateDerivatives(double_iterator b, int bdim, const_double_i
 }
 
 
-int DecayModel::addT0Derivatives(double_iterator b, int bdim, std::vector<double>::iterator& kap_derv)
+int DecayModel::addT0Derivatives(double_iterator b, int bdim, double_iterator& kap_derv)
 {
    // Compute numerical derivatives for t0
 
@@ -627,11 +627,11 @@ void DecayModel::validateDerivatives()
    aligned_vector<double> b(dim*n_der);
    std::vector<double> err(dim);
    std::vector<double> bobs(dim);
-   std::vector<double> kap(1+n_nonlinear+100);
+   aligned_vector<double> kap(1+n_nonlinear+100);
 
    std::vector<double> alf(n_nonlinear);
    getInitialVariables(alf, 2000);
-   
+
    setVariables(alf);
    int n_col_real = calculateModel(a.begin(), dim, kap.begin(), 0);
    int n_der_real = calculateDerivatives(b.begin(), dim, a.begin(), dim, n_col_real, kap.begin(), 0);
