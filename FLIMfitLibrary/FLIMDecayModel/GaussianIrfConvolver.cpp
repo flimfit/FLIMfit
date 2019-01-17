@@ -1,8 +1,8 @@
-#include "GaussianIrfConvolver.h"
-#include "mkl_vml_functions.h"
-#include "mkl.h"
 
-#define AVX 0
+#define USE_SIMD true
+
+#include "GaussianIrfConvolver.h"
+#include "FastErf.h"
 
 GaussianChannelConvolver::GaussianChannelConvolver(const GaussianParameters& params, const std::vector<double>& timepoints, double T_)
 {
@@ -23,6 +23,10 @@ GaussianChannelConvolver::GaussianChannelConvolver(const GaussianParameters& par
 
    n_tm = (int)std::ceil((n_t + 1) / 4.0);
    n_tmf = (int)std::floor(n_t / 4.0);
+
+   Qi.resize(n_tm * 4);
+   Q.resize(n_tm * 4);
+   Qp.resize(n_tm * 4);
 }
 
 void GaussianChannelConvolver::compute(double rate_, double t0_shift_)
@@ -58,18 +62,24 @@ void GaussianChannelConvolver::compute(double rate_, double t0_shift_)
    computeQ(rate, Q);
    computeQ(rate_p, Qp);
 
+#ifdef USE_SIMD
+   __m256d* Qm = (__m256d*) Q.data();
+   __m256d* Qpm = (__m256d*) Qp.data();
+   __m256d inv_d_rate = _mm256_set1_pd(1.0 / d_rate);
+   for (int i = 0; i < n_tm; i++)
+      Qpm[i] = _mm256_mul_pd(_mm256_sub_pd(Qpm[i], Qm[i]), inv_d_rate);
+#else
    for (int i = 0; i < Q.size(); i++)
    {
       Qp[i] -= Q[i];
       Qp[i] /= d_rate;
    }
+#endif
 }
 
 
 void GaussianChannelConvolver::computeQ(double rate, aligned_vector<double>& Q)
 {
-   Q.resize(n_tm * 4);
-
    double tau = 1.0 / rate;
 
    double b = (sigma * sigma * rate + mu + t0_shift) * a;
@@ -85,18 +95,7 @@ void GaussianChannelConvolver::computeQ(double rate, aligned_vector<double>& Q)
    double bta = b - t0*a;
    double dta = -dt*a;
 
-#ifdef AVX
-
-   aligned_vector<double> Qi(n_tm * 4);
-   aligned_vector<double> btav(n_tm * 4);
-
-   __m256d dtam = _mm256_set1_pd(dta * 4);
-   __m256d* btavm = (__m256d*) btav.data();
-   btavm[0] = _mm256_set_pd(bta + dta * 3, bta + dta * 2, bta + dta, bta);
-   for (int i = 1; i < n_tm; i++)
-      btavm[i] = _mm256_add_pd(btavm[i - 1], dtam);
-
-   vdErf(n_t+1, btav.data(), Qi.data());
+#ifdef USE_SIMD
 
    double de2 = de * de;
    __m256d e0m = _mm256_set_pd(e0 * de * de2, e0 * de2, e0 * de, e0);
@@ -106,26 +105,44 @@ void GaussianChannelConvolver::computeQ(double rate, aligned_vector<double>& Q)
    __m256d* Qim = (__m256d*) &Qi[0];
    __m256d* Qim1 = (__m256d*) &Qi[1];
 
-   for (int i = 0; i < n_tm; i++)
-   {
-      __m256d Qimi = _mm256_add_pd(Qim[i], cm);
-      Qim[i] = _mm256_mul_pd(Qimi, e0m);
+   int iL = std::floor((6.0 - bta) / (dta * 4));
+   int iU = std::ceil((-6.0 - bta) / (dta * 4));
+   iU = std::min(iU, n_tm);
+
+   __m256d dtam = _mm256_set1_pd(dta * 4);
+   __m256d btavm = _mm256_set_pd(bta + dta * 3, bta + dta * 2, bta + dta, bta);
+   btavm = _mm256_add_pd(btavm, _mm256_mul_pd(dtam, _mm256_set1_pd(iL)));
+
+   auto setQ = [&](int i, __m256d Qerf) 
+   { 
+      Qim[i] = _mm256_mul_pd(Qerf, e0m);
       e0m = _mm256_mul_pd(e0m, dem);
+   };
+
+   for (int i = 0; i < iL; i++)
+      setQ(i, _mm256_set1_pd(1.0 + c));
+
+   for (int i = iL; i < iU; i++)
+   {
+      __m256d Qerf = _mm256_erf_pd_(btavm);
+      setQ(i, _mm256_add_pd(Qerf, cm));
+      btavm = _mm256_add_pd(btavm, dtam);
    }
+
+   for (int i = iU; i < n_tm; i++)
+      setQ(i, _mm256_set1_pd(-1.0 + c));
 
    __m256d* Qm = (__m256d*) &Q[0];
    __m256d* Pm = (__m256d*) &P[0];
    __m256d taum = _mm256_set1_pd(tau);
-
 
    for (int i = 0; i < n_t; i++)
       Q[i] = Qi[i + 1] - Qi[i];
 
    for (int i = 0; i < n_tm; i++)
    {
-      __m256d Qmi = _mm256_sub_pd(Qim1[i], Qim[i]);
       __m256d Ptau = _mm256_mul_pd(taum, Pm[i]);
-      Qm[i] = _mm256_add_pd(Qm[i], Ptau);
+      Qm[i] = _mm256_fmadd_pd(taum, Pm[i], Qm[i]);
    }
 
 #else 
@@ -147,19 +164,18 @@ void GaussianChannelConvolver::computeQ(double rate, aligned_vector<double>& Q)
 void GaussianChannelConvolver::add(double fact, double_iterator decay, const aligned_vector<double>& Q) const
 {
    fact /= dt;
-#ifdef AVX
+#ifdef USE_SIMD
+
    __m256d factm = _mm256_set1_pd(fact);
    __m256d* decaym = (__m256d*) &decay[0];
    __m256d* Qm = (__m256d*) Q.data();
+
    for (int i = 0; i < n_tmf; i++)
-   {  
-      __m256d Qfm = _mm256_mul_pd(Qm[i], factm);
-      decaym[i] = _mm256_add_pd(decaym[i], Qfm);
-   }
+      decaym[i] = _mm256_fmadd_pd(Qm[i], factm, decaym[i]);
+
    for (int i = n_tmf * 4; i < n_t; i++)
-   {
       decay[i] += Q[i] * fact;
-   }
+
 #else
    for(int i=0; i<n_t; i++)
       decay[i] += Q[i] * fact;
@@ -180,8 +196,6 @@ void GaussianChannelConvolver::addDerivative(double fact, double_iterator derv) 
 GaussianIrfConvolver::GaussianIrfConvolver(std::shared_ptr<TransformedDataParameters> dp) :
    AbstractConvolver(dp)
 {
-   vmlSetMode(VML_EP);
-
    auto& t = dp->getTimepoints();
 
    if (!dp->equally_spaced_gates)

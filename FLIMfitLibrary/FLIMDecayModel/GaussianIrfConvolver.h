@@ -43,7 +43,8 @@ protected:
    aligned_vector<double> P;
    double a;
 
-   aligned_vector<double> Q, Qp;
+   aligned_vector<double> Q, Qp, Qi;
+
    double eps;
    double rate;
    double t0_shift;

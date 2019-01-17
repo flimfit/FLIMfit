@@ -48,9 +48,66 @@ extern int testFittingCoreMultiChannel();
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
 
+#include <chrono>
+
+#define USE_SIMD
+#include "FastErf.h"
+typedef double ty;
+
+__declspec(noinline)
+void erf_vec_real(const aligned_vector<ty>& x, aligned_vector<ty>& y)
+{
+   for (int i = 0; i < x.size(); i++)
+      y[i] = erf(x[i]);
+}
+
+__declspec(noinline)
+void erf_vec_fast(const aligned_vector<ty>& x, aligned_vector<ty>& y)
+{
+   __m256d* xd = (__m256d*) x.data();
+   __m256d* yd = (__m256d*) y.data();
+
+   int N4 = x.size() / 4;
+   for (int i = 0; i < N4; i++)
+      yd[i] = verf_pd(xd[i]);
+}
 
 TEST_CASE("Gaussian IRF", "[irf]")
 {
+   using namespace std;
+   using namespace std::chrono;
+   
+   int N = 1000;
+   aligned_vector<ty> x(N);
+   aligned_vector<ty> erf_real(N);
+   aligned_vector<ty> erf_fast(N);
+
+   for (int i = 0; i < N; i++)
+      x[i] = ((ty)i) / (N - 1) * 20;
+
+   auto start = steady_clock::now(); 
+   for (int i = 0; i<100; i++)
+      erf_vec_real(x, erf_real);
+   auto real_t = steady_clock::now() - start;
+
+   auto start2 = steady_clock::now();
+   for (int i = 0; i<100; i++)
+      erf_vec_fast(x, erf_fast);
+   auto fast_t = steady_clock::now() - start2;
+
+   double max_diff = 0;
+   for (int i = 0; i < N; i++)
+   {
+      double diffx = std::abs(erf_real[i] - erf_fast[i]);
+      max_diff = std::max(max_diff, diffx);
+   }
+
+   std::cout << "Max diff: " << max_diff << std::endl;
+   std::cout << "T real:" << duration <double, milli>(real_t).count() << " ms" << std::endl;
+   std::cout << "T fast:" << duration <double, milli>(fast_t).count() << " ms" << std::endl;
+   
+
+
    int n_chan = 2;
    std::vector<double> channel_factors{ 1.0, 2.0 };
 
@@ -77,13 +134,24 @@ TEST_CASE("Gaussian IRF", "[irf]")
 
       auto conv = AbstractConvolver::make(dp);
 
-      double tau = 4000;
-      conv->compute(1.0 / tau);
-      conv->addDecay(2, channel_factors, a.begin());
+      auto start = steady_clock::now();
+      for (int k = 0; k < 1000; k++)
+      {
+         std::fill(a.begin(), a.end(), 0);
+         for (int j = 0; j < 100; j++)
+         {
+            double tau = 4000 + j;
+            conv->compute(1.0 / tau);
+            conv->addDecay(2, channel_factors, a.begin());
 
-      tau = 600;
-      conv->compute(1.0 / tau);
-      conv->addDecay(0.5, channel_factors, a.begin());
+            tau = 600 + j;
+            conv->compute(1.0 / tau);
+            conv->addDecay(0.5, channel_factors, a.begin());
+         }
+      }
+      auto fast_t = steady_clock::now() - start;
+      std::cout << "T :" << duration <double, milli>(fast_t).count() << " ms" << std::endl;
+
 
       decays.push_back(a);
    }
