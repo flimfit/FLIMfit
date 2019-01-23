@@ -148,7 +148,10 @@ void FretDecayGroup::serialize(Archive & ar, const unsigned int version)
    if (version >= 2)
       ar & A_parameter;
 
+   if (version >= 4)
+	   ar & use_static_model;
+
    setupParameters();
 };
 
-BOOST_CLASS_VERSION(FretDecayGroup, 3)
+BOOST_CLASS_VERSION(FretDecayGroup, 4)
