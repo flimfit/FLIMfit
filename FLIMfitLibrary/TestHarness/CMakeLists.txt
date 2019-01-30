@@ -29,9 +29,6 @@
 
 project(TestHarness)
 
-include_directories( ${LEVMAR_INCLUDE_DIRS} ../FLIMDecayModel ../DataFitter ../FLIMfit )
-
-
 # Include the BOOST header files
 #===================================================
 find_package(Boost REQUIRED COMPONENTS system filesystem serialization)
@@ -56,19 +53,10 @@ set(HEADERS
    QR_test.h
 )
 
-# Add _32/_64 appendix to library
-#===================================================
-if( CMAKE_SIZEOF_VOID_P EQUAL 8 )
-   set( LIB_NAME "FLIMGlobalAnalysis_64" )
-else( CMAKE_SIZEOF_VOID_P EQUAL 8 )
-   set( LIB_NAME "FLIMGlobalAnalysis_32" ) 
-endif( CMAKE_SIZEOF_VOID_P EQUAL 8 )
-
-
 #link_directories(${LAPACKBLAS_DIR}) # lapack doesn't give us the right path
 add_executable(TestHarness ${SOURCE} ${HEADERS} )
 
-target_link_libraries(TestHarness FLIMfit DataFitter FLIMDecayModel levmar
+target_link_libraries(TestHarness FLIMfitLib
                         ${OpenCV_LIBS} Qt5::Core
                         ${Boost_LIBRARIES})
 

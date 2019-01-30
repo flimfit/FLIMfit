@@ -46,9 +46,7 @@ matlab_add_mex(NAME FLIMfitMex SRC MexUtils.h
                                    ControllerMex.cpp 
                                    FLIMDataMex.cpp 
                                    FLIMImageMex.cpp
-               LINK_TO FLIMfit 
-                       DataFitter 
-                       FLIMDecayModel)
+               LINK_TO FLIMfitLib)
 
 set(CMAKE_INSTALL_OPENMP_LIBRARIES TRUE)
 
