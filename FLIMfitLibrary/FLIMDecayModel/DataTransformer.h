@@ -229,8 +229,9 @@ private:
    std::vector<mask_type> final_mask;
    std::vector<float> transformed_data;
    std::vector<float> r_ss;
-   
-   //bool already_transformed = false;
+    
+   std::mutex transformation_mutex;
+   bool transformed = false;
 };
 
 
@@ -285,8 +286,8 @@ void DataTransformer::calculateMask()
 template <typename T>
 void DataTransformer::transformData()
 {
-   //if (already_transformed)
-   //   return;
+   if (transformed)
+      return;
 
    auto acq = image->getAcquisitionParameters();
    int n_x = acq->n_x;
@@ -424,5 +425,6 @@ void DataTransformer::transformData()
    }
    
    image->releasePointer<T>();
-   
+
+   transformed = true;
 }

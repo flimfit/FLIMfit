@@ -69,6 +69,8 @@ DataTransformer::DataTransformer(std::shared_ptr<DataTransformationSettings> tra
 
 void DataTransformer::setImage(std::shared_ptr<FLIMImage> image_)
 {
+   std::lock_guard<std::mutex> lk(transformation_mutex);
+
    if (image == image_)
       return;
 
@@ -78,12 +80,15 @@ void DataTransformer::setImage(std::shared_ptr<FLIMImage> image_)
 
 void DataTransformer::setTransformationSettings(DataTransformationSettings& transform_)
 {
+   std::lock_guard<std::mutex> lk(transformation_mutex);
    transform = transform_;
    refresh();
 }
 
 const std::vector<float>::iterator DataTransformer::getTransformedData()
 {
+   std::lock_guard<std::mutex> lk(transformation_mutex);
+
    switch (image->getDataClass())
    {
    case FLIMImage::DataFloat:
@@ -102,7 +107,7 @@ const std::vector<float>::iterator DataTransformer::getTransformedData()
 
 void DataTransformer::refresh()
 {
-   //already_transformed = false;
+   transformed = false;
 
    if (image == nullptr)
       return;
