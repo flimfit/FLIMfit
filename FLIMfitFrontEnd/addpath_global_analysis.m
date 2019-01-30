@@ -61,7 +61,6 @@ function addpath_global_analysis()
         get_bioformats(thirdpartydir,'5.9.2');
         get_omero(thirdpartydir,'5.4');
         get_gui_layout_toolbox();
-        get_iterVSTpoisson();    
 
             
         nicyDirs = dir([thisdir 'ICY_Matlab']); 
