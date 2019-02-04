@@ -19,22 +19,22 @@ function check_prefs(obj)
         
         if (~strcmp(pref_hostname,hostname))
            
-            if ispref('GlobalAnalysisFrontEnd','DefaultFolder');
+            if ispref('GlobalAnalysisFrontEnd','DefaultFolder')
                 rmpref('GlobalAnalysisFrontEnd','DefaultFolder');
             end
-            if ispref('GlobalAnalysisFrontEnd','RecentData');
+            if ispref('GlobalAnalysisFrontEnd','RecentData')
                 rmpref('GlobalAnalysisFrontEnd','RecentData');
             end
-            if ispref('GlobalAnalysisFrontEnd','RecentIRF');
+            if ispref('GlobalAnalysisFrontEnd','RecentIRF')
                 rmpref('GlobalAnalysisFrontEnd','RecentIRF');
             end
-            if ispref('GlobalAnalysisFrontEnd','RecentDefaultPath');
+            if ispref('GlobalAnalysisFrontEnd','RecentDefaultPath')
                 rmpref('GlobalAnalysisFrontEnd','RecentDefaultPath');
             end
-            if ispref('GlobalAnalysisFrontEnd','OMEROlogin');
+            if ispref('GlobalAnalysisFrontEnd','OMEROlogin')
                 rmpref('GlobalAnalysisFrontEnd','OMEROlogin');
             end
-            if ispref('GlobalAnalysisFrontEnd','NeverOMERO');
+            if ispref('GlobalAnalysisFrontEnd','NeverOMERO')
                 rmpref('GlobalAnalysisFrontEnd','NeverOMERO');
             end
            

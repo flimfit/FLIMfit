@@ -34,15 +34,14 @@ function load_single(obj,files,polarisation_resolved)
     end
     
     if ~iscell(files)            % single file selected
-        file = files;
-        nfiles = 1;
-    else
-        file = [files{1} files{2}];
-        nfiles = length(files) -1; 
+        files = {files};
     end
+        
+    nfiles = length(files);
+    file = files{1};
     
     obj.header_text = file;
-    [path,name,ext] = fileparts_inc_OME(file);    
+    [path,~,ext] = fileparts_inc_OME(file);    
     
     if strcmp(ext,'.raw')
         obj.load_raw_data(file);
@@ -67,12 +66,8 @@ function load_single(obj,files,polarisation_resolved)
     
     if nfiles > 1
         obj.header_text = root_path;
-        for f = 1:nfiles
-            file_names{f} = [obj.root_path files{f + 1}];
-        end
-        file_names = sort_nat(file_names);
+        files = sort_nat(files);
     else
-        file_names = {file};
         obj.header_text = file;
     end
     
@@ -89,14 +84,14 @@ function load_single(obj,files,polarisation_resolved)
                 path_parts = split(filesep,path);
                 names{i} = path_parts{end};
             else
-                [~,name,~] = fileparts_inc_OME(file_names{i});
+                [~,name,~] = fileparts_inc_OME(files{i});
                 names{i} = [name];
             end
         end
         obj.names = names;
     end
     
-    obj.file_names = file_names;
+    obj.file_names = files;
     
     obj.load_multiple(polarisation_resolved, data_setting_file);
     

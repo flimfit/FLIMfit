@@ -117,20 +117,19 @@ classdef file_menu_controller < handle
         % Load Data
         %------------------------------------------------------------------
         function menu_file_load_single(obj)
-            
             [files,path] = uigetfile('*.*','Select a file from the data',default_path,'MultiSelect','on'); 
             if ~iscell(files) 
-                if files == 0
-                    return;
+                if files == 0; return
+                else; files = {files};
                 end
-            end
-            obj.data_series_controller.load_single([path files]); 
-            obj.set_default_path(path);
-                        
+            end            
+            files = cellfun(@(f) [path filesep f], files, 'UniformOutput', false);            
+            
+            obj.data_series_controller.load_single(files); 
+            obj.set_default_path(path);            
         end
         
         function menu_file_load_widefield(obj)
-            
             folder = uigetdir(default_path,'Select the folder containing the datasets');
             if folder ~= 0 
                 obj.data_series_controller.load_data_series(folder,'tif-stack'); 
@@ -148,7 +147,6 @@ classdef file_menu_controller < handle
         
         
         function menu_file_load_plate(obj)
-            
             [file,path] = uigetfile('*.ome.tiff;*.OME.tiff;*.ome.tif;;*.OME.tif','Select an ome.tiff containing plate data',default_path);
             if file ~= 0
                 obj.data_series_controller.load_plate([path file]); 
@@ -162,7 +160,7 @@ classdef file_menu_controller < handle
                 obj.data_series_controller.load_single([path file],true); 
                 obj.set_default_path(path);
             end
-                end
+        end
         
         function menu_file_load_tcspc_pol(obj)
             folder = uigetdir(default_path,'Select the folder containing the datasets');
