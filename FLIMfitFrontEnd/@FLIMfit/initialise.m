@@ -64,6 +64,7 @@ function initialise(obj)
 
     guidata(obj.window,h);            
     assign_handles(obj,h);
+    obj.handles = h;
 
     close(splash);
     set(obj.window,'Visible','on');

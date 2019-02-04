@@ -31,8 +31,10 @@ classdef FLIMfit < handle
         handles
         
         data_series_list
+        data_series_controller
         data_intensity_view
         roi_controller
+        model_controller
         fit_controller
         result_controller
         data_decay_view
@@ -60,6 +62,30 @@ classdef FLIMfit < handle
             end
             
             check_version(true);
+        end
+        
+        function load_data(obj, files)
+            % Load one or more files 
+            obj.data_series_controller.load_single(files); 
+        end
+        
+        function load_irf(obj, file)
+            % Load instrument response function from file
+            obj.data_series_controller.data_series.irf.load_irf(file);
+        end
+        
+        function load_data_settings(obj, file)
+            % Load data settings from file
+            obj.data_series_controller.data_series.load_data_settings(file);         
+        end
+        
+        function load_model(obj, file)
+            % Load a model from file
+            obj.model_controller.load(file);
+        end
+        
+        function fit(obj)
+            obj.fit_controller.fit();
         end
         
     end
