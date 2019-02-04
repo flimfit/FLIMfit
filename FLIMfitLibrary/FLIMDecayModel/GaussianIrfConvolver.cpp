@@ -24,9 +24,11 @@ GaussianChannelConvolver::GaussianChannelConvolver(const GaussianParameters& par
    n_tm = (int)std::ceil((n_t + 1) / 4.0);
    n_tmf = (int)std::floor(n_t / 4.0);
 
-   Qi.resize(n_tm * 4);
-   Q.resize(n_tm * 4);
-   Qp.resize(n_tm * 4);
+
+   size_t q_size = (n_tm) * 4;
+   Qi.resize(q_size);
+   Q.resize(q_size);
+   Qp.resize(q_size);
 }
 
 void GaussianChannelConvolver::compute(double rate_, double t0_shift_)
@@ -108,6 +110,7 @@ void GaussianChannelConvolver::computeQ(double rate, aligned_vector<double>& Q)
    int iL = std::floor((6.0 - bta) / (dta * 4));
    int iU = std::ceil((-6.0 - bta) / (dta * 4));
    iU = std::min(iU, n_tm);
+   iL = std::min(iL, n_tm);
 
    __m256d dtam = _mm256_set1_pd(dta * 4);
    __m256d btavm = _mm256_set_pd(bta + dta * 3, bta + dta * 2, bta + dta, bta);
