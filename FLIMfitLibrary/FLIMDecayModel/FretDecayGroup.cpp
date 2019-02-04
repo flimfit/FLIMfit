@@ -378,20 +378,25 @@ int FretDecayGroup::getNonlinearOutputs(float_iterator nonlin_variables, float_i
 {
    int output_idx = MultiExponentialDecayGroupPrivate::getNonlinearOutputs(nonlin_variables, output, nonlin_idx);
 
-   output[output_idx++] = A_parameter->getValue<float>(nonlin_variables, nonlin_idx);
+   //output[output_idx++] = A_parameter->getValue<float>(nonlin_variables, nonlin_idx);
 
    float_iterator output_tauT = output + output_idx;
    for (int i = 0; i < n_fret_populations; i++)
-      output[output_idx++] = tauT_parameters[i]->getValue<float>(nonlin_variables, nonlin_idx);
+      if (tauT_parameters[i]->isFittedGlobally())
+         output[output_idx++] = tauT_parameters[i]->getValue<float>(nonlin_variables, nonlin_idx);
 
    if (include_acceptor)
    {
-      output[output_idx++] = Q_parameter->getValue<float>(nonlin_variables, nonlin_idx);
-      output[output_idx++] = Qsigma_parameter->getValue<float>(nonlin_variables, nonlin_idx);
+      if (Q_parameter->isFittedGlobally())
+         output[output_idx++] = Q_parameter->getValue<float>(nonlin_variables, nonlin_idx);
+      if (Qsigma_parameter->isFittedGlobally())
+         output[output_idx++] = Qsigma_parameter->getValue<float>(nonlin_variables, nonlin_idx);
       for(auto& p : tauA_parameters)
-         output[output_idx++] = p->getValue<float>(nonlin_variables, nonlin_idx);
+         if (p->isFittedGlobally())
+            output[output_idx++] = p->getValue<float>(nonlin_variables, nonlin_idx);
    }
 
+   /*
    float_iterator tau = output;
    float_iterator beta = output + n_exponential;
    for (int i = 0; i < n_fret_populations; i++)
@@ -414,6 +419,7 @@ int FretDecayGroup::getNonlinearOutputs(float_iterator nonlin_variables, float_i
       output[output_idx++] = E;
       output[output_idx++] = tauDF2 / tauDF;
    }
+   */
 
    return output_idx;
 }
@@ -455,6 +461,7 @@ std::vector<std::string> FretDecayGroup::getNonlinearOutputParamNames()
 {
    auto names = AbstractDecayGroup::getNonlinearOutputParamNames();
    
+   /*
    for (int i = 0; i < n_fret_populations; i++)
    {
       std::string E_name = "E_" + boost::lexical_cast<std::string>(i + 1);
@@ -463,6 +470,7 @@ std::vector<std::string> FretDecayGroup::getNonlinearOutputParamNames()
       std::string tauDF_name = "tauDF_" + boost::lexical_cast<std::string>(i + 1);
       names.push_back(tauDF_name);
    }
+   */
 
    return names;
 }

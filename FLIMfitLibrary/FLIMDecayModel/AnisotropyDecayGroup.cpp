@@ -164,7 +164,8 @@ int AnisotropyDecayGroup::getNonlinearOutputs(float_iterator nonlin_variables, f
    int output_idx = MultiExponentialDecayGroupPrivate::getNonlinearOutputs(nonlin_variables, output, nonlin_idx);
 
    for (int i = 0; i < n_anisotropy_populations; i++)
-      output[output_idx++] = theta_parameters[i]->getValue<float>(nonlin_variables, nonlin_idx);
+      if (theta_parameters[i]->isFittedGlobally())
+         output[output_idx++] = theta_parameters[i]->getValue<float>(nonlin_variables, nonlin_idx);
 
    return output_idx;
 }

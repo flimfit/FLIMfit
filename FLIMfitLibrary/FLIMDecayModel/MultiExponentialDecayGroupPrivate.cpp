@@ -275,13 +275,14 @@ int MultiExponentialDecayGroupPrivate::getNonlinearOutputs(float_iterator param_
    int output_idx = 0;
 
    for (int i = 0; i < n_exponential; i++)
-      output[output_idx++] = std::max(tau_parameters[i]->getValue<float>(param_values, param_idx), 50.f);
+      if (tau_parameters[i]->isFittedGlobally())
+        output[output_idx++] = std::max(tau_parameters[i]->getValue<float>(param_values, param_idx), 50.f);
 
    if (contributions_global && n_exponential > 1)
    {
       beta_buf_float.resize(n_exponential);
-      getBeta(beta_parameters, fixed_beta, n_beta_free, param_values + param_idx, output + output_idx, beta_buf_float.begin());
-      output_idx += n_exponential;
+      int n_beta_fitted = getBeta(beta_parameters, fixed_beta, n_beta_free, param_values + param_idx, output + output_idx, beta_buf_float.begin(), false);
+      output_idx += n_beta_fitted;
    }
 
    return output_idx;

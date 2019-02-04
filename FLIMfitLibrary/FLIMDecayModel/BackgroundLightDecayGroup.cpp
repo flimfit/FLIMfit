@@ -140,7 +140,7 @@ int BackgroundLightDecayGroup::getNonlinearOutputs(float_iterator nonlin_variabl
    int output_idx = 0;
 
    for (int i = 0; i < 3; i++)
-      if (!(parameters[i]->isFittedLocally()))
+      if (parameters[i]->isFittedGlobally())
          output[output_idx++] = parameters[i]->getValue<float>(nonlin_variables, nonlin_idx);
 
    return output_idx;

@@ -52,7 +52,7 @@ std::vector<std::string> AbstractDecayGroup::getNonlinearOutputParamNames()
 {
    std::vector<std::string> names;
    for (auto p : parameters)
-      if (!p->isFittedLocally())
+      if (p->isFittedGlobally())
          names.push_back(p->name);
    return names;
 }

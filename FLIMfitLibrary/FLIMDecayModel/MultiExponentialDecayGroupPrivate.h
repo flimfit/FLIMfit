@@ -5,7 +5,7 @@
 #include "AbstractConvolver.h"
 
 template<typename it_alf, typename it_beta> // TODO: make this part of class
-int getBeta(const std::vector<std::shared_ptr<FittingParameter>>& beta_parameters, double fixed_beta, int n_beta_free, it_alf alf, it_beta beta, it_beta beta_buf)
+int getBeta(const std::vector<std::shared_ptr<FittingParameter>>& beta_parameters, double fixed_beta, int n_beta_free, it_alf alf, it_beta beta, it_beta beta_buf, bool get_fixed = true)
 {
    int n_vars_used = 0;
 
@@ -19,7 +19,7 @@ int getBeta(const std::vector<std::shared_ptr<FittingParameter>>& beta_parameter
          beta[i] = beta_buf[idx++] * (1 - fixed_beta);
          n_vars_used++;
       }
-      else
+      else if (get_fixed)
       {
          beta[i] = beta_parameters[i]->getInitialValue();
       }
