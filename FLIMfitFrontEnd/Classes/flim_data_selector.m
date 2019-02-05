@@ -1,4 +1,4 @@
-function flim_data_selector(data_series_controller)
+function flim_data_selector(data_series)
 
 % Copyright (C) 2013 Imperial College London.
     % All rights reserved.
@@ -28,7 +28,7 @@ function flim_data_selector(data_series_controller)
 
     fig = figure('Toolbar','none','Name','Select Data');
     
-    handles = struct('data_series_controller',data_series_controller);
+    handles = struct('data_series',data_series);
     
     layout = uix.HBox( 'Parent', fig );
     
@@ -57,7 +57,7 @@ function flim_data_selector(data_series_controller)
     set(layout,'Widths',[-1 250])
     set(right_layout,'Heights',[30 250 30 -1])
     
-    handles.flim_data_series_list = flim_data_series_list(handles);
+    handles.flim_data_series_list = flim_data_series_list(handles, data_series);
    
     
     empty_data = repmat({'','',''},[10 1]);                
@@ -70,42 +70,31 @@ function flim_data_selector(data_series_controller)
     update_filter_table();
     
     function update_filter_table()
-                  
-        data_series = handles.data_series_controller.data_series;
         md = data_series.metadata;
-
-        set(handles.filter_table,'ColumnFormat',{[{'-'} fieldnames(md)'],{'=','!=','<','>'},'char'})
-        
+        set(handles.filter_table,'ColumnFormat',{[{'-'} md.Properties.VariableNames],{'=','!=','<','>'},'char'})
     end
 
     function select_filtered(obj,~,~)
-        d = handles.data_series_controller.data_series;
-        d.use = d.use | get_sel();
+        data_series.use = data_series.use | get_sel();
     end
 
     function deselect_filtered(obj,~,~)
-        d = handles.data_series_controller.data_series;
-        d.use = d.use & ~get_sel();
+        data_series.use = data_series.use & ~get_sel();
     end
 
     function select_all(obj,~,~)
-        d = handles.data_series_controller.data_series;
-        d.use = true(size(d.use));
+        data_series.use = true(size(data_series.use));
     end
 
     function deselect_all(obj,~,~)
-        d = handles.data_series_controller.data_series;
-        d.use = false(size(d.use));
+        data_series.use = false(size(data_series.use));
     end
 
     function sel = get_sel()
 
-        data = get(handles.filter_table,'Data');
-        d = handles.data_series_controller.data_series;
-        
-        sel = ones(1,d.n_datasets);
-
-        md = d.metadata;
+        data = get(handles.filter_table,'Data');        
+        sel = ones(data_series.n_datasets,1);
+        md = data_series.metadata;
 
         for i=1:size(data,1)
 
@@ -119,51 +108,33 @@ function flim_data_selector(data_series_controller)
                 var_is_numeric = all(cellfun(@isnumeric,m));
 
                 if var_is_numeric
-
                     m = cell2mat(m);
                     val = str2double(val);
 
                     switch op_str
-                        case '='
-                            op = @eq;
-                        case '!='
-                            op = @ne;
-                        case '<'
-                            op = @lt;
-                        case '>'
-                            op = @gt;
-                        otherwise
-                            op = [];
+                        case '=';  op = @eq;
+                        case '!='; op = @ne;
+                        case '<';  op = @lt;
+                        case '>';  op = @gt;
+                        otherwise; op = [];
                     end
 
                     if ~isempty(op)
                         sel = sel & op(m,val);
                     end
                 else
-
                     switch op_str
-                        case '='
-                            op = @strcmp;
-                        case '!='
-                            op = @(x,y) (1-strcmp(x,y));
-                        otherwise
-                            op = [];
+                        case '=';  op = @strcmp;
+                        case '!='; op = @(x,y) (1-strcmp(x,y));
+                        otherwise; op = [];
                     end
 
                     if ~isempty(op)
                         sel = sel & cellfun(@(x)op(val,x),m);
                     end
-
                 end
-
-
-
             end
-
         end
-        
-        sel = sel';
-
     end
     
 end

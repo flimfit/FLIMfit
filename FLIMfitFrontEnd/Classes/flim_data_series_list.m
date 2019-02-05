@@ -94,7 +94,7 @@ classdef flim_data_series_list < handle
         end
         
         function sel_all_callback(obj,~,~)
-            flim_data_selector(obj.data_source_controller);
+            flim_data_selector(obj.data_source);
         end
         
         function set_source(obj,data_source)
