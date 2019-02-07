@@ -74,16 +74,26 @@ classdef abstract_plot_controller < abstract_display_controller
                 for i=1:length(obj.param_popupmenu) 
                     old_list = get(obj.param_popupmenu(i),'String')';
                     
-                    changed = length(old_list)~=length(new_list) || ...
-                        any(~cellfun(@strcmp,old_list,new_list));
+                    changed = length(old_list)~=length(new_list) ...
+                           || any(~cellfun(@strcmp,old_list,new_list));
 
                     if changed
+                        idx = [];
+                        
+                        if iscell(old_list)
+                            old_val = get(obj.param_popupmenu(i),'Value');
+                            old_sel = old_list{old_val};
+                            idx = find(strcmp(new_list,old_sel));
+                        end
+                        
                         set(obj.param_popupmenu(i),'String',new_list);
-
-                        if get(obj.param_popupmenu(i),'Value') > length(obj.param_list)
+                        
+                        if ~isempty(idx)
+                            set(obj.param_popupmenu(i),'Value',idx);
+                        elseif get(obj.param_popupmenu(i),'Value') > length(obj.param_list)
                             set(obj.param_popupmenu(i),'Value',1);
                         end
-
+                        
                         obj.param_select_update();    
                     end          
                 end
@@ -148,6 +158,9 @@ classdef abstract_plot_controller < abstract_display_controller
             else
                 cscale = @jet;
             end
+
+            %cscale = @newmap;
+            
 
             
         end
