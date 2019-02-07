@@ -61,11 +61,13 @@ void AnisotropyDecayGroup::init()
    MultiExponentialDecayGroupPrivate::init();
 
    n_lin_components = n_anisotropy_populations + include_r_inf + 1;
-   n_nl_parameters += n_anisotropy_populations;
 
    anisotropy_buffer.resize(n_anisotropy_populations);
    for (int i = 0; i < n_anisotropy_populations; i++)
+   {
       anisotropy_buffer[i] = AbstractConvolver::make_vector(n_exponential, dp);
+      n_nl_parameters += theta_parameters[i]->isFittedGlobally();
+   }
 
    setupChannelFactors();
 }
