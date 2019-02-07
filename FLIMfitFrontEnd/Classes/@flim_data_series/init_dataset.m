@@ -29,6 +29,18 @@ function init_dataset(obj,setting_file_name)
   
     prof = get_profile();    
    
+    % Extract metadata 
+    
+    if isempty(obj.metadata)
+       metadata = struct();
+    else
+       metadata = obj.metadata();
+    end
+        
+    metadata = extract_metadata(obj.names',metadata);
+    obj.metadata = struct2table(metadata);
+
+    
     
     % Set defaults for background depending on type of data
     if strcmp(obj.mode,'TCSPC')

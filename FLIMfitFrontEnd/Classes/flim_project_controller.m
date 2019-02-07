@@ -83,15 +83,16 @@ classdef flim_project_controller < flim_data_series_observer
             
             % TODO: move this into data_series_controller
             d = obj.data_series_controller.data_series;
-            d.file_names = data_info.file_names;
-            d.ZCT = data_info.ZCT;
-            d.channels = data_info.channels;
-            d.reader_settings = data_info.reader_settings;
             d.n_datasets = length(data_info.file_names);
             d.multid_filters_file = [folder 'multid_segmentation.xml'];
-            
-            d.load_multiple(data_info.polarisation_resolved, [folder 'data_settings.xml']);
             d.header_text = folder;
+            
+            d.load_multiple(data_info.file_names, ...
+                            'polarisation_resolved', data_info.polarisation_resolved, ...
+                            'data_settings_files', [folder 'data_settings.xml'], ...
+                            'ZCT', data_info.ZCT, ...
+                            'channels', data_info.channels, ...
+                            'reader_settings', data_info.reader_settings);
             
             if isfolder([folder 'segmentation'])
                 d.seg_mask = uint16.empty();

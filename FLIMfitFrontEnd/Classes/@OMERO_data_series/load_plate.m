@@ -146,10 +146,8 @@ function load_plate(obj,omero_plate)
     end
     
     obj.metadata = metadata;
-    
-    obj.file_names = selected_images;
 
-    obj.load_multiple(polarisation_resolved, []);
+    obj.load_multiple(selected_images, 'polarisation_resolved', polarisation_resolved);
     
     function add_class(class)
         if ~isfield(metadata,class)

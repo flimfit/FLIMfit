@@ -87,14 +87,12 @@ classdef flim_data_series_controller < handle
 
             obj.clear();
             obj.data_series.load_data_series(root_path,mode,polarisation_resolved);
-                        
             obj.loaded_new_dataset();
         end
         
         function load_raw(obj,file)
             obj.clear();
-            obj.data_series.load_raw_data(file);           
-                                   
+            obj.data_series.load_raw_file(file);                                              
             obj.loaded_new_dataset();
         end
         
@@ -108,8 +106,18 @@ classdef flim_data_series_controller < handle
             % load new dataset
             obj.clear();
             obj.data_series.load_single(file,polarisation_resolved);
-                        
-                        
+            obj.loaded_new_dataset();
+        end
+        
+        function load_files(obj,varargin)
+            obj.clear();
+            obj.data_series.load_files(varargin{:});
+            obj.loaded_new_dataset();
+        end
+        
+        function set_data(obj,t,data,varargin)
+            obj.clear();
+            obj.data_series.set_data(t,data,varargin{:});
             obj.loaded_new_dataset();
         end
         

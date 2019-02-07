@@ -53,7 +53,7 @@ function switch_active_dataset(obj, dataset, no_smoothing)
 
         else
 
-            obj.load_selected_files(dataset);
+            obj.read_selected_files(dataset);
 
         end
         

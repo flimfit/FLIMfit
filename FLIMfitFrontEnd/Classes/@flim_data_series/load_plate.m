@@ -24,10 +24,6 @@ function load_plate(obj, file)
     % through  a studentship from the Institute of Chemical Biology 
     % and The Wellcome Trust through a grant entitled 
     % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
-
-   
-     polarisation_resolved = false;
-    
     
     [path,name,ext] = fileparts_inc_OME(file);
     
@@ -35,16 +31,12 @@ function load_plate(obj, file)
         errordlg('Not an ome.tiff - please choose an ome.tiff containing plate data');
         return;
     end
-    
    
     root_path = ensure_trailing_slash(path);
-    
-    obj.header_text = root_path;
-
     obj.root_path = root_path;
-    
-    obj.polarisation_resolved = polarisation_resolved;
     obj.header_text = root_path;
+    obj.header_text = root_path;
+    obj.polarisation_resolved = false;
     
     % Get the channel filler
     r = loci.formats.ChannelFiller();
@@ -53,12 +45,8 @@ function load_plate(obj, file)
     OMEXMLService = loci.formats.services.OMEXMLServiceImpl();
     r.setMetadataStore(OMEXMLService.createOMEXMLMetadata());
     
-   
-    r.setId(file);
-   
+    r.setId(file);   
     seriesCount = r.getSeriesCount;
-    
-    %r.setSeries(i - 1);
     omeMeta = r.getMetadataStore();
     
     if omeMeta.getPlateCount == 0 || seriesCount == 0
@@ -66,7 +54,7 @@ function load_plate(obj, file)
         return;
     end
         
-    image_names{1,seriesCount} = [];        % pre-allocate
+    image_names = cell(1,seriesCount);
     for i = 1:seriesCount
         image_names{i} = [name ext '.tiff [' char(omeMeta.getImageName(i -1)) ']'];
     end
@@ -74,21 +62,14 @@ function load_plate(obj, file)
     [selected_names, ~, obj.lazy_loading] = dataset_selection(image_names);
     
     n_datasets = length(selected_names);
-    
-    
-    if n_datasets == 0
-        return;
-    end
-    
+    if n_datasets == 0; return; end
    
     obj.n_datasets = n_datasets;
     obj.names = selected_names;
     
-   
     
     metadata = struct();
-    
-    
+        
     % assume only one plate & find matching Row and Column
     cols = omeMeta.getPlateColumns(0).getValue;
     rows = omeMeta.getPlateRows(0).getValue;
@@ -96,6 +77,9 @@ function load_plate(obj, file)
     imageSeries = ones(1,n_datasets);       % pre-allocate
     file_names{1,n_datasets} = [];      
     
+    add_class('Well');
+    add_class('Row');
+    add_class('Column');
     for i=1:n_datasets
         file_names{i} = file;     % same file name for each image
         sel = selected_names{i};
@@ -108,13 +92,10 @@ function load_plate(obj, file)
                 for well = 0:(rows*cols) - 1
                     for sample = 0:omeMeta.getWellSampleCount(0,well)-1
                         wellSampleID = omeMeta.getWellSampleImageRef(0,well,sample);
-                        if strcmp(wellSampleID,imageID);
+                        if strcmp(wellSampleID,imageID)
                             row = char(omeMeta.getWellRow(0,well).getValue() + 'A');
                             % NB add 1 as FLIMfit plate columns start at 0
                             col = num2str(omeMeta.getWellColumn(0,well).getValue() + 1);
-                            add_class('Well');
-                            add_class('Row');
-                            add_class('Column');
                 
                             metadata.Well{i} = [row col];
                             metadata.Row{i} = row;
@@ -127,14 +108,11 @@ function load_plate(obj, file)
             end
         end
     end
-    
-    obj.file_names = file_names;
-    
+        
     names = fieldnames(metadata);
 
     for j=1:length(names)
-
-        d =  metadata.(names{j});
+        d = metadata.(names{j});
        
         try
             nums = cellfun(@str2num,d,'UniformOutput',true);
@@ -145,11 +123,9 @@ function load_plate(obj, file)
     end
     
     obj.metadata = metadata;
-    
-    
     obj.imageSeries = imageSeries;
     
-    obj.load_multiple(polarisation_resolved, []);
+    obj.load_files(file_names,'polarisation_resolved', polarisation_resolved);
     
     function add_class(class)
         if ~isfield(metadata,class)

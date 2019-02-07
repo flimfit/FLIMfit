@@ -106,6 +106,10 @@ classdef (Abstract) flim_fit_result < handle
                 idx = find(obj.metadata.image == dataset);
             end
             
+            if ~isnumeric(param)
+               param = find(strcmp(param,obj.params)); 
+            end
+            
             [param_data,mask] = get_image_result_indexing(obj,idx,param);
         end
         

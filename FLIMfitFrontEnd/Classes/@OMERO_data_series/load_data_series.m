@@ -114,9 +114,7 @@ function load_data_series(obj,omero_dataset,mode,polarisation_resolved,data_sett
         end
     end
     
-    obj.file_names = selected_images;
-
-    obj.load_multiple(polarisation_resolved, []);
+    obj.load_files(selected_images, 'polarisation_resolved', polarisation_resolved);
 
 
 end

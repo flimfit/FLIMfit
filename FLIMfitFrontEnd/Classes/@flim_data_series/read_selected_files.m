@@ -1,4 +1,4 @@
-function load_selected_files(obj,selected)
+function read_selected_files(obj,selected)
 
     % Copyright (C) 2013 Imperial College London.
     % All rights reserved.

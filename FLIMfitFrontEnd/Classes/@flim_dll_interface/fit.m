@@ -57,7 +57,7 @@ function fit(obj, data_series, fit_params, roi_mask, selected)
         sel = sel(datasets);
 
         if d.lazy_loading
-            d.load_selected_files(sel);
+            d.read_selected_files(sel);
         end
         obj.datasets = sel;
         obj.use = datasets(d.loaded);    

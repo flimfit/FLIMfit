@@ -51,22 +51,20 @@ classdef FLIMfit < handle
     methods
         
         function obj = FLIMfit(wait)
-            if nargin < 1
-                wait = isdeployed;
-            end
-            
+            if nargin < 1; wait = isdeployed; end
             obj.initialise();
-            
-            if wait
-                waitfor(obj.window)
-            end
-            
+            if wait; waitfor(obj.window); end
             check_version(true);
         end
         
-        function load_data(obj, files)
+        function load_files(obj, files, varargin)
             % Load one or more files 
-            obj.data_series_controller.load_single(files); 
+            obj.data_series_controller.load_files(files, varargin{:}); 
+        end
+        
+        function set_data(obj, t, data, varargin)
+            % Set data directly
+            obj.data_series_controller.set_data(t, data, varargin{:});
         end
         
         function load_irf(obj, file)
@@ -85,7 +83,33 @@ classdef FLIMfit < handle
         end
         
         function fit(obj)
+            % Fit the data
             obj.fit_controller.fit();
+            while ~obj.fit_controller.has_fit
+                pause(0.001)
+            end
+        end
+        
+        function stats = get_result_statistics(obj)
+            stats = obj.result_controller.fit_result.region_stats;
+        end
+        
+        function metadata = get_result_metadata(obj)
+            metadata = obj.result_controller.fit_result.metadata;
+        end
+        
+        function im = get_result_image(obj, image, parameter)
+            im = obj.fit_controller.fit_result.get_image(image, parameter);
+        end
+        
+        function add_result_callback(obj, callback)
+            addlistener(obj.fit_controller, 'fit_completed', @fit_completed);
+            
+            function fit_completed(src,evt)
+                stats = obj.get_result_statistics();
+                metadata = obj.get_result_metadata();
+                callback(stats, metadata);
+            end
         end
         
     end

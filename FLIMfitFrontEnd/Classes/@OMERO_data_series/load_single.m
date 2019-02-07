@@ -80,7 +80,7 @@ function load_single(obj,images,polarisation_resolved)
     
     for i = 1:obj.n_datasets
         image = images(i);
-        obj.file_names{i} = image;
+        file_names{i} = image;
         file = char(image.getName.getValue());
         [path,name,ext] = fileparts_inc_OME(file);
         names{i} = name;
@@ -94,7 +94,7 @@ function load_single(obj,images,polarisation_resolved)
     
    
     
-    obj.load_multiple(polarisation_resolved, data_setting_file);
+    obj.load_multiple(file_names,'polarisation_resolved', polarisation_resolved, 'data_settings_files', data_setting_file);
     
   
 end

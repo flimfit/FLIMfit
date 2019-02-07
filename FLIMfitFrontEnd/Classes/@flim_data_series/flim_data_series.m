@@ -110,8 +110,8 @@ classdef flim_data_series < handle & h5_serializer
         t_int;
         n_datasets;
         
-        names;
-        metadata;
+        names (:,1) cell;
+        metadata = struct();
 
         seg_mask = [];
         multid_mask = [];
@@ -180,7 +180,7 @@ classdef flim_data_series < handle & h5_serializer
         loaded = [];
         load_time = [];
         
-        active = 1;
+        active = nan;
         
         ZCT = []; % cell array containing missing OME dimensions Z,C,T (in that order)  
         modulo = [];
@@ -228,14 +228,12 @@ classdef flim_data_series < handle & h5_serializer
             del_files = dir([tempdir 'GPTEMP*']);
             
             warning('off','MATLAB:DELETE:Permission');
-            
             for i=1:length(del_files)
                 try
                    delete([tempdir del_files(i).name]); 
                 catch e %#ok
                 end
             end
-            
             warning('on','MATLAB:DELETE:Permission');
             
             % set up a temporary file to save filters
@@ -257,18 +255,12 @@ classdef flim_data_series < handle & h5_serializer
             end
                 
         end
-        
         function post_serialize(obj)
-            
             obj.suspend_transformation = true;
-                        
             datatype = class(obj.cur_data);
-            
             sz = obj.data_size(:)';
-            
             ch_sz = sz;
             sz(end) = obj.n_datasets;
-            
             path = '/flim_data/';
                         
             try
@@ -280,22 +272,15 @@ classdef flim_data_series < handle & h5_serializer
             end
             
             for j=1:obj.n_datasets
-
                 obj.switch_active_dataset(j);
-
                 h5write(obj.file,path,obj.cur_data,[1 1 1 1 j],ch_sz,ones(size(sz)));
-                
             end
             
-            
             obj.suspend_transformation = false;
-            
         end
         
         function post_deserialize(obj)
-            
             obj.hdf5 = true;
-            
         end
         
         %===============================================================
@@ -315,7 +300,7 @@ classdef flim_data_series < handle & h5_serializer
                 file = [];
             end
             if obj.init
-                if isempty(file) && ~obj.batch_mode % i.e. not batch
+                if isempty(file) && ~isempty(obj.root_path) && ~obj.batch_mode
                     title = 'Save Settings?';
                     choice = questdlg('Would you like to save the current data settings?', title ,'Yes','No','No');
                     if strcmp(choice,'Yes')
@@ -327,13 +312,10 @@ classdef flim_data_series < handle & h5_serializer
                 if ~isempty(file)
                     serialise_object(obj,file,'flim_data_series');
                 end
-                
-                
             end
         end
         
         function load_t_calibriation(obj,file)
-           
             data = csvread(file,2,0);
             obj.use_t_calibration = true;
             obj.cal_t_nominal = data(:,1);
@@ -341,19 +323,16 @@ classdef flim_data_series < handle & h5_serializer
             
             obj.compute_tr_data();
             notify(obj,'data_updated');  
-            
         end
         
         function reload_data(obj)
             l = 1:obj.n_datasets;
             obj.loaded(:) = false;
-            obj.load_selected_files(l);
+            obj.read_selected_files(l);
         end
         
         function export_acceptor_images(obj,file)
-            
             SaveFPTiffStack(file,obj.acceptor,obj.names,'Acceptor');
-            
         end
         
         %===============================================================
@@ -426,18 +405,15 @@ classdef flim_data_series < handle & h5_serializer
         end
         
         function idx = get_intensity_idx(obj,sel)
-            
             if obj.loaded(sel)
                 idx = sum(obj.loaded(1:sel));
             else
-                obj.load_selected_files(sel);
+                obj.read_selected_files(sel);
                 idx = 1;
             end
-            
         end
         
         function sel_intensity = selected_intensity(obj,sel,apply_mask)
-           
             if nargin < 3
                 apply_mask = true;
             end
@@ -534,7 +510,6 @@ classdef flim_data_series < handle & h5_serializer
 
         
         function estimate_g_factor(obj)
-            
             [g, std] = obj.get_g_factor_roi(1,1);
             gf = g(std<0.2);
                         
@@ -590,13 +565,10 @@ classdef flim_data_series < handle & h5_serializer
         end
                 
         function set.suspend_transformation(obj,suspend_transformation)
-           
             obj.suspend_transformation = suspend_transformation;
-            
             if ~suspend_transformation
                 obj.compute_tr_data();
             end
-            
         end
         
         function set.seg_mask(obj,seg_mask)
@@ -829,7 +801,6 @@ classdef flim_data_series < handle & h5_serializer
         %===============================================================
         
         function cleanup(obj)
-        
            if exist(obj.multid_filters_file,'file')
               delete(obj.multid_filters_file);
            end
@@ -840,13 +811,10 @@ classdef flim_data_series < handle & h5_serializer
            if ~isempty(r)
                r.close();
            end
-           
         end
         
         function delete(obj)
            obj.cleanup();
-           
-           % On object deletion, clear mapped data 
            obj.clear_memory_mapping();
         end
         
