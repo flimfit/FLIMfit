@@ -84,13 +84,11 @@ classdef flim_data_series_list < handle
             end
         end
         
-        function use_callback(obj,src,evtData)
-           
+        function use_callback(obj,~,~)
             data = get(obj.handle,'Data');
             use = data(:,1);
             use = cell2mat(use);
             obj.data_source.use = use;
-            
         end
         
         function sel_all_callback(obj,~,~)

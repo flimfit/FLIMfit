@@ -80,6 +80,7 @@ function flim_data_selector(data_series)
 
     function deselect_filtered(obj,~,~)
         data_series.use = data_series.use & ~get_sel();
+    
     end
 
     function select_all(obj,~,~)
@@ -98,7 +99,7 @@ function flim_data_selector(data_series)
 
         for i=1:size(data,1)
 
-            if all(cellfun(@isempty,data(i,:)))==0 && ~strcmp(data{i,1},'-')
+            if all(cellfun(@isempty,data(i,:))==false) && ~strcmp(data{i,1},'-')
 
                 field = data{i,1};
                 op_str = data{i,2};
