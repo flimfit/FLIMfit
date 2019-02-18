@@ -61,8 +61,12 @@ double NaN()
 
 }
 
+#ifndef _MSVC
+
 int _CrtCheckMemory( )
 { return 0; };
+
+#endif
 
 #ifndef USE_OMP
 
