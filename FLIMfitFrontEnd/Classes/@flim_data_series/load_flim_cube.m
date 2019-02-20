@@ -289,6 +289,10 @@ function[success, target, intensity_normalisation] = load_flim_cube(obj, target,
                 end
             end
             
+            % close local bioformats reader if any to free up file for possible deletion
+            if no_preset == false && ~isempty(r)
+                r.close();
+                end
            
 
         case {'.pt3', '.ptu', '.bin2', '.ffd', '.ffh', '.spc', '.sdt'}
@@ -442,21 +446,5 @@ function[success, target, intensity_normalisation] = load_flim_cube(obj, target,
             else
                 ctr = ctr + 1;
             end
-            
-            
-            
-            
-            
-    end         % end switch
-    
-    % close local bioformats reader if any to free up file for possible deletion
-    if  no_preset == false && ~isempty(r)
-        r.close();
-    end
-    
-  
-    
-    
-    
-    
-    
+   
+    end         % end switch    
