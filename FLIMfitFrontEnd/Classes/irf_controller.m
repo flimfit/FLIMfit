@@ -64,6 +64,7 @@ classdef irf_controller < control_binder & flim_data_series_observer
         end
         
         function data_update(obj)
+            obj.set_bound_data_source(obj.data_series.irf);
         end
         
                

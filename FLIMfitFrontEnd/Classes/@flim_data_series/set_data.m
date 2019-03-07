@@ -1,4 +1,4 @@
-function load_data(obj, t, data, varargin)
+function set_data(obj, t, data, varargin)
 
     p = inputParser;
     p.addOptional('polarisation_resolved', false);

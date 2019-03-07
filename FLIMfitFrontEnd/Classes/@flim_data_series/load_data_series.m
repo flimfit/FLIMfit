@@ -70,6 +70,6 @@ function load_data_series(obj,root_path,mode,polarisation_resolved)
    
     obj.lazy_loading = lazy_loading;
     
-    obj.load_files(file_names,'polarisation_resolved', polarisation_resolved, 'data_settings_files', data_setting_file)
+    obj.load_files(file_names,'polarisation_resolved', polarisation_resolved)
     
 end

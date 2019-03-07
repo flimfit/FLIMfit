@@ -128,7 +128,8 @@ classdef (Abstract) flim_fit_result < handle
                 for j=1:length(obj.params)
                     dataset_name = [result_root '/' obj.params{j} '/'];
                     im = obj.get_image(i,j,'result');
-                    h5create(file,dataset_name,size(im),'DataType','single','Deflate',2,'ChunkSize',[256 256]);
+                    chunk_size = min([256 256],[obj.height obj.width]);
+                    h5create(file,dataset_name,size(im),'DataType','single','Deflate',2,'ChunkSize',chunk_size);
                     h5write(file,dataset_name,im);
                     h5writeatt(file,dataset_name,'GroupIndex',obj.group_idx(j));
                     h5writeatt(file,dataset_name,'Index',j);

@@ -40,6 +40,10 @@ function load_files(obj, file_names, varargin)
     channels = p.Results.channels;
     reader_settings = p.Results.reader_settings;
     
+    if isempty(file_names)
+        throw(MException('FLIMFit:noFilesSpecified','No files were found'));
+    end
+    
     % get dimensions from first file
     reader = get_flim_reader(file_names{1},reader_settings);
     
@@ -125,6 +129,7 @@ function load_files(obj, file_names, varargin)
         obj.read_selected_files(1:obj.n_datasets);
     end
    
+    obj.switch_active_dataset(1);
     obj.init_dataset(data_settings_file);
        
 end
