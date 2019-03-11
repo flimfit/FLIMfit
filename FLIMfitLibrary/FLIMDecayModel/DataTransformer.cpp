@@ -85,7 +85,7 @@ void DataTransformer::setTransformationSettings(DataTransformationSettings& tran
    refresh();
 }
 
-const std::vector<float>::iterator DataTransformer::getTransformedData()
+std::vector<float>::const_iterator DataTransformer::getTransformedData()
 {
    std::lock_guard<std::mutex> lk(transformation_mutex);
 
@@ -128,3 +128,10 @@ void DataTransformer::refresh()
       break;
    }
 }
+
+cv::Mat DataTransformer::getMask() 
+{
+   std::lock_guard<std::mutex> lk(transformation_mutex);
+   return final_mask;
+}
+

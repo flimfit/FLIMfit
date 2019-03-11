@@ -29,6 +29,7 @@ GaussianChannelConvolver::GaussianChannelConvolver(const GaussianParameters& par
    Qi.resize(q_size);
    Q.resize(q_size);
    Qp.resize(q_size);
+   P.resize(q_size);
 }
 
 void GaussianChannelConvolver::compute(double rate_, double t0_shift_)
@@ -44,8 +45,6 @@ void GaussianChannelConvolver::compute(double rate_, double t0_shift_)
    if (t0_shift != t0_shift_)
    {
       t0_shift = t0_shift_;
-
-      P.resize(n_tm * 4);
 
       double tmua = (t0 - mu - t0_shift) * a;
       double dta = dt * a;
@@ -105,12 +104,11 @@ void GaussianChannelConvolver::computeQ(double rate, aligned_vector<double>& Q)
    __m256d cm = _mm256_set1_pd(c);
 
    __m256d* Qim = (__m256d*) &Qi[0];
-   __m256d* Qim1 = (__m256d*) &Qi[1];
-
+   
    int iL = std::floor((6.0 - bta) / (dta * 4));
    int iU = std::ceil((-6.0 - bta) / (dta * 4));
-   iU = std::min(iU, n_tm);
-   iL = std::min(iL, n_tm);
+   iU = std::max(0, std::min(iU, n_tm));
+   iL = std::max(0, std::min(iL, n_tm));
 
    __m256d dtam = _mm256_set1_pd(dta * 4);
    __m256d btavm = _mm256_set_pd(bta + dta * 3, bta + dta * 2, bta + dta, bta);

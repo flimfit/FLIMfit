@@ -518,7 +518,7 @@ int FitController::getFit(int im, int n_fit, uint fit_loc[], double fit[], int& 
    if (iml == -1)
       return 0;
    
-   uint32_t nel = (uint32_t) mask.size();
+   uint32_t nel = (uint32_t) mask.total();
 
    std::vector<double> nl_params(model->getNumNonlinearVariables());
    std::vector<float> l_params(model->getNumColumns());
@@ -540,10 +540,10 @@ int FitController::getFit(int im, int n_fit, uint fit_loc[], double fit[], int& 
          for(int i=0; i<n_fit; i++)
          {
             uint32_t idx = fit_loc[i];
-            if (idx < nel && mask[idx] == rg)
+            if (idx < nel && mask.at<uint16_t>(idx) == rg)
             {
                for (uint32_t j = last_idx; j<idx; j++)
-                  lin_idx += (mask[j] == rg);
+                  lin_idx += (mask.at<uint16_t>(j) == rg);
                last_idx = idx;
 
                results->getNonLinearParams(im, rg, lin_idx, nl_params);

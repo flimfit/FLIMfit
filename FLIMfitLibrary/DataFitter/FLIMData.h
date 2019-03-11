@@ -206,19 +206,19 @@ int FLIMData::calculateRegions()
       DataTransformer transformer(transform);
       transformer.setImage(images[im]);
       
-      auto& mask = transformer.getMask();
+      auto mask = transformer.getMask();
       
-      int n_px = static_cast<int>(mask.size());
+      int n_px = static_cast<int>(mask.total());
       
       if (merge_regions)
       {
          for(int p=0; p<n_px; p++)
-            region_count_ptr[mask[p]>0]++;
+            region_count_ptr[mask.at<uint16_t>(p)>0]++;
       }
       else
       {
          for(int p=0; p<n_px; p++)
-            region_count_ptr[mask[p]]++;
+            region_count_ptr[mask.at<uint16_t>(p)]++;
       }
 
       // Calculate region indexes

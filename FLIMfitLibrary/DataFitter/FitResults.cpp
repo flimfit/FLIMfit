@@ -226,6 +226,14 @@ void FitResults::computeRegionStats(float confidence_factor)
 
    model->getParameterIntensityIndices(linear_intensity_index, nonlinear_intensity_index);
    
+   std::vector<bool> is_intensity(n_lin_output_params, false);
+   for (int i = 0; i < n_lin_output_params; i++)
+   {
+      for (int j = 0; j < n_lin_output_params; j++)
+         if (linear_intensity_index[j] == i)
+            is_intensity[i] = true;
+   }
+   
    for (int im = 0; im<n_im; im++)
    {
       for (int rg = 1; rg<MAX_REGION; rg++)
@@ -280,7 +288,7 @@ void FitResults::computeRegionStats(float confidence_factor)
                      intensity_it = lin_buf.begin() + nonlinear_intensity_index[i];
                      intensity_stride = n_lin_output_params;
                   }
-                  stats_calculator.CalculateRegionStats(s_local, nonlin_buf.begin()+i, n_nl_output_params, intensity_it, intensity_stride, stats, idx);
+                  stats_calculator.calculateRegionStats(s_local, nonlin_buf.begin()+i, n_nl_output_params, intensity_it, intensity_stride, stats, idx);
                }
 
             }
@@ -295,14 +303,14 @@ void FitResults::computeRegionStats(float confidence_factor)
             
             // Compute linear stats
             for(int i=0; i<n_lin_output_params; i++)
-               stats_calculator.CalculateRegionStats(s_local, lin_buf.begin()+i, n_lin_output_params, lin_buf.begin() + linear_intensity_index[i], n_lin_output_params, stats, idx);
+               stats_calculator.calculateRegionStats(s_local, lin_buf.begin()+i, n_lin_output_params, lin_buf.begin() + linear_intensity_index[i], n_lin_output_params, stats, idx, is_intensity[i]);
             
             // Compute auxillary data stats
             for (int i = 0; i<n_aux; i++)
-               stats_calculator.CalculateRegionStats(s_local, aux_data.begin()+i, n_aux, intensity, n_aux, stats, idx);
+               stats_calculator.calculateRegionStats(s_local, aux_data.begin()+i, n_aux, intensity, n_aux, stats, idx);
 
             // Compute chi stats
-            stats_calculator.CalculateRegionStats(s_local, chi2.begin() + start, 1, intensity, n_aux, stats, idx);
+            stats_calculator.calculateRegionStats(s_local, chi2.begin() + start, 1, intensity, n_aux, stats, idx);
          }
       }
    }
@@ -310,7 +318,7 @@ void FitResults::computeRegionStats(float confidence_factor)
 }
 
 
-int FitResults::getParameterImage(int im, int param, uint8_t ret_mask[], float image_data[])
+int FitResults::getParameterImage(int im, int param, uint16_t ret_mask[], float image_data[])
 {
 
    int start, s_local;
@@ -328,11 +336,11 @@ int FitResults::getParameterImage(int im, int param, uint8_t ret_mask[], float i
       throw std::runtime_error("Invalid dataset index");
 
    // Get mask
-   std::vector<mask_type>& im_mask = mask[im];
-   int n_px = (int) im_mask.size();
+   cv::Mat im_mask = mask[im];
+   int n_px = (int) im_mask.total();
    
    if (ret_mask)
-      memcpy(ret_mask, im_mask.data(), n_px * sizeof(uint8_t));
+      memcpy(ret_mask, im_mask.data, n_px * sizeof(uint16_t));
 
    int merge_regions = data->merge_regions;
    int iml = data->getImLoc(im);
@@ -362,7 +370,7 @@ int FitResults::getParameterImage(int im, int param, uint8_t ret_mask[], float i
 
                int j = 0;
                for (int i = 0; i<n_px; i++)
-                  if (im_mask[i] == rg || (merge_regions && im_mask[i] > rg))
+                  if (im_mask.at<uint16_t>(i) == rg || (merge_regions && im_mask.at<uint16_t>(i)))
                   {
                      model->getNonlinearOutputs(param_data + j*nl, buffer.begin());
                      image_data[i] = buffer[r_param];
@@ -377,7 +385,7 @@ int FitResults::getParameterImage(int im, int param, uint8_t ret_mask[], float i
                float p = buffer[r_param];
 
                for (int i = 0; i<n_px; i++)
-                  if (im_mask[i] == rg || (merge_regions && im_mask[i] > rg))
+                  if (im_mask.at<uint16_t>(i) || (merge_regions && im_mask.at<uint16_t>(i)))
                      image_data[i] = p;
 
             }
@@ -394,7 +402,7 @@ int FitResults::getParameterImage(int im, int param, uint8_t ret_mask[], float i
 
                int j = 0;
                for (int i = 0; i < n_px; i++)
-                  if (im_mask[i] == rg || (merge_regions && im_mask[i] > rg))
+                  if (im_mask.at<uint16_t>(i) == rg || (merge_regions && im_mask.at<uint16_t>(i) > rg))
                   {
                      model->getLinearOutputs(param_data + j * lmax, buffer.begin());
                      image_data[i] = buffer[r_param];
@@ -419,7 +427,7 @@ int FitResults::getParameterImage(int im, int param, uint8_t ret_mask[], float i
 
                int j = 0;
                for (int i = 0; i < n_px; i++)
-                  if (im_mask[i] == rg || (merge_regions && im_mask[i] > rg))
+                  if (im_mask.at<uint16_t>(i) == rg || (merge_regions && im_mask.at<uint16_t>(i) > rg))
                      image_data[i] = param_data[span*(j++)];
             }
          }

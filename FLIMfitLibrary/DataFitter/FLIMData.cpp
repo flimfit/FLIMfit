@@ -480,9 +480,12 @@ int FLIMData::getMaskedData(int im, int region, float_iterator masked_data, int_
    if (has_ratio)
       masked_ratio = aux_data++;
 
+   results->setMask(im,
+      transformer->getMask());
+
    mask = transformer->getMask();
 
-   float_iterator tr_data = transformer->getTransformedData();
+   auto tr_data = transformer->getTransformedData();
 //   auto& r_ss = transformer.getSteadyStateAnisotropy();
    
    cv::Mat acceptor = images[iml]->getAcceptor();
@@ -494,10 +497,10 @@ int FLIMData::getMaskedData(int im, int region, float_iterator masked_data, int_
    // Store masked values
    int idx = 0;
 
-   int n_px = (int) mask.size();
+   int n_px = (int) mask.total();
    for(int p=0; p<n_px; p++)
    {
-      if (region < 0 || mask[p] == region || (merge_regions && mask[p] > 0))
+      if (region < 0 || mask.at<uint16_t>(p) == region || (merge_regions && mask.at<uint16_t>(p) > 0))
       {
          masked_intensity[idx*n_aux] = intensity.at<float>(p);
    

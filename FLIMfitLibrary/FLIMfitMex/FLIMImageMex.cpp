@@ -83,8 +83,9 @@ void setMask(std::shared_ptr<FLIMImage> d, int nlhs, mxArray *plhs[], int nrhs, 
    AssertInputCondition(mxIsUint16(prhs[2]));
    
    int numel = mxGetNumberOfElements(prhs[2]);
-   mask_type* mask = reinterpret_cast<mask_type*>(mxGetData(prhs[2]));
-   d->setSegmentationMask(mask, numel);
+
+   cv::Mat mask = getCvMat(prhs[2]).clone();
+   d->setSegmentationMask(mask);
 }
 
 void setAcceptor(std::shared_ptr<FLIMImage> d, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])

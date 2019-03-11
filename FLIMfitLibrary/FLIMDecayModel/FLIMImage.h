@@ -39,13 +39,12 @@ public:
    
    void init();
 
-   void setSegmentationMask(const std::vector<mask_type>& mask_)
+   void setSegmentationMask(cv::Mat mask_)
    {
-      if (mask_.size() != acq->n_px)
+      if ((mask_.cols != acq->n_x) || (mask_.rows != acq->n_y))
          throw std::runtime_error("Mask was unexpected size");
 
-      mask.resize(acq->n_px);
-      std::copy_n(mask_.begin(), acq->n_px, mask.begin());
+      mask = mask_;
    }
 
    // Caller must ensure that size of mask_ is greater or equal to n_px
@@ -54,8 +53,8 @@ public:
       if (numel != acq->n_px)
          throw(std::runtime_error("Mask was unexpected size"));
 
-      mask.resize(acq->n_px);
-      std::copy_n(mask_, acq->n_px, mask.begin());
+      mask = cv::Mat(acq->n_y, acq->n_x, CV_16U);
+      std::copy_n(mask_, acq->n_px, (uint16_t*) mask.data);
    }
 
 
@@ -80,7 +79,7 @@ public:
    DataClass getDataClass() { return data_class; }
    cv::Mat getAcceptor() { return acceptor; }
    cv::Mat getRatio();
-   const std::vector<mask_type>& getSegmentationMask() { return mask; }
+   cv::Mat getSegmentationMask() { return mask; }
    std::shared_ptr<AcquisitionParameters> getAcquisitionParameters() const { return acq; }
    
 //   bool isPolarisationResolved() { return acq->polarisation_resolved; }
@@ -117,9 +116,9 @@ protected:
    std::shared_ptr<AcquisitionParameters> acq;
    DataClass data_class;
    std::vector<uint8_t> data;
-   std::vector<mask_type> mask;
    std::type_index stored_type;
    std::string name;
+   cv::Mat mask;
    cv::Mat intensity;
    cv::Mat acceptor;
    cv::Mat ratio;

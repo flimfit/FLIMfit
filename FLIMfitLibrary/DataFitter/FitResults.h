@@ -72,11 +72,12 @@ public:
    void getLinearParams(int image, int region, int pixel, std::vector<float>& params);
 
    void computeRegionStats(float confidence_factor);
-   int getParameterImage(int im, int param, uint8_t ret_mask[], float image_data[]);
+   int getParameterImage(int im, int param, uint16_t ret_mask[], float image_data[]);
 
    int getParamIndex(const std::string& param_name);
 
-   std::vector<mask_type>& getMask(int im) { return mask[im]; }
+   void setMask(int im, cv::Mat mask_) { mask[im] = mask_; }
+   cv::Mat getMask(int im) { return mask[im]; }
    
    int getNumX(int im);
    int getNumY(int im);
@@ -119,7 +120,7 @@ private:
    
    std::vector<int> ierr;
    std::vector<float> success;
-   std::vector<std::vector<mask_type>> mask;
+   std::vector<cv::Mat> mask;
 
 
    int calculate_errors;

@@ -201,9 +201,8 @@ public:
 
    void setImage(std::shared_ptr<FLIMImage> image_);
    void setTransformationSettings(DataTransformationSettings& transform_);
-   const std::vector<float>::iterator getTransformedData();
-
-   const std::vector<mask_type>& getMask() { return final_mask; }
+   std::vector<float>::const_iterator getTransformedData();
+   cv::Mat getMask();
    
    const std::vector<float>& getSteadyStateAnisotropy();
    
@@ -226,7 +225,7 @@ private:
    std::vector<float> tr_row_buf;
    std::vector<float> y_smoothed_buf;
    
-   std::vector<mask_type> final_mask;
+   cv::Mat final_mask;
    std::vector<float> transformed_data;
    std::vector<float> r_ss;
     
@@ -239,9 +238,9 @@ private:
 template <typename T>
 void DataTransformer::calculateMask()
 {
-   const std::vector<mask_type> seg_mask = image->getSegmentationMask();
+   cv::Mat seg_mask = image->getSegmentationMask();
    cv::Mat intensity = image->getIntensity();
-   bool has_seg_mask = seg_mask.size() > 0;
+   bool has_seg_mask = !seg_mask.empty();
 
    auto acq = image->getAcquisitionParameters();
 
@@ -249,18 +248,16 @@ void DataTransformer::calculateMask()
    int n_meas_full = acq->n_meas_full;
    
    T* data_ptr = image->getDataPointerForRead<T>();
-   final_mask.resize(n_px);
+   final_mask = cv::Mat(acq->n_y, acq->n_x, CV_16U, cv::Scalar(1));
    
    for(int p=0; p<n_px; p++)
    {
+      auto& mp = final_mask.at<uint16_t>(p);
+
       if (has_seg_mask)
       {
-         final_mask[p] = seg_mask[p];
-         if (final_mask[p] == 0) continue; // no need to look at the intensity etc
-      }
-      else
-      {
-         final_mask[p] = 1;
+         mp = seg_mask.at<uint16_t>(p);
+         if (mp == 0) continue; // no need to look at the intensity etc
       }
       
       T* ptr = data_ptr + p*n_meas_full;
@@ -269,14 +266,14 @@ void DataTransformer::calculateMask()
          for(int i=0; i<n_meas_full; i++)
             if (ptr[i] >= (T) transform.limit)
             {
-               final_mask[p] = 0;
+               mp = 0;
                break;
             }
       }
       
       float bg_val = transform.background->getAverageBackgroundPerGate(p) * n_meas_full;
       if ((intensity.at<float>(p)-bg_val) < transform.threshold)
-         final_mask[p] = 0;
+         mp = 0;
       
    }
    
