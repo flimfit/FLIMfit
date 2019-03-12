@@ -1,17 +1,3 @@
-##=========================================================================
-##  
-##  FLIMfit
-##  (c) 2013 Sean Warren
-##
-##
-##
-##=========================================================================
-
-project(FLIMfit)
-cmake_minimum_required(VERSION 3.9)
-
-find_package(OpenCV REQUIRED)
-
 
 # Include optimisation flags in Visual Studio
 #===================================================

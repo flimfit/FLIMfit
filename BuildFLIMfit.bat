@@ -4,7 +4,7 @@ SETLOCAL
 
 IF NOT DEFINED MATLAB_VER SET MATLAB_VER=R2018b
 
-SET TRIPLET=x64-windows-flimfit
+SET TRIPLET=x64-windows-static
 SET PATH=%PATH%;%VCPKG_ROOT%\installed\%TRIPLET%\bin;%VCPKG_ROOT%\installed\%TRIPLET%\debug\bin
 SET TOOLCHAIN_FILE=%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake
 
@@ -16,7 +16,11 @@ IF "%1"=="--clean" (
 )
 
 echo Generating CMake Project in: %PROJECT_DIR%
-cmake -G "Visual Studio 15 Win64" -H. -B%PROJECT_DIR% -DCMAKE_TOOLCHAIN_FILE="%TOOLCHAIN_FILE%" -DNO_CUDA=1 -DVCPKG_TARGET_TRIPLET=%TRIPLET%
+cmake -G "Visual Studio 15 Win64" -H. -B%PROJECT_DIR%^
+   -DCMAKE_TOOLCHAIN_FILE="%TOOLCHAIN_FILE%"^
+   -DNO_CUDA=1^
+   -DVCPKG_TARGET_TRIPLET=%TRIPLET%^
+   -DMSVC_CRT_LINKAGE=static
 if %ERRORLEVEL% GEQ 1 EXIT /B %ERRORLEVEL%
 
 echo Building 64bit Project in Release mode
