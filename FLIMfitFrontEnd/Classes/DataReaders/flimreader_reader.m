@@ -33,9 +33,12 @@ classdef flimreader_reader < base_data_reader
                 obj.settings = settings;
             end
             
-            FlimReader(r,'SetSpatialBinning',obj.settings.spatial_binning);
-            FlimReader(r,'SetTemporalDownsampling',obj.settings.temporal_downsampling);
-            
+            if isfield(obj.settings, 'spatial_binning')
+                FlimReader(r,'SetSpatialBinning',obj.settings.spatial_binning);
+            end
+            if isfield(obj.settings,'temporal_downsampling')
+                FlimReader(r,'SetTemporalDownsampling',obj.settings.temporal_downsampling);
+            end
             if isfield(obj.settings,'realignment')
                 FlimReader(r,'SetRealignmentParameters',obj.settings.realignment);
             end
@@ -64,9 +67,12 @@ classdef flimreader_reader < base_data_reader
             end
             
             r = obj.reader;
-            FlimReader(r,'SetSpatialBinning',obj.settings.spatial_binning);
-            FlimReader(r,'SetTemporalDownsampling',obj.settings.temporal_downsampling);
-
+            if isfield(obj.settings,'spatial_binning') 
+               FlimReader(r,'SetSpatialBinning',obj.settings.spatial_binning);
+            end
+            if isfield(obj.settings,'temporal_downsampling')
+                FlimReader(r,'SetTemporalDownsampling',obj.settings.temporal_downsampling);
+            end
             if isfield(obj.settings,'realignment')
                 FlimReader(r,'SetRealignmentParameters',obj.settings.realignment);
             end
