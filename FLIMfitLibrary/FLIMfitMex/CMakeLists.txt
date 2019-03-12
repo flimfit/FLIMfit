@@ -30,10 +30,6 @@
 cmake_minimum_required(VERSION 3.9)
 project(FLIMfitMex)
 
-include("cmake/DeployQt.cmake")
-
-set(CMAKE_AUTOMOC ON)
-
 # Find MATLAB
 set(MATLAB_FIND_DEBUG TRUE)
 find_package(Matlab COMPONENTS MEX_COMPILER MX_LIBRARY REQUIRED)
@@ -50,13 +46,5 @@ matlab_add_mex(NAME FLIMfitMex SRC MexUtils.h
 
 set(CMAKE_INSTALL_OPENMP_LIBRARIES TRUE)
 
-if (WIN32)
-   # For windows, use deployqt to marshall all dlls etc
-   deployqt(FLIMfitMex INCLUDE_MODULES ${QTLIBS})
-   add_custom_command(TARGET FLIMfitMex POST_BUILD COMMAND ${CMAKE_COMMAND} -E 
-      copy_directory $<TARGET_FILE_DIR:FLIMfitMex> ${MEX_OUT_DIR})
-else ()
-   # On mac, just copy the build file
-   add_custom_command(TARGET FLIMfitMex POST_BUILD COMMAND ${CMAKE_COMMAND} -E 
-      copy $<TARGET_FILE:FLIMfitMex> ${MEX_OUT_DIR})
-endif ()
+add_custom_command(TARGET FLIMfitMex POST_BUILD COMMAND ${CMAKE_COMMAND} -E 
+   copy $<TARGET_FILE:FLIMfitMex> ${MEX_OUT_DIR})

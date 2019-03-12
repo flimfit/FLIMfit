@@ -7,8 +7,6 @@ find_package(BOOST REQUIRED COMPONENTS system serialization)
 
 qt5_wrap_ui(UI_HEADERS FittingParametersWidget.ui)
 
-set(CMAKE_AUTOMOC ON)
-
 set(SOURCE
    FittingParametersWidget.cpp
    ParameterListModel.cpp

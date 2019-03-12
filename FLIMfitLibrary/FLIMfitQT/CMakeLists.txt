@@ -18,8 +18,6 @@ qt5_wrap_ui(UI_HEADERS DecayWidget.ui
 #qt5_add_resources(UI_RESOURCES PuppetMasterResources.qrc
 #                                qdarkstyle/style.qrc)
 
-set(CMAKE_AUTOMOC ON)
-
 set(SOURCE
    ColormappedImageWidget.cpp
    DecayWidget.cpp
