@@ -200,7 +200,7 @@ function[dims,reader_settings,meta] = get_image_dimensions(obj, file)
             dims.sizeXY = sizeXY;
             
             
-        case {'.pt3','.ptu','.bin2','.ffd','.ffh','.spc','.sdt'}
+        case {'.pt3','.ptu','.bin2','.ffd','.ffh','.spc','.sdt','.ics'}
             
             
             r = FlimReader(file);

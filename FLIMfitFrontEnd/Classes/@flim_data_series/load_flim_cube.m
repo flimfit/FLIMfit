@@ -292,10 +292,10 @@ function[success, target, intensity_normalisation] = load_flim_cube(obj, target,
             % close local bioformats reader if any to free up file for possible deletion
             if no_preset == false && ~isempty(r)
                 r.close();
-                end
+            end
            
 
-        case {'.pt3', '.ptu', '.bin2', '.ffd', '.ffh', '.spc', '.sdt'}
+        case {'.pt3', '.ptu', '.bin2', '.ffd', '.ffh', '.spc', '.sdt', '.ics'}
             
             r = FlimReader(file);
             FlimReader(r,'SetSpatialBinning',reader_settings.spatial_binning);
