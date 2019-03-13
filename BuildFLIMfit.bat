@@ -47,4 +47,4 @@ if %ERRORLEVEL% GEQ 1 EXIT /B %ERRORLEVEL%
 echo Compiling front end
 echo Please wait for MATLAB to load
 
-REM "C:\Program Files\MATLAB\%MATLAB_VER%\bin\matlab.exe" -nosplash -nodesktop -wait -log compile_output.txt -r "cd('%CD%\FLIMfitFrontEnd'); compile(true); quit();"
+"C:\Program Files\MATLAB\%MATLAB_VER%\bin\matlab.exe" -nosplash -nodesktop -wait -log compile_output.txt -r "cd('%CD%\FLIMfitFrontEnd'); compile(true); quit();"
