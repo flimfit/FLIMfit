@@ -1,9 +1,10 @@
 #pragma once
 
-#include "InstrumentResponseFunction.h"
-#include "DataTransformer.h"
 #include "AlignedVectors.h"
 #include <memory>
+#include "PixelIndex.h"
+
+class TransformedDataParameters;
 
 class AbstractConvolver
 {
@@ -15,6 +16,7 @@ public:
 
    virtual void addDecay(double fact, const std::vector<double>& channel_factors, double_iterator a) const = 0;
    virtual void addDerivative(double fact, const std::vector<double>& channel_factors, double_iterator b) const = 0;
+   virtual void addIrf(double fact, const std::vector<double>& channel_factors, double_iterator a) const = 0;
 
    double getRate() const { return rate; };
 
@@ -23,7 +25,6 @@ public:
 
 protected:
 
-   std::shared_ptr<InstrumentResponseFunction> irf;
    std::shared_ptr<TransformedDataParameters> dp;
    
    double rate = -1;

@@ -89,31 +89,11 @@ void PhasorCalculator::calculate()
 
 Phasor PhasorCalculator::getIRFPhasor(std::shared_ptr<InstrumentResponseFunction> irf, float omega, int channel)
 {
+   double t_irf = irf->calculateMean();
+
    Phasor phasor;
-
-   double t0 = irf->timebin_t0;
-   double dt = irf->timebin_width;
-   int n_t = irf->n_irf;
-
-
-   aligned_vector<double> buf(n_t * irf->getNumChan());
-   double_iterator data = irf->getIRF(0, 0, buf.begin()) + n_t * channel;
-
-   double g = 0;
-   double s = 0;
-   double sum = 0;
-
-   for (int i=0; i<n_t; i++)
-   {
-      double t = t0 + dt * i;
-
-      sum += data[i];
-      g += data[i] * cos(omega * t);
-      s += data[i] * sin(omega * t);
-   }
-
-   phasor.g = g / sum;
-   phasor.s = s / sum;
+   phasor.g = cos(omega * t_irf);
+   phasor.s = sin(omega * t_irf);
    phasor.I = 1;
 
    return phasor;

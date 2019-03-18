@@ -1,8 +1,10 @@
 #pragma once 
 
 #include "AbstractDecayGroup.h"
-#include "IRFConvolution.h"
-#include "AbstractConvolver.h"
+#include "AlignedVectors.h"
+#include "FittingParameter.h"
+
+class AbstractConvolver;
 
 template<typename it_alf, typename it_beta> // TODO: make this part of class
 int getBeta(const std::vector<std::shared_ptr<FittingParameter>>& beta_parameters, double fixed_beta, int n_beta_free, it_alf alf, it_beta beta, it_beta beta_buf, bool get_fixed = true)

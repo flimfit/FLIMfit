@@ -29,6 +29,7 @@
 
 #include "MultiExponentialDecayGroup.h"
 #include "ParameterConstraints.h"
+#include "FittingParameter.h"
 #include <boost/lexical_cast.hpp>
 
 MultiExponentialDecayGroup::MultiExponentialDecayGroup(int n_exponential, bool contributions_global, const QString& name) :

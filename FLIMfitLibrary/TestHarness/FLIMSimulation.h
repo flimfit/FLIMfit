@@ -10,6 +10,7 @@
 
 #include "AcquisitionParameters.h"
 #include "InstrumentResponseFunction.h"
+#include "GaussianIrf.h"
 
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/lagged_fibonacci.hpp>

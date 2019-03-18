@@ -38,6 +38,7 @@
 #include "FLIMImage.h"
 #include "PatternDecayGroup.h"
 #include "GaussianIrfConvolver.h"
+#include "InstrumentResponseFunction.h"
 
 extern int testFittingCoreDouble();
 extern void testDecayResampler();
@@ -67,7 +68,7 @@ void erf_vec_fast(const aligned_vector<ty>& x, aligned_vector<ty>& y)
    __m256d* xd = (__m256d*) x.data();
    __m256d* yd = (__m256d*) y.data();
 
-   int N4 = x.size() / 4;
+   int N4 = (int) (x.size() / 4);
    for (int i = 0; i < N4; i++)
       yd[i] = verf_pd(xd[i]);
 }
@@ -205,8 +206,7 @@ TEST_CASE("Convolution", "[model]")
    auto acq = std::make_shared<AcquisitionParameters>(sim);
 
    auto params = sim.getIrfParameters();
-   auto irf_gaussian = std::make_shared<InstrumentResponseFunction>();
-   irf_gaussian->setGaussianIRF({ params });
+   auto irf_gaussian = std::make_shared<GaussianIrf>(params);
 
    auto transform = DataTransformationSettings(irf_gaussian);
    auto dp = std::make_shared<TransformedDataParameters>(acq, transform);

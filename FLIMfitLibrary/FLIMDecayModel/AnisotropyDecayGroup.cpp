@@ -31,6 +31,11 @@
 #include <cmath>
 
 #include "AnisotropyDecayGroup.h"
+#include "FittingParameter.h"
+#include "AbstractConvolver.h"
+#include "InstrumentResponseFunction.h"
+#include "IRFConvolution.h"
+#include "AcquisitionParameters.h"
 
 #include <stdio.h>
 #include <boost/lexical_cast.hpp>
@@ -331,11 +336,10 @@ int AnisotropyDecayGroup::addRotationalCorrelationTimeDerivatives(double_iterato
    return col;
 }
 
-// TODO: call this
 void AnisotropyDecayGroup::setupChannelFactors()
 {
    auto& g_factor = dp->irf->getGFactor();
-   double angle = dp->irf->polarisation_angle;
+   double angle = 0;
    int n_chan = dp->n_chan;
 
    double para = (3.0 * cos(angle) - 1.0) / 6.0;

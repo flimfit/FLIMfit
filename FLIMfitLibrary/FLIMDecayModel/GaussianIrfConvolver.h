@@ -1,6 +1,7 @@
 #pragma once
 
 #include "AbstractConvolver.h"
+#include "GaussianIrf.h"
 
 #include <vector>
 #include <memory>
@@ -61,8 +62,10 @@ public:
 
    void addDecay(double fact, const std::vector<double>& channel_factors, double_iterator a) const;
    void addDerivative(double fact, const std::vector<double>& channel_factors, double_iterator b) const;
+   void addIrf(double fact, const std::vector<double>& channel_factors, double_iterator a) const;
 
 private:
 
+   std::shared_ptr<GaussianIrf> irf;
    std::vector<GaussianChannelConvolver> convolver;
 };

@@ -29,6 +29,8 @@
 
 
 #include "MeasuredIrfConvolver.h"
+#include "MeasuredIrf.h"
+#include "DataTransformer.h"
 #include <iostream>
 #include <cmath>
 
@@ -39,8 +41,12 @@
 const double MeasuredIrfConvolver::x_max = -log(std::numeric_limits<double>::epsilon());
 
 MeasuredIrfConvolver::MeasuredIrfConvolver(std::shared_ptr<TransformedDataParameters> dp) :
-   AbstractConvolver(dp), n_irf(irf->n_irf)
+   AbstractConvolver(dp)
 {
+
+   irf = std::dynamic_pointer_cast<MeasuredIrf>(dp->irf);
+   n_irf = irf->n_irf;
+
    irf_exp_factor.resize(n_chan, aligned_vector<double>(n_irf));
    cum_irf_exp_factor.resize(n_chan, aligned_vector<double>(n_irf));
    irf_exp_t_factor.resize(n_chan, aligned_vector<double>(n_irf));
@@ -72,7 +78,7 @@ void MeasuredIrfConvolver::compute(double rate_, PixelIndex irf_idx, double t0_s
 
 void MeasuredIrfConvolver::computeIRFFactors(double rate, PixelIndex irf_idx, double t0_shift)
 {
-   double_iterator lirf = irf->getIRF(irf_idx, t0_shift, irf_working.begin()); // TODO: add image irf shifting to GetIRF
+   double_iterator lirf = irf->getIrf(irf_idx, t0_shift, irf_working.begin()); // TODO: add image irf shifting to GetIRF
    double t0 = irf->getT0();
    double dt_irf = irf->timebin_width;
 
@@ -149,7 +155,7 @@ void MeasuredIrfConvolver::computeModelFactors(double rate)
 {
    double fact = 1;
 
-   if (irf->type == Reference)
+   if (irf->reference_reconvolution)
       fact *= irf->timebin_width;
 
    auto& t = dp->getTimepoints();
@@ -224,7 +230,7 @@ double MeasuredIrfConvolver::convolveDerivative(double t, int k, int i, double p
 
 void MeasuredIrfConvolver::addDecay(double fact, const std::vector<double>& channel_factors, double_iterator a) const
 {
-   fact *= (irf->type == Reference && ref_lifetime > 0) ? (1 / ref_lifetime - rate) : 1;
+   fact *= (irf->reference_reconvolution && ref_lifetime > 0) ? (1 / ref_lifetime - rate) : 1;
 
    double t_rep_rate = dp->t_rep * rate;
    double pulse_fact = (t_rep_rate > x_max) ? 0 : (exp(t_rep_rate) - 1);
@@ -241,8 +247,8 @@ void MeasuredIrfConvolver::addDecay(double fact, const std::vector<double>& chan
 
 void MeasuredIrfConvolver::addDerivative(double fact, const std::vector<double>& channel_factors, double_iterator b) const
 {
-   double ref_fact_a = (irf->type == Reference && ref_lifetime > 0) ? (1 / ref_lifetime - rate) : 1;
-   double ref_fact_b = (irf->type == Reference && ref_lifetime > 0) ? 1 : 0;
+   double ref_fact_a = (irf->reference_reconvolution && ref_lifetime > 0) ? (1 / ref_lifetime - rate) : 1;
+   double ref_fact_b = (irf->reference_reconvolution && ref_lifetime > 0) ? 1 : 0;
 
 
    double t_rep_rate = dp->t_rep * rate;
@@ -262,6 +268,32 @@ void MeasuredIrfConvolver::addDerivative(double fact, const std::vector<double>&
       }
    }
 }
+
+void MeasuredIrfConvolver::addIrf(double fact, const std::vector<double>& channel_factors, double_iterator a) const
+{
+   //typedef typename std::iterator_traits<it>::value_type T;
+   auto& t = dp->getTimepoints();
+
+   auto lirf = irf_working.begin();
+   double t_irf0 = irf->getT0();
+   double dt_irf = irf->timebin_width;
+   int n_irf = irf->n_irf;
+
+   int idx = 0;
+   int ii;
+   for (int k = 0; k < dp->n_chan; k++)
+   {
+      for (int i = 0; i < dp->n_t; i++)
+      {
+         ii = (int)floor((t[i] - t_irf0) / dt_irf);
+
+         if (ii >= 0 && ii < n_irf)
+            a[idx] += (lirf[k*n_irf + ii] * channel_factors[k] * fact);
+         idx++;
+      }
+   }
+}
+
 
 
 void MeasuredIrfConvolver::calculateIRFMax()

@@ -1,8 +1,10 @@
 
 #define USE_SIMD true
 
+#include "DataTransformer.h"
 #include "GaussianIrfConvolver.h"
 #include "FastErf.h"
+#include <algorithm>
 
 GaussianChannelConvolver::GaussianChannelConvolver(const GaussianParameters& params, const std::vector<double>& timepoints, double T_)
 {
@@ -197,6 +199,9 @@ void GaussianChannelConvolver::addDerivative(double fact, double_iterator derv) 
 GaussianIrfConvolver::GaussianIrfConvolver(std::shared_ptr<TransformedDataParameters> dp) :
    AbstractConvolver(dp)
 {
+
+   irf = std::dynamic_pointer_cast<GaussianIrf>(dp->irf);
+      
    auto& t = dp->getTimepoints();
 
    if (!dp->equally_spaced_gates)
@@ -233,6 +238,10 @@ void GaussianIrfConvolver::addDerivative(double fact, const std::vector<double>&
    auto& t = dp->getTimepoints();
    for (int k = 0; k < n_chan; k++)
       convolver[k].addDerivative(fact * channel_factors[k], derv + k*n_t);
+}
+
+void GaussianIrfConvolver::addIrf(double fact, const std::vector<double>& channel_factors, double_iterator derv) const
+{
 }
 
 

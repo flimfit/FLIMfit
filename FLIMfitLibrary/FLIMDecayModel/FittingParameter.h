@@ -29,6 +29,11 @@
 
 #pragma once
 
+#include <boost/serialization/type_info_implementation.hpp>
+#include <boost/serialization/shared_ptr.hpp>
+#include <boost/serialization/vector.hpp>
+#include <boost/serialization/base_object.hpp>
+
 #include <string>
 #include <vector>
 #include <functional>

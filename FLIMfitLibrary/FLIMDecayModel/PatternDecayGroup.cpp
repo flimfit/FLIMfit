@@ -1,5 +1,6 @@
 #include "PatternDecayGroup.h"
-
+#include "FittingParameter.h"
+#include "AbstractConvolver.h"
 
 PatternDecayGroup::PatternDecayGroup(const std::vector<Pattern> pattern, const QString& name) :
    AbstractDecayGroup(name),

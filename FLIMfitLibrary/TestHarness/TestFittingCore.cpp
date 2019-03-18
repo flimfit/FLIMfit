@@ -337,7 +337,7 @@ int testFittingCoreMultiChannel()
    int n_y = 50;
 
    // Create simulator
-   FLIMSimulationTCSPC sim(channel_factors[0].size());
+   FLIMSimulationTCSPC sim((int)channel_factors[0].size());
    sim.setImageSize(n_x, n_y);
 
    bool use_background = false;

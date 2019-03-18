@@ -34,7 +34,6 @@
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/base_object.hpp>
 
-#include "InstrumentResponseFunction.h"
 #include <vector>
 #include <memory>
 

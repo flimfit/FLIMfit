@@ -28,8 +28,24 @@
 //=========================================================================
 
 #include "AbstractDecayGroup.h"
+#include "FittingParameter.h"
+#include "DataTransformer.h"
 
 const char* FittingParameter::fitting_type_names[] = { "Fixed", "Fitted Locally", "Fitted Globally" };
+
+
+AbstractDecayGroup::AbstractDecayGroup(const QString& name, QObject* parent)
+   : QObject(parent)
+{
+   setObjectName(name);
+}
+
+AbstractDecayGroup::AbstractDecayGroup(const AbstractDecayGroup& obj)
+{
+   constrain_nonlinear_parameters = obj.constrain_nonlinear_parameters;
+   channel_factor_names = obj.channel_factor_names;
+   dp = obj.dp;
+};
 
 
 int AbstractDecayGroup::getInitialVariables(std::vector<double>::iterator variables)
@@ -120,7 +136,7 @@ int AbstractDecayGroup::setVariables(std::vector<double>::const_iterator variabl
          variables_changed |= (last_parameters[i] != variables[i]);
 
       if (!variables_changed)
-         return last_parameters.size();
+         return (int) last_parameters.size();
    }
 
    precompute_valid = false;

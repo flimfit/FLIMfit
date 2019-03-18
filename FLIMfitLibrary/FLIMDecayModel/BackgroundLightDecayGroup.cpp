@@ -28,6 +28,7 @@
 //=========================================================================
 
 #include "BackgroundLightDecayGroup.h"
+#include "FittingParameter.h"
 
 #include <stdio.h>
 #include <boost/lexical_cast.hpp>
@@ -73,6 +74,8 @@ void BackgroundLightDecayGroup::init_()
    }
 
    channel_factors.resize(dp->n_chan, 1);
+
+   convolver = AbstractConvolver::make(dp);
 }
 
 const std::vector<double>& BackgroundLightDecayGroup::getChannelFactors(int index)
@@ -111,7 +114,7 @@ int BackgroundLightDecayGroup::setVariables_(std::vector<double>::const_iterator
 
 void BackgroundLightDecayGroup::precompute_()
 {
-
+   convolver->compute(0.001, irf_idx, t0_shift, reference_lifetime);
 }
 
 void BackgroundLightDecayGroup::setupIncMatrix(std::vector<int>& inc, int& inc_row, int& inc_col)
@@ -185,7 +188,7 @@ int BackgroundLightDecayGroup::calculateDerivatives(double_iterator b, int bdim,
    int col = 0;
    
    col += addOffsetDerivatives(b + col*bdim, bdim, kap_derv[col]);
-   col += addScatterDerivatives(b + col*bdim, bdim, kap_derv[col]);
+   col += addScatterDerivatives(b + col*bdim, bdim, kap_derv[col]);  
    col += addTVBDerivatives(b + col*bdim, bdim, kap_derv[col]);
 
    return col;
@@ -195,11 +198,17 @@ int BackgroundLightDecayGroup::calculateDerivatives(double_iterator b, int bdim,
 void BackgroundLightDecayGroup::addConstantContribution(float_iterator a)
 {
    float offset_adj = parameters[0]->isFixed() ? (float) parameters[0]->getInitialValue() : 0.0f;
-   float scatter_adj = parameters[1]->isFixed() ? (float) parameters[0]->getInitialValue() : 0.0f;
-   float tvb_adj = parameters[2]->isFixed() ? (float) parameters[0]->getInitialValue() : 0.0f;
+   float scatter_adj = parameters[1]->isFixed() ? (float) parameters[1]->getInitialValue() : 0.0f;
+   float tvb_adj = parameters[2]->isFixed() ? (float) parameters[2]->getInitialValue() : 0.0f;
    
+   std::vector<double> scatter_buf(dp->n_meas);
+
    if (scatter_adj != 0.0f)
-      addIRF(irf_buf.begin(), 0, 0, a, channel_factors, scatter_adj); // TODO : irf_shift?
+   {
+      convolver->addIrf(scatter_adj, channel_factors, scatter_buf.begin());
+      for (int i = 0; i < dp->n_meas; i++)
+         a[i] += (float)(scatter_buf[i]);
+   }
 
    for (int i = 0; i < dp->n_meas; i++)
       a[i] += offset_adj;
@@ -237,9 +246,7 @@ int BackgroundLightDecayGroup::addScatterColumn(double_iterator a, int adim, dou
    // set constant phi value for scatterer
    if (parameters[1]->isFittedLocally())
    {
-      double scale_factor[2] = { 1.0, 0.0 };
-      addIRF(irf_buf.begin(), irf_idx, t0_shift, a, channel_factors);
-      
+      convolver->addIrf(1.0, channel_factors, a);
       return 1;
    }
 
@@ -269,8 +276,7 @@ int BackgroundLightDecayGroup::addGlobalBackgroundLightColumn(double_iterator a,
    // Add scatter
    if (parameters[1]->isFittedGlobally())
    {
-      double scale_factor[2] = { 1.0, 0.0 };
-      addIRF(irf_buf.begin(), irf_idx, t0_shift, a, channel_factors);
+      convolver->addIrf(1.0, channel_factors, a);
       for (int i = 0; i<dp->n_meas; i++)
          a[i] *= scatter;
    }
@@ -312,8 +318,7 @@ int BackgroundLightDecayGroup::addScatterDerivatives(double_iterator b, int bdim
    // Set derivatives for scatter 
    if (parameters[1]->isFittedGlobally())
    {
-      double scale_factor[2] = { 1.0, 0.0 };
-      addIRF(irf_buf.begin(), irf_idx, t0_shift, b, channel_factors);
+      convolver->addIrf(1.0, channel_factors, b);
 
       return 1;
    }

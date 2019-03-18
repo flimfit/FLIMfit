@@ -35,6 +35,7 @@
 #include <vector>
 #include <memory>
 
+class MeasuredIrf;
 
 class MeasuredIrfConvolver : public AbstractConvolver
 {
@@ -46,6 +47,7 @@ public:
 
    void addDecay(double fact, const std::vector<double>& channel_factors, double_iterator a) const;
    void addDerivative(double fact, const std::vector<double>& channel_factors, double_iterator b) const;
+   void addIrf(double fact, const std::vector<double>& channel_factors, double_iterator a) const;
 
 private:
 
@@ -68,6 +70,7 @@ private:
    static const double x_max;
 
 
+   std::shared_ptr<MeasuredIrf> irf;
    double ref_lifetime;
    int n_irf;
    std::vector<int> irf_max;

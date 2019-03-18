@@ -29,33 +29,19 @@
 
 #pragma once
 
+#include <boost/serialization/type_info_implementation.hpp>
+#include <boost/serialization/shared_ptr.hpp>
+#include <boost/serialization/vector.hpp>
+#include <boost/serialization/base_object.hpp>
 
 #include "AlignedVectors.h"
-#include <boost/serialization/base_object.hpp>
-#include <boost/serialization/version.hpp>
+#include "PixelIndex.h"
 #include <vector>
 #include <cmath>
 #include <opencv2/core/core.hpp>
 
-class PixelIndex
-{
-public:
-
-   PixelIndex(int pixel_ = 0, int image_ = 0)
-   {
-      pixel = pixel_;
-      image = image_;
-   }
-
-   PixelIndex& operator=(int pixel_)
-   {
-      pixel = pixel_;
-      return *this;
-   }
-
-   int image = 0;
-   int pixel = 0;
-};
+class AbstractConvolver;
+class TransformedDataParameters;
 
 class GaussianParameters
 {
@@ -77,89 +63,49 @@ public:
    }
 };
 
-enum IRFType
-{
-   Scatter,
-   Reference,
-   Gaussian
-};
-
 class InstrumentResponseFunction
 {
 public:
-   InstrumentResponseFunction();
 
-   template<typename it>
-   void setIRF(int n_t, int n_chan, double timebin_t0, double timebin_width, it irf);
-   void setGaussianIRF(const std::vector<GaussianParameters>& gaussian_params);
+   virtual std::shared_ptr<AbstractConvolver> getConvolver(std::shared_ptr <TransformedDataParameters> dp) { return nullptr; };
 
    void setFrameT0(const std::vector<double>& frame_t0);
    void setSpatialT0(const cv::Mat& spatial_t0);
 
-   bool isSpatiallyVariant();
-
-   bool arePositionsEquivalent(PixelIndex idx1, PixelIndex idx2);
-
-   void setImageIRF(int n_t, int n_chan, int n_irf_rep, double timebin_t0, double timebin_width, double_iterator irf); //TODO
-
-   void setReferenceReconvolution(int ref_reconvolution, double ref_lifetime_guess);
-
-   void setPolarisation(double g_factor, double polarisation_angle);
-   void setGFactor(const std::vector<double>& g_factor);
-
-   std::vector<double>& getGFactor() { return g_factor; };
-
-   double_iterator getIRF(PixelIndex irf_idx, double t0_shift, double_iterator storage);
-   double getT0Shift(PixelIndex irf_idx);
-
-   double getT0() { return timebin_t0; }
-
-   bool isGaussian() { return type == Gaussian; }
-
+   virtual bool isSpatiallyVariant();
+   virtual bool arePositionsEquivalent(PixelIndex idx1, PixelIndex idx2);
    int getNumChan();
 
-   double timebin_width;
-   double timebin_t0;
+   virtual double calculateMean() { return 0; };
 
-   int n_irf;
-   int n_irf_rep;
+   void setGFactor(const std::vector<double>& g_factor);
+   std::vector<double>& getGFactor() { return g_factor; };
 
-   double polarisation_angle = 0.0;
+   double getT0Shift(PixelIndex irf_idx);
 
-   std::vector<GaussianParameters> gaussian_params;
+   virtual bool usingReferenceReconvolution() { return false; }
 
-   IRFType type;
+protected:
 
-private:
-   template<typename it>
-   void copyIRF(int n_irf_raw, it irf);
+   std::vector<double> g_factor = { 1.0 };
+   int n_chan = 1;
 
-   void shiftIRF(double shift, double_iterator storage);
-   //double calculateGFactor();
-
-   void allocateBuffer(int n_irf_raw);
-
-   static double cubicInterpolate(double  y[], double mu);
-
-   aligned_vector<double> irf;
-
-   std::vector<double> g_factor;
-
-   bool full_image_irf;
-
-   bool spatially_varying_t0;
+   bool spatially_varying_t0 = false;
    cv::Mat spatial_t0;
 
-   bool frame_varying_t0;
+   bool frame_varying_t0 = false;
    std::vector<double> frame_t0;
-
-//   double t0;
-   int n_chan;
 
 
    template<class Archive>
    void serialize(Archive & ar, const unsigned int version)
    {
+      double timebin_width, timebin_t0, polarisation_angle;
+      int n_irf, n_chan, n_irf_rep;
+      int type;
+      aligned_vector<double> irf;
+      std::vector<GaussianParameters> gaussian_params;
+      
       ar & timebin_width;
       ar & timebin_t0;
       if (version < 5)
@@ -190,67 +136,10 @@ private:
       if (version >= 3)
          ar & polarisation_angle;
 
-      if (version >= 5)
-      {
-         ar & frame_varying_t0;
-         ar & frame_t0;
-         ar & spatially_varying_t0;
-         ar & spatial_t0;
-      }
    }
-   
+
    friend class boost::serialization::access;
-   
 };
 
-template<typename it>
-void InstrumentResponseFunction::setIRF(int n_t, int n_chan_, double timebin_t0_, double timebin_width_, it irf)
-{
-   n_chan = n_chan_;
-   n_irf_rep = 1;
-   full_image_irf = false;
-   spatially_varying_t0 = false;
-   frame_varying_t0 = false;
-
-   timebin_t0 = timebin_t0_;
-   timebin_width = timebin_width_;
-
-   copyIRF(n_t, irf);
-
-   // Check normalisation of IRF
-   for (int i = 0; i < n_chan; i++)
-   {
-      double sum = 0;
-      for (int j = 0; j < n_t; j++)
-         sum += irf[n_t * i + j];
-      if (std::fabs(sum - 1.0) > 0.1)
-         throw std::runtime_error("IRF is not correctly normalised");
-   }
-
-   g_factor.assign(n_chan, 1.0);
-
-   //calculateGFactor();
-}
-
-template<typename it>
-void InstrumentResponseFunction::copyIRF(int n_irf_raw, it irf_)
-{
-   // Copy IRF, padding to ensure we have an even number of points so we can 
-   // use SSE primatives in convolution
-   //------------------------------
-   allocateBuffer(n_irf_raw);
-
-   for (int j = 0; j<n_irf_rep; j++)
-   {
-      int i;
-      for (i = 0; i<n_irf_raw; i++)
-         for (int k = 0; k<n_chan; k++)
-            irf[(j*n_chan + k)*n_irf + i] = irf_[(j*n_chan + k)*n_irf_raw + i];
-      for (; i<n_irf; i++)
-         for (int k = 0; k<n_chan; k++)
-            irf[(j*n_chan + k)*n_irf + i] = 0;
-   }
-
-}
-
-BOOST_CLASS_VERSION(InstrumentResponseFunction, 5)
+BOOST_CLASS_VERSION(InstrumentResponseFunction, 6)
+BOOST_CLASS_TRACKING(InstrumentResponseFunction, track_always)

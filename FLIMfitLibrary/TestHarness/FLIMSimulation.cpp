@@ -8,6 +8,7 @@
 
 #include "FLIMSimulation.h"
 #include "FlagDefinitions.h"
+#include "MeasuredIrf.h"
 
 #include <boost/random/binomial_distribution.hpp>
 
@@ -41,20 +42,16 @@ std::shared_ptr<InstrumentResponseFunction> FLIMSimulation::GenerateIRF(int N)
       for (int i = 0; i < n_t_full; i++)
          irf_data[c*n_t_full + i] = irf_data[i];
 
-   auto irf = std::make_shared<InstrumentResponseFunction>();
-   irf->setIRF(n_t_full, n_chan, 0.0, dt, irf_data.begin());
+   auto irf = std::make_shared<MeasuredIrf>();
+   irf->setIrf(n_t_full, n_chan, 0.0, dt, irf_data.begin());
 
    return irf;
 }
 
 std::shared_ptr<InstrumentResponseFunction> FLIMSimulation::GetGaussianIRF()
 {
-   auto irf_ = std::make_shared<InstrumentResponseFunction>();
-
    std::vector<GaussianParameters> irf_params(n_chan, irf);
-   irf_->setGaussianIRF(irf_params);
-
-   return irf_;
+   return std::make_shared<GaussianIrf>(irf_params);
 }
 
 

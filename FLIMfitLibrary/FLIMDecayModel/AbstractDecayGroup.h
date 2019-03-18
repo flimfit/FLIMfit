@@ -35,14 +35,24 @@
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/base_object.hpp>
 
+#include <vector>
 #include <memory>
 #include <QObject>
 
+#include "PixelIndex.h"
+#include "AlignedVectors.h"
+#include "DataTransformer.h"
+
+/*
 #include "MeasuredIrfConvolver.h"
 #include "InstrumentResponseFunction.h"
 #include "DataTransformer.h"
 #include "IRFConvolution.h"
 #include "FittingParameter.h"
+*/
+
+class FittingParameter;
+class TransformedDataParmeters;
 
 #define INC_ENTRIES     256
 #define MAX_VARIABLES   32
@@ -55,18 +65,8 @@ class AbstractDecayGroup : public QObject
 
 public:
 
-   AbstractDecayGroup(const QString& name = "", QObject* parent = 0)
-      : QObject(parent)
-   {
-      setObjectName(name);
-   }
-
-   AbstractDecayGroup(const AbstractDecayGroup& obj)
-   {
-      constrain_nonlinear_parameters = obj.constrain_nonlinear_parameters;
-      channel_factor_names = obj.channel_factor_names;
-      dp = obj.dp;
-   };
+   AbstractDecayGroup(const QString& name = "", QObject* parent = 0);
+   AbstractDecayGroup(const AbstractDecayGroup& obj);
 
    virtual AbstractDecayGroup* clone() const = 0;
 
@@ -105,9 +105,6 @@ public:
    void setIRFPosition(PixelIndex irf_idx_);
    void setT0Shift(double t0_shift_);
    void setReferenceLifetime(double reference_lifetime_);
-
-   template <typename it>
-   void addIRF(double_iterator irf_buf, PixelIndex irf_idx, double t0_shift, it a, const std::vector<double>& channel_factor, double factor = 1);
 
 signals:
    void parametersUpdated();
@@ -183,33 +180,5 @@ void AbstractDecayGroup::save(Archive & ar, const unsigned int version) const
 };
 
 
-
 BOOST_CLASS_TRACKING(AbstractDecayGroup, track_always)
 BOOST_CLASS_VERSION(AbstractDecayGroup, 2)
-
-template <typename it>
-void AbstractDecayGroup::addIRF(double_iterator irf_buf, PixelIndex irf_idx, double t0_shift, it a, const std::vector<double>& channel_factor, double factor)
-{
-   typedef typename std::iterator_traits<it>::value_type T;
-   std::shared_ptr<InstrumentResponseFunction> irf = dp->irf;
-   auto& t = dp->getTimepoints();
-   
-   double_iterator lirf = irf->getIRF(irf_idx, t0_shift, irf_buf);
-   double t_irf0 = irf->getT0();
-   double dt_irf = irf->timebin_width;
-   int n_irf = irf->n_irf;
-
-   int idx = 0;
-   int ii;
-   for (int k = 0; k<dp->n_chan; k++)
-   {
-      for (int i = 0; i<dp->n_t; i++)
-      {
-         ii = (int)floor((t[i] - t_irf0) / dt_irf);
-
-         if (ii >= 0 && ii<n_irf)
-            a[idx] += (T)(lirf[k*n_irf + ii] * channel_factor[k] * factor);
-         idx++;
-      }
-   }
-}

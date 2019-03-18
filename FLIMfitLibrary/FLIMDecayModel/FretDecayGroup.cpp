@@ -29,7 +29,9 @@
 
 #include "FretDecayGroup.h"
 #include "ParameterConstraints.h"
-
+#include "FittingParameter.h"
+#include "AbstractConvolver.h"
+#include "IRFConvolution.h"
 
 #include <stdio.h>
 #include <boost/lexical_cast.hpp>

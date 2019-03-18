@@ -27,8 +27,12 @@
 //
 //=========================================================================
 
+#include "FittingParameter.h"
 #include "MultiExponentialDecayGroupPrivate.h"
 #include "ParameterConstraints.h"
+#include "AbstractConvolver.h"
+#include "IRFConvolution.h"
+
 #include <boost/lexical_cast.hpp>
 using namespace std;
 
@@ -383,18 +387,19 @@ int MultiExponentialDecayGroupPrivate::addDecayGroup(const std::vector<std::shar
 {
    int col = 0;
     
-   int using_reference_reconvolution = dp->irf->type == Reference; // TODO: Clean this up
+   bool using_reference_reconvolution = dp->irf->usingReferenceReconvolution();
 
    if (using_reference_reconvolution && contributions_global)
-      addIRF(irf_buf.begin(), irf_idx, t0_shift, a, channel_factors);
+      buffers[0]->addIrf(factor, channel_factors, a);
 
    for (int j = 0; j < buffers.size(); j++)
    {
+      double c_factor = contributions_global ? beta[j] : 1;
+
       // If we're doing delta-function reconvolution add contribution from reference
       if (using_reference_reconvolution && !contributions_global)
-         addIRF(irf_buf.begin(), irf_idx, t0_shift, a + col*adim, channel_factors);
+         buffers[j]->addIrf(factor * c_factor, channel_factors, a + col * adim);
 
-      double c_factor = contributions_global ? beta[j] : 1;
       buffers[j]->addDecay(factor * c_factor, channel_factors, a + col*adim);
 
       if (!contributions_global)

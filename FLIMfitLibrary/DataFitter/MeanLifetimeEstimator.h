@@ -44,12 +44,10 @@ public:
 
 private:
 
-   int DetermineStartPosition(int idx);
-
    double EstimateMeanLifetimeTCSPC(const std::vector<float>& decay);
    double EstimateMeanLifetimeGated(const std::vector<float>& decay);
 
-   int start;
+   double t_irf;
 
    std::shared_ptr<TransformedDataParameters> dp;
 };

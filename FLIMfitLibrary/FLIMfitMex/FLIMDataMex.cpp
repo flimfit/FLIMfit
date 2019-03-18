@@ -31,10 +31,12 @@
 
 #include "FitStatus.h"
 #include "FLIMData.h"
+#include "GaussianIrf.h"
+#include "MeasuredIrf.h"
+#include "MexUtils.h"
 
 #include <memory>
 #include <unordered_set>
-#include "MexUtils.h"
 
 
 std::unordered_set<std::shared_ptr<FLIMData>> data_ptr;
@@ -83,8 +85,7 @@ std::shared_ptr<InstrumentResponseFunction> getAnalyticalIRF(const mxArray* irf_
          getValueFromStruct(guassian_struct, i, "sigma"),
          getValueFromStruct(guassian_struct, i, "offset", 0)));
 
-   auto irf = std::make_shared<InstrumentResponseFunction>();
-   irf->setGaussianIRF(params);
+   auto irf = std::make_shared<GaussianIrf>(params);
 
    getIRFCommon(irf_struct, irf);
 
@@ -95,7 +96,7 @@ std::shared_ptr<InstrumentResponseFunction> getIRF(const mxArray* irf_struct)
 {
    AssertInputCondition(mxIsStruct(irf_struct));
 
-   auto irf = std::make_shared<InstrumentResponseFunction>();
+   auto irf = std::make_shared<MeasuredIrf>();
 
    double timebin_t0 = getValueFromStruct(irf_struct, 0, "timebin_t0");
    double timebin_width = getValueFromStruct(irf_struct, 0, "timebin_width");
@@ -114,7 +115,7 @@ std::shared_ptr<InstrumentResponseFunction> getIRF(const mxArray* irf_struct)
    }
    else
    {
-      irf->setIRF(n_t, n_chan, timebin_t0, timebin_width, irf_data);
+      irf->setIrf(n_t, n_chan, timebin_t0, timebin_width, irf_data);
    }
 
    bool ref_reconvolution = (bool)getValueFromStruct(irf_struct, 0, "ref_reconvolution", false);

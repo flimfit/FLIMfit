@@ -1,10 +1,8 @@
 #include "AbstractConvolver.h"
-#include "MeasuredIrfConvolver.h"
-#include "GaussianIrfConvolver.h"
+#include "DataTransformer.h"
 
 AbstractConvolver::AbstractConvolver(std::shared_ptr<TransformedDataParameters> dp) :
    dp(dp),
-   irf(dp->irf),
    n_chan(dp->n_chan),
    n_t(dp->n_t)
 {
@@ -12,10 +10,7 @@ AbstractConvolver::AbstractConvolver(std::shared_ptr<TransformedDataParameters> 
 
 std::shared_ptr<AbstractConvolver> AbstractConvolver::make(std::shared_ptr<TransformedDataParameters> dp)
 {
-   if (dp->irf->isGaussian())
-      return std::make_shared<GaussianIrfConvolver>(dp);
-   else
-      return std::make_shared<MeasuredIrfConvolver>(dp);
+   return dp->irf->getConvolver(dp);
 }
 
 std::vector<std::shared_ptr<AbstractConvolver>> AbstractConvolver::make_vector(size_t n, std::shared_ptr<TransformedDataParameters> dp)

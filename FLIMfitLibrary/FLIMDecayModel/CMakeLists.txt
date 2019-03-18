@@ -40,6 +40,8 @@ find_package(LibLZMA REQUIRED)
 set(SOURCE
    IRFConvolution.cpp
    InstrumentResponseFunction.cpp
+   MeasuredIrf.cpp
+   GaussianIrf.cpp
    AbstractDecayGroup.cpp
    MultiExponentialDecayGroupPrivate.cpp
    MultiExponentialDecayGroup.cpp
@@ -69,6 +71,8 @@ set(HEADERS
    PatternDecayGroup.h
    IRFConvolution.h
    InstrumentResponseFunction.h
+   MeasuredIrf.h
+   GaussianIrf.h
    AcquisitionParameters.h
    DecayModel.h
    FittingParameter.h

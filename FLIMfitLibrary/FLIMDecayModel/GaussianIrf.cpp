@@ -27,57 +27,35 @@
 //
 //=========================================================================
 
-#include "InstrumentResponseFunction.h"
+#include "GaussianIrf.h"
+#include "GaussianIrfConvolver.h"
 
 #include <algorithm>
 #include <cmath>
 #include <cassert>
 
-void InstrumentResponseFunction::setGFactor(const std::vector<double>& g_factor_)
+std::shared_ptr<AbstractConvolver> GaussianIrf::getConvolver(std::shared_ptr<TransformedDataParameters> dp)
 {
-   if (g_factor_.size() != n_chan)
-      throw std::runtime_error("Unexpected number of g_factor channels");
-
-   g_factor = g_factor_;
+   return std::make_shared<GaussianIrfConvolver>(dp);
 }
 
-int InstrumentResponseFunction::getNumChan()
+GaussianIrf::GaussianIrf(const std::vector<GaussianParameters>& gaussian_params_)
 {
-   return n_chan;
+   gaussian_params = gaussian_params_;
+
+   n_chan = (int)gaussian_params.size();
+   g_factor.resize(n_chan);
 }
 
-bool InstrumentResponseFunction::isSpatiallyVariant()
+GaussianIrf::GaussianIrf(const GaussianParameters& gaussian_params_)
 {
-   return spatially_varying_t0 || frame_varying_t0;
+   gaussian_params.push_back(gaussian_params_);
+
+   n_chan = 1;
+   g_factor.resize(n_chan);
 }
 
-void InstrumentResponseFunction::setFrameT0(const std::vector<double>& frame_t0_)
+double GaussianIrf::calculateMean()
 {
-   frame_varying_t0 = true;
-   frame_t0 = frame_t0_;
-}
-
-void InstrumentResponseFunction::setSpatialT0(const cv::Mat& spatial_t0_)
-{
-   spatially_varying_t0 = true;
-   spatial_t0 = spatial_t0_;
-}
-
-bool InstrumentResponseFunction::arePositionsEquivalent(PixelIndex idx1, PixelIndex idx2)
-{
-   return ((!frame_varying_t0) || (idx1.image == idx2.image)) &&
-          ((!spatially_varying_t0) || (idx1.pixel == idx2.pixel));
-}
-
-double InstrumentResponseFunction::getT0Shift(PixelIndex irf_idx)
-{
-   double t0_shift = 0;
-
-   if (spatially_varying_t0)
-      t0_shift += spatial_t0.at<double>(irf_idx.pixel);
-
-   if (frame_varying_t0)
-      t0_shift += frame_t0[irf_idx.image];
-
-   return t0_shift;
+   return gaussian_params[0].mu;
 }

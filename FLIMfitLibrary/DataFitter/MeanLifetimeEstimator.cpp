@@ -7,102 +7,7 @@ using namespace std;
 MeanLifetimeEstimator::MeanLifetimeEstimator(std::shared_ptr<TransformedDataParameters> dp) :
    dp(dp)
 {
-   DetermineStartPosition(0);
-}
-
-
-/*
-   Determine which data should be used when we're calculating the average lifetime for an initial guess.
-   Since we won't take the IRF into account we need to only use data after the gate is mostly closed.
-*/
-int MeanLifetimeEstimator::DetermineStartPosition(int idx)
-{
-   auto irf = dp->irf;
-   int n_meas = dp->n_meas;
-   int n_t = dp->n_t;
-   int n_irf = irf->n_irf;
-
-   auto& t = dp->getTimepoints();
-
-   if (irf->type == Gaussian)
-   {
-      start = 0;
-      double start_time = irf->gaussian_params[0].mu;
-      for (int j = 0; j < n_t; j++)
-         if (t[j] > start_time)
-         {
-            start = j;
-            break;
-         }
-      return start;
-   }
-
-
-   aligned_vector<double> storage(n_meas);
-   double_iterator lirf = irf->getIRF(idx, 0, storage.begin());
-   double t_irf0 = irf->getT0();
-   double dt_irf = irf->timebin_width;
-   int j_last = 0;
-   start = 0;
-
-   //===================================================
-   // If we have a scatter IRF use data after cumulative sum of IRF is
-   // 95% of total sum (so we ignore any potential tail etc)
-   //===================================================
-   if (irf->type == Reference)
-   {
-      // Determine 95% of IRF
-      double irf_95 = 0;
-      for (int i = 0; i<n_irf; i++)
-         irf_95 += lirf[i];
-      irf_95 *= 0.95;
-
-      // Cycle through IRF to find time at which cumulative IRF is 95% of sum.
-      // Once we get there, find the time gate in the data immediately after this time
-      double c = 0;
-      for (int i = 0; i<n_irf; i++)
-      {
-         c += lirf[i];
-         if (c >= irf_95)
-         {
-            for (int j = j_last; j<n_t; j++)
-               if (t[j] > t_irf0 + i*dt_irf)
-               {
-                  start = j;
-                  j_last = j;
-                  break;
-               }
-            break;
-         }
-      }
-   }
-
-   //===================================================
-   // If we have reference IRF, use data after peak of reference which should roughly
-   // correspond to end of gate
-   //===================================================
-   else if (irf->type == Scatter)
-   {
-      // Cycle through IRF, if IRF is larger then previously seen find the find the 
-      // time gate in the data immediately after this time. Repeat until end of IRF.
-      double c = 0;
-      for (int i = 0; i<n_irf; i++)
-      {
-         if (lirf[i] > c)
-         {
-            c = lirf[i];
-            for (int j = j_last; j<n_t; j++)
-               if (t[j] > t_irf0 + i*dt_irf)
-               {
-                  start = j;
-                  j_last = j;
-                  break;
-               }
-         }
-      }
-   }
-
-   return start;
+   t_irf = dp->irf->calculateMean();
 }
 
 
@@ -127,10 +32,10 @@ double MeanLifetimeEstimator::EstimateMeanLifetimeTCSPC(const std::vector<float>
    std::shared_ptr<InstrumentResponseFunction> irf = dp->irf;
    auto& t = dp->getTimepoints();
 
-   for (int i = start; i<n_t; i++)
+   for (int i = 0; i<n_t; i++)
    {
       double c = decay[i]; //TODO: -adjust_buf[i];
-      t_mean += c * (t[i] - t[start]);
+      t_mean += c * t[i];
       n += c;
    }
 
@@ -149,7 +54,7 @@ double MeanLifetimeEstimator::EstimateMeanLifetimeTCSPC(const std::vector<float>
    t_mean = t_mean / n;
 
    // Apply correction for measurement window
-   double T = t[n_t - 1] - t[start];
+   double T = t[n_t - 1];
 
    // Older iterative correction; tends to same value more slowly
    //tau = t_mean;
@@ -168,7 +73,7 @@ double MeanLifetimeEstimator::EstimateMeanLifetimeTCSPC(const std::vector<float>
    }
    tau *= T;
 
-   return tau;
+   return tau - t_irf;
 }
 
 /*
@@ -181,18 +86,16 @@ double MeanLifetimeEstimator::EstimateMeanLifetimeGated(const std::vector<float>
    double sum_tlnI = 0;
    double sum_lnI = 0;
    double dt;
-   int    N;
 
    double log_di;
    
    int n_t = dp->n_t;
-   N = n_t - start;
    auto& t = dp->getTimepoints();
    auto& t_int = dp->getGateIntegrationTimes();
 
-   for (int i = start; i<n_t; i++)
+   for (int i = 0; i<n_t; i++)
    {
-      dt = t[i] - t[start];
+      dt = t[i] - t_irf;
 
       sum_t += dt;
       sum_t2 += dt * dt;
@@ -207,8 +110,8 @@ double MeanLifetimeEstimator::EstimateMeanLifetimeGated(const std::vector<float>
 
    }
 
-   double tau = -(N * sum_t2 - sum_t * sum_t) / 
-                 (N * sum_tlnI - sum_t * sum_lnI);
+   double tau = -(n_t * sum_t2 - sum_t * sum_t) / 
+                 (n_t * sum_tlnI - sum_t * sum_lnI);
 
-   return tau;
+   return tau - t_irf;
 }

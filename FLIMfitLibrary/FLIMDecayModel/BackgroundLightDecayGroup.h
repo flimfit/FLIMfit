@@ -1,5 +1,6 @@
 #pragma once
 #include "AbstractDecayGroup.h"
+#include "AbstractConvolver.h"
 
 class BackgroundLightDecayGroup : public AbstractDecayGroup
 {
@@ -51,6 +52,7 @@ protected:
    double offset = 0;
    double scatter = 0;
    double tvb = 0;
+   std::shared_ptr<AbstractConvolver> convolver;
 
    template<class Archive>
    void serialize(Archive & ar, const unsigned int version);

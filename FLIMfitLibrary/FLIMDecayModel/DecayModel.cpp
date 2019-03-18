@@ -196,7 +196,7 @@ int DecayModel::getNumNonlinearVariables()
 
 double DecayModel::getCurrentReferenceLifetime(std::vector<double>::const_iterator& param_values, int& idx)
 {
-   if (dp->irf->type != Reference)
+   if (!dp->irf->usingReferenceReconvolution())
       return 0;
 
    return reference_parameter->getValue<double>(param_values, idx);
