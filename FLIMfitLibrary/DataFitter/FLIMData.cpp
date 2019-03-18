@@ -421,7 +421,7 @@ int FLIMData::getRegionData(int thread, int group, int region, std::shared_ptr<R
    int s_expected;
    
    float_iterator masked_data;
-   int_iterator irf_idx;
+   pixel_index_iterator irf_idx;
    
    region_data->clear();
 
@@ -458,7 +458,7 @@ int FLIMData::getRegionData(int thread, int group, int region, std::shared_ptr<R
 }
 
 
-int FLIMData::getMaskedData(int im, int region, float_iterator masked_data, int_iterator irf_idx, std::shared_ptr<FitResults> results)
+int FLIMData::getMaskedData(int im, int region, float_iterator masked_data, pixel_index_iterator irf_idx, std::shared_ptr<FitResults> results)
 {
    int iml = use_im[im];
    auto transformer = getPooledTransformer(iml);
@@ -517,7 +517,8 @@ int FLIMData::getMaskedData(int im, int region, float_iterator masked_data, int_
             masked_data[idx*n_meas+i] = tr_data[p*n_meas+i];
 
 
-         irf_idx[idx] = p;
+         irf_idx[idx].pixel = p;
+         irf_idx[idx].image = im;
          idx++;
       }
    }

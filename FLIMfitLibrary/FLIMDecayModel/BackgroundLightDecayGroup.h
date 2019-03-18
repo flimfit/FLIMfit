@@ -10,8 +10,6 @@ public:
    BackgroundLightDecayGroup();
    BackgroundLightDecayGroup(const BackgroundLightDecayGroup& obj);
 
-   int setVariables(std::vector<double>::const_iterator variables);
-   void precompute();
    int calculateModel(double_iterator a, int adim, double& kap);
    int calculateDerivatives(double_iterator b, int bdim, double_iterator& kap_derv);
    void addConstantContribution(float_iterator a);
@@ -30,10 +28,13 @@ public:
 
 protected:
 
-   void init();
-
+   
    const std::array<std::string, 3> names = { "offset", "scatter", "tvb" };
    void setupParameters();
+   
+   void init_();
+   void precompute_();
+   int setVariables_(std::vector<double>::const_iterator variables);
 
    int addOffsetColumn(double_iterator a, int adim, double& kap);
    int addScatterColumn(double_iterator a, int adim, double& kap);

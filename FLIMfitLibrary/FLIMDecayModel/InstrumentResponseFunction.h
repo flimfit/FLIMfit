@@ -35,6 +35,27 @@
 #include <boost/serialization/version.hpp>
 #include <vector>
 #include <cmath>
+#include <opencv2/core/core.hpp>
+
+class PixelIndex
+{
+public:
+
+   PixelIndex(int pixel_ = 0, int image_ = 0)
+   {
+      pixel = pixel_;
+      image = image_;
+   }
+
+   PixelIndex& operator=(int pixel_)
+   {
+      pixel = pixel_;
+      return *this;
+   }
+
+   int image = 0;
+   int pixel = 0;
+};
 
 class GaussianParameters
 {
@@ -70,11 +91,17 @@ public:
 
    template<typename it>
    void setIRF(int n_t, int n_chan, double timebin_t0, double timebin_width, it irf);
-
-   void setImageIRF(int n_t, int n_chan, int n_irf_rep, double timebin_t0, double timebin_width, double_iterator irf);
    void setGaussianIRF(const std::vector<GaussianParameters>& gaussian_params);
 
-   void setIRFShiftMap(double* t0);
+   void setFrameT0(const std::vector<double>& frame_t0);
+   void setSpatialT0(const cv::Mat& spatial_t0);
+
+   bool isSpatiallyVariant();
+
+   bool arePositionsEquivalent(PixelIndex idx1, PixelIndex idx2);
+
+   void setImageIRF(int n_t, int n_chan, int n_irf_rep, double timebin_t0, double timebin_width, double_iterator irf); //TODO
+
    void setReferenceReconvolution(int ref_reconvolution, double ref_lifetime_guess);
 
    void setPolarisation(double g_factor, double polarisation_angle);
@@ -82,8 +109,10 @@ public:
 
    std::vector<double>& getGFactor() { return g_factor; };
 
-   double_iterator getIRF(int irf_idx, double t0_shift, double_iterator storage);
-   double getT0();
+   double_iterator getIRF(PixelIndex irf_idx, double t0_shift, double_iterator storage);
+   double getT0Shift(PixelIndex irf_idx);
+
+   double getT0() { return timebin_t0; }
 
    bool isGaussian() { return type == Gaussian; }
 
@@ -91,8 +120,6 @@ public:
 
    double timebin_width;
    double timebin_t0;
-
-   bool variable_irf;
 
    int n_irf;
    int n_irf_rep;
@@ -118,10 +145,15 @@ private:
 
    std::vector<double> g_factor;
 
-   int     image_irf;
-   double* t0_image;
+   bool full_image_irf;
 
-   double t0;
+   bool spatially_varying_t0;
+   cv::Mat spatial_t0;
+
+   bool frame_varying_t0;
+   std::vector<double> frame_t0;
+
+//   double t0;
    int n_chan;
 
 
@@ -130,7 +162,11 @@ private:
    {
       ar & timebin_width;
       ar & timebin_t0;
-      ar & variable_irf;
+      if (version < 5)
+      {
+         bool variable_irf;
+         ar & variable_irf;
+      }
       ar & n_irf;
       ar & n_chan;
       ar & n_irf_rep;
@@ -153,6 +189,14 @@ private:
          ar & gaussian_params;
       if (version >= 3)
          ar & polarisation_angle;
+
+      if (version >= 5)
+      {
+         ar & frame_varying_t0;
+         ar & frame_t0;
+         ar & spatially_varying_t0;
+         ar & spatial_t0;
+      }
    }
    
    friend class boost::serialization::access;
@@ -164,9 +208,9 @@ void InstrumentResponseFunction::setIRF(int n_t, int n_chan_, double timebin_t0_
 {
    n_chan = n_chan_;
    n_irf_rep = 1;
-   image_irf = false;
-   t0_image = NULL;
-   variable_irf = false;
+   full_image_irf = false;
+   spatially_varying_t0 = false;
+   frame_varying_t0 = false;
 
    timebin_t0 = timebin_t0_;
    timebin_width = timebin_width_;
@@ -209,4 +253,4 @@ void InstrumentResponseFunction::copyIRF(int n_irf_raw, it irf_)
 
 }
 
-BOOST_CLASS_VERSION(InstrumentResponseFunction, 4)
+BOOST_CLASS_VERSION(InstrumentResponseFunction, 5)

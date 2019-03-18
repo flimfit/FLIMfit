@@ -43,8 +43,7 @@ int AbstractDecayGroup::getInitialVariables(std::vector<double>::iterator variab
          idx++;
       }
    }
-
-    return idx;
+   return idx;
 }
 
 
@@ -102,4 +101,59 @@ void AbstractDecayGroup::normaliseChannelFactors(const std::vector<double>& chan
 
    for (int i = 0; i < channel_factors.size(); i++)
       norm_channel_factors[i] = channel_factors[i] / factor_sum;
+}
+
+void AbstractDecayGroup::init()
+{
+   last_parameters.resize(0);
+   precompute_valid = false;
+
+   init_();
+}
+
+int AbstractDecayGroup::setVariables(std::vector<double>::const_iterator variables)
+{
+   if (!last_parameters.empty())
+   {
+      bool variables_changed = false;
+      for (int i = 0; i < last_parameters.size(); i++)
+         variables_changed |= (last_parameters[i] != variables[i]);
+
+      if (!variables_changed)
+         return last_parameters.size();
+   }
+
+   precompute_valid = false;
+   int n_variables = setVariables_(variables);
+
+   last_parameters.resize(n_variables);
+   std::copy_n(variables, n_variables, last_parameters.begin());
+   return n_variables;
+}
+
+void AbstractDecayGroup::setIRFPosition(PixelIndex irf_idx_) 
+{ 
+   if (!dp->irf->arePositionsEquivalent(irf_idx_, irf_idx))
+      precompute_valid = false;
+   irf_idx = irf_idx_; 
+}
+void AbstractDecayGroup::setT0Shift(double t0_shift_) 
+{ 
+   if (t0_shift != t0_shift_)
+      precompute_valid = false;
+   t0_shift = t0_shift_;
+}
+
+void AbstractDecayGroup::setReferenceLifetime(double reference_lifetime_)
+{ 
+   if (reference_lifetime != reference_lifetime_)
+      precompute_valid = false;
+   reference_lifetime = reference_lifetime_; 
+}
+
+void AbstractDecayGroup::precompute()
+{
+   if (!precompute_valid)
+      precompute_();
+   precompute_valid = true;
 }

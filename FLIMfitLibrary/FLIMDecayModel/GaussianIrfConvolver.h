@@ -57,7 +57,7 @@ class GaussianIrfConvolver : public AbstractConvolver
 public:
    GaussianIrfConvolver(std::shared_ptr<TransformedDataParameters> dp);
 
-   void compute(double rate, int irf_idx = 0, double t0_shift = 0, double ref_lifetime = 0);
+   void compute(double rate, PixelIndex irf_idx = 0, double t0_shift = 0, double ref_lifetime = 0);
 
    void addDecay(double fact, const std::vector<double>& channel_factors, double_iterator a) const;
    void addDerivative(double fact, const std::vector<double>& channel_factors, double_iterator b) const;

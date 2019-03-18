@@ -42,5 +42,7 @@ protected:
 
    float_iterator adjust;
 
+   PixelIndex last_idx;
+
    friend class VariableProjectionFitter;
 };

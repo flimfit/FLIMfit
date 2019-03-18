@@ -132,7 +132,7 @@ public:
    
 private:
 
-   int getMaskedData(int im, int region, float_iterator masked_data, int_iterator irf_idx, std::shared_ptr<FitResults> results);
+   int getMaskedData(int im, int region, float_iterator masked_data, pixel_index_iterator irf_idx, std::shared_ptr<FitResults> results);
    void setData(const std::vector<std::shared_ptr<FLIMImage>>& images);
    
    void resizeBuffers();

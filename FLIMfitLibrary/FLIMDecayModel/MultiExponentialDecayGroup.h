@@ -12,8 +12,7 @@ public:
    MultiExponentialDecayGroup(const MultiExponentialDecayGroup& obj);
 
    AbstractDecayGroup* clone() const { return new MultiExponentialDecayGroup(*this); }
-   void init();
-
+   
    void setNumChannels(int n_chan);
 
    virtual int calculateDerivatives(double_iterator b, int bdim, double_iterator& kap_derv);
@@ -29,7 +28,8 @@ public:
 protected:
 
    void setupParameters();
-   int setVariables(std::vector<double>::const_iterator variables);
+   void init_();
+   int setVariables_(std::vector<double>::const_iterator variables);
 
    bool fit_channel_factors = false;
    int n_chan = 1;

@@ -78,10 +78,12 @@ public:
 
    void setupIncMatrix(std::vector<int>& inc);
    void setVariables(const std::vector<double>& alf);
-   int calculateModel(double_iterator a, int adim, double_iterator kap, int irf_idx);
-   int calculateDerivatives(double_iterator b, int bdim, const_double_iterator a, int adim, int n_col, double_iterator kap, int irf_idx);
-   void getWeights(float_iterator y, float_iterator a, const std::vector<double>& alf, float_iterator lin_params, double_iterator w, int irf_idx);
+   int calculateModel(double_iterator a, int adim, double_iterator kap, PixelIndex irf_idx);
+   int calculateDerivatives(double_iterator b, int bdim, const_double_iterator a, int adim, int n_col, double_iterator kap, PixelIndex irf_idx);
+   void getWeights(float_iterator y, float_iterator a, const std::vector<double>& alf, float_iterator lin_params, double_iterator w, PixelIndex irf_idx);
    float_iterator getConstantAdjustment() { return adjust_buf.begin(); };
+
+   bool arePositionsEquivalent(PixelIndex idx1, PixelIndex idx2) { return dp->irf->arePositionsEquivalent(idx1, idx2); }
 
    void getInitialVariables(std::vector<double>& variables, double mean_arrival_time);
    void getOutputParamNames(std::vector<std::string>& param_names, std::vector<int>& param_group, int& n_nl_output_params, int& n_lin_output_params);
@@ -125,6 +127,7 @@ protected:
 
    std::vector<std::shared_ptr<FittingParameter>> parameters;
    std::vector<std::shared_ptr<AbstractDecayGroup>> decay_groups;
+   std::vector<std::shared_ptr<AbstractDecayGroup>> decay_groups_derv;
 
    float photons_per_count;
    std::vector<std::vector<double>> channel_factor;
@@ -138,8 +141,7 @@ protected:
 private:
 
    int n_derivatives = -1;
-   std::vector<std::vector<double>> last_variables;
-
+   
    double t0_shift;
    double reference_lifetime;
 

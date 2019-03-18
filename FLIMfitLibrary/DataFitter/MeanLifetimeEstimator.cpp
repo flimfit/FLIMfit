@@ -17,20 +17,33 @@ MeanLifetimeEstimator::MeanLifetimeEstimator(std::shared_ptr<TransformedDataPara
 */
 int MeanLifetimeEstimator::DetermineStartPosition(int idx)
 {
-   int j_last = 0;
-   start = 0;
-
-   std::shared_ptr<InstrumentResponseFunction> irf = dp->irf;
+   auto irf = dp->irf;
    int n_meas = dp->n_meas;
    int n_t = dp->n_t;
    int n_irf = irf->n_irf;
+
+   auto& t = dp->getTimepoints();
+
+   if (irf->type == Gaussian)
+   {
+      start = 0;
+      double start_time = irf->gaussian_params[0].mu;
+      for (int j = 0; j < n_t; j++)
+         if (t[j] > start_time)
+         {
+            start = j;
+            break;
+         }
+      return start;
+   }
+
 
    aligned_vector<double> storage(n_meas);
    double_iterator lirf = irf->getIRF(idx, 0, storage.begin());
    double t_irf0 = irf->getT0();
    double dt_irf = irf->timebin_width;
-
-   auto& t = dp->getTimepoints();
+   int j_last = 0;
+   start = 0;
 
    //===================================================
    // If we have a scatter IRF use data after cumulative sum of IRF is
@@ -88,18 +101,6 @@ int MeanLifetimeEstimator::DetermineStartPosition(int idx)
          }
       }
    }
-   else if (irf->type == Gaussian)
-   {
-      start = 0;
-      double start_time = irf->gaussian_params[0].mu;
-      for (int j = 0; j<n_t; j++)
-         if (t[j] > start_time)
-         {
-            start = j;
-            break;
-         }
-   }
-
 
    return start;
 }

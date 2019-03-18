@@ -59,7 +59,7 @@ BackgroundLightDecayGroup::BackgroundLightDecayGroup(const BackgroundLightDecayG
    parameters = obj.parameters;
 }
 
-void BackgroundLightDecayGroup::init()
+void BackgroundLightDecayGroup::init_()
 {
    n_lin_components = 0;
    n_nl_parameters = 0;
@@ -93,7 +93,7 @@ void BackgroundLightDecayGroup::setChannelFactors(int index, const std::vector<d
 }
 
 
-int BackgroundLightDecayGroup::setVariables(std::vector<double>::const_iterator param_values)
+int BackgroundLightDecayGroup::setVariables_(std::vector<double>::const_iterator param_values)
 {
    int idx = 0;
 
@@ -109,7 +109,7 @@ int BackgroundLightDecayGroup::setVariables(std::vector<double>::const_iterator 
    return idx;
 }
 
-void BackgroundLightDecayGroup::precompute()
+void BackgroundLightDecayGroup::precompute_()
 {
 
 }

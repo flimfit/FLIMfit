@@ -78,7 +78,7 @@ std::shared_ptr<RegionData> RegionData::getBinnedRegion()
    auto binned_region = std::make_shared<RegionData>(data_type, 1, n_meas);
 
    float_iterator binned_data;
-   int_iterator   binned_irf_idx;
+   pixel_index_iterator binned_irf_idx;
 
    binned_region->getPointersForInsertion(1, binned_data, binned_irf_idx);
 
@@ -93,7 +93,7 @@ void RegionData::clear()
    n_px_cur = 0;
 }
 
-void RegionData::getPointersForInsertion(int n, float_iterator& data_, int_iterator& irf_idx_)
+void RegionData::getPointersForInsertion(int n, float_iterator& data_, pixel_index_iterator& irf_idx_)
 {
    assert(!is_shallow_ptr);
    assert( n + n_px_cur <= n_px_max );
@@ -104,7 +104,7 @@ void RegionData::getPointersForInsertion(int n, float_iterator& data_, int_itera
    n_px_cur += n;
 }
 
-void RegionData::getPointersForArbitaryInsertion(int pos, int n, float_iterator& data_, int_iterator& irf_idx_)
+void RegionData::getPointersForArbitaryInsertion(int pos, int n, float_iterator& data_, pixel_index_iterator& irf_idx_)
 {
    assert(!is_shallow_ptr);
    assert( n + pos <= n_px_max );
@@ -127,7 +127,7 @@ void RegionData::getAverageDecay(float_iterator average_decay)
       average_decay[j] /= n_px_cur;
 }
 
-void RegionData::getPointers(float_iterator& data_, int_iterator& irf_idx_)
+void RegionData::getPointers(float_iterator& data_, pixel_index_iterator& irf_idx_)
 {
    data_ = data_it;
    irf_idx_ = irf_idx_it;

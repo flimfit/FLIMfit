@@ -21,7 +21,7 @@ PatternDecayGroup::PatternDecayGroup(const PatternDecayGroup& obj) :
    init();
 }
 
-void PatternDecayGroup::init()
+void PatternDecayGroup::init_()
 {
    n_lin_components = fit->isFittedLocally();
    n_nl_parameters = 0;
@@ -30,7 +30,7 @@ void PatternDecayGroup::init()
       throw(std::runtime_error("Incorrect number of channels in pattern"));
 }
 
-void PatternDecayGroup::precompute()
+void PatternDecayGroup::precompute_()
 {
    decay.clear();
    decay.resize(dp->n_meas, 0.0);
@@ -59,7 +59,7 @@ void PatternDecayGroup::precompute()
    }
 }
 
-int PatternDecayGroup::setVariables(std::vector<double>::const_iterator variables)
+int PatternDecayGroup::setVariables_(std::vector<double>::const_iterator variables)
 {
    return 0;
 }

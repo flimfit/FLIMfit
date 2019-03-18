@@ -82,10 +82,10 @@ public:
    void setTransformedDataParameters(std::shared_ptr<TransformedDataParameters> dp);
    virtual void setNumChannels(int n_chan);
 
-   virtual void init() = 0;
+   void init();
+   int setVariables(std::vector<double>::const_iterator variables);
+   void precompute();
 
-   virtual int setVariables(std::vector<double>::const_iterator variables) = 0;
-   virtual void precompute() = 0;
    virtual int calculateModel(double_iterator a, int adim, double& kap) = 0;
    virtual int calculateDerivatives(double_iterator b, int bdim, double_iterator& kap_derv) = 0;
    virtual void addConstantContribution(float_iterator a) {}
@@ -102,12 +102,12 @@ public:
 
    int getInitialVariables(std::vector<double>::iterator variables);
 
-   void setIRFPosition(int irf_idx_) { irf_idx = irf_idx_; }
-   void setT0Shift(double t0_shift_) { t0_shift = t0_shift_; }
-   void setReferenceLifetime(double reference_lifetime_) { reference_lifetime = reference_lifetime_; }
+   void setIRFPosition(PixelIndex irf_idx_);
+   void setT0Shift(double t0_shift_);
+   void setReferenceLifetime(double reference_lifetime_);
 
    template <typename it>
-   void addIRF(double_iterator irf_buf, int irf_idx, double t0_shift, it a, const std::vector<double>& channel_factor, double factor = 1);
+   void addIRF(double_iterator irf_buf, PixelIndex irf_idx, double t0_shift, it a, const std::vector<double>& channel_factor, double factor = 1);
 
 signals:
    void parametersUpdated();
@@ -116,6 +116,10 @@ protected:
 
    void parametersChanged() { emit parametersUpdated(); };
    virtual int getNumPotentialChannels() { return 1; }
+
+   virtual void init_() = 0;
+   virtual void precompute_() = 0;
+   virtual int setVariables_(std::vector<double>::const_iterator variables) = 0;
 
    void normaliseChannelFactors(const std::vector<double>& channel_factors, std::vector<double>& norm_channel_factors);
 
@@ -130,10 +134,12 @@ protected:
    int n_nl_parameters = 0;
 
    // RUNTIME VARIABLE PARAMETERS
-   int irf_idx = 0;
+   PixelIndex irf_idx = 0;
    double t0_shift = 0;
    double reference_lifetime;
    aligned_vector<double> irf_buf;
+   std::vector<double> last_parameters;
+   bool precompute_valid = false;
 
 private:
    template<class Archive>
@@ -182,7 +188,7 @@ BOOST_CLASS_TRACKING(AbstractDecayGroup, track_always)
 BOOST_CLASS_VERSION(AbstractDecayGroup, 2)
 
 template <typename it>
-void AbstractDecayGroup::addIRF(double_iterator irf_buf, int irf_idx, double t0_shift, it a, const std::vector<double>& channel_factor, double factor)
+void AbstractDecayGroup::addIRF(double_iterator irf_buf, PixelIndex irf_idx, double t0_shift, it a, const std::vector<double>& channel_factor, double factor)
 {
    typedef typename std::iterator_traits<it>::value_type T;
    std::shared_ptr<InstrumentResponseFunction> irf = dp->irf;

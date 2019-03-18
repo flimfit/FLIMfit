@@ -55,7 +55,7 @@ DecayModel::DecayModel(const DecayModel &obj) :
 {
    setTransformedDataParameters(obj.dp);
    for (auto& g : obj.decay_groups)
-      decay_groups.emplace_back(g->clone());
+      decay_groups.emplace_back(g->clone());   
 
    init();
 }
@@ -138,10 +138,22 @@ void DecayModel::init()
    if (dp->n_chan != dp->irf->getNumChan())
       throw std::runtime_error("IRF must have the same number of channels as the data");
 
-   last_variables.clear();
 
    for (auto g : decay_groups)
       g->init();
+
+   if (t0_parameter->isFittedGlobally())
+   {
+      decay_groups_derv.clear();
+      for (auto& g : decay_groups)
+         decay_groups_derv.emplace_back(g->clone());
+   }
+
+   for (auto g : decay_groups_derv)
+   {
+      g->setTransformedDataParameters(dp);
+      g->init();
+   }
 
    setupAdjust();
 }
@@ -151,6 +163,7 @@ void DecayModel::addDecayGroup(std::shared_ptr<AbstractDecayGroup> group)
 {
    group->setTransformedDataParameters(dp);
    decay_groups.push_back(group);
+   decay_groups_derv.push_back(group);
 }
 
 void DecayModel::decayGroupUpdated()
@@ -198,6 +211,9 @@ void DecayModel::setupAdjust()
       adjust_buf[i] = 0;
 
    for (auto& group : decay_groups)
+      group->addConstantContribution(adjust_buf.begin());
+
+   for (auto& group : decay_groups_derv)
       group->addConstantContribution(adjust_buf.begin());
 
    for (int i = 0; i < dp->n_meas; i++)
@@ -287,7 +303,8 @@ int DecayModel::getNumDerivatives()
 
 bool DecayModel::isSpatiallyVariant()
 {
-   return use_spectral_correction && (zernike_order > 1);
+   return (use_spectral_correction && (zernike_order > 1)) ||
+          (dp->irf->isSpatiallyVariant());
 }
 
 void DecayModel::setVariables(const std::vector<double>& alf)
@@ -303,37 +320,24 @@ void DecayModel::setVariables(const std::vector<double>& alf)
    for (auto& s : spectral_correction)
       idx += s->setVariables(param_values + idx);
 
-   // Disable caching for now
-   last_variables.clear();
-   last_variables.resize(decay_groups.size());
-
-   for (int i = 0; i < decay_groups.size(); i++)
+   int idx_start = idx;
+   for(auto& g : decay_groups)
    {
-      decay_groups[i]->setT0Shift(t0_shift);
-      decay_groups[i]->setReferenceLifetime(reference_lifetime);
-
-      int n_var = -1;
-      if (!last_variables[i].empty())
-      {
-         n_var = (int) last_variables[i].size();
-         for (int j = 0; j < n_var; j++)
-            if (last_variables[i][j] != alf[idx + j])
-               n_var = -1;
-      }
-      if (n_var == -1)
-      {
-         n_var = decay_groups[i]->setVariables(param_values + idx);
-         last_variables[i].resize(n_var);
-         std::copy_n(param_values + idx, n_var, last_variables[i].begin());
-      }
-      idx += n_var;
-
-      decay_groups[i]->precompute();
+      g->setT0Shift(t0_shift);
+      g->setReferenceLifetime(reference_lifetime);
+      idx += g->setVariables(param_values + idx);
    }
 
+   idx = idx_start;
+   for (auto& g : decay_groups_derv)
+   {
+      g->setT0Shift(t0_shift);
+      g->setReferenceLifetime(reference_lifetime);
+      idx += g->setVariables(param_values + idx);
+   }
 }
 
-int DecayModel::calculateModel(double_iterator a, int adim, double_iterator kap, int irf_idx)
+int DecayModel::calculateModel(double_iterator a, int adim, double_iterator kap, PixelIndex irf_idx)
 {
    int idx = 0;
    int col = 0;
@@ -344,6 +348,7 @@ int DecayModel::calculateModel(double_iterator a, int adim, double_iterator kap,
    for (int i = 0; i < decay_groups.size(); i++)
    {
       decay_groups[i]->setIRFPosition(irf_idx);
+      decay_groups[i]->precompute();
       col += decay_groups[i]->calculateModel(a + col * adim, adim, kap[0]);
    }
 
@@ -351,8 +356,8 @@ int DecayModel::calculateModel(double_iterator a, int adim, double_iterator kap,
    for (int i = 0; i < adim*(col + 1); i++)
       a[i] *= photons_per_count;
  
-   int x = irf_idx % dp->n_x;
-   int y = irf_idx / dp->n_x;
+   int x = irf_idx.pixel % dp->n_x;
+   int y = irf_idx.pixel / dp->n_x;
 
    for (auto& s : spectral_correction)
       s->apply(x, y, a, adim, col + 1);
@@ -360,7 +365,7 @@ int DecayModel::calculateModel(double_iterator a, int adim, double_iterator kap,
    return col;
 }
 
-int DecayModel::calculateDerivatives(double_iterator b, int bdim, const_double_iterator a, int adim, int n_col, double_iterator kap, int irf_idx)
+int DecayModel::calculateDerivatives(double_iterator b, int bdim, const_double_iterator a, int adim, int n_col, double_iterator kap, PixelIndex irf_idx)
 {
    int col = 0;
    int var = 0;
@@ -377,8 +382,8 @@ int DecayModel::calculateDerivatives(double_iterator b, int bdim, const_double_i
    if (t0_parameter->isFittedGlobally())
       col += addT0Derivatives(b + col*bdim, bdim, kap_derv);
 
-   int x = irf_idx % dp->n_x;
-   int y = irf_idx / dp->n_x;
+   int x = irf_idx.pixel % dp->n_x;
+   int y = irf_idx.pixel / dp->n_x;
    for (auto& s : spectral_correction)
       col += s->calculateDerivatives(x, y, a, adim, n_col, b + col * bdim, bdim);
 
@@ -406,11 +411,11 @@ int DecayModel::addT0Derivatives(double_iterator b, int bdim, double_iterator& k
 
    // Add decay shifted by one bin
    int col = 0;
-   for (int i = 0; i < decay_groups.size(); i++)
+   for (int i = 0; i < decay_groups_derv.size(); i++)
    {
-      decay_groups[i]->setT0Shift(t0_shift + dt);
-      decay_groups[i]->precompute();
-      col += decay_groups[i]->calculateModel(b + col * bdim, bdim, kap);
+      decay_groups_derv[i]->setT0Shift(t0_shift + dt);
+      decay_groups_derv[i]->precompute();
+      col += decay_groups_derv[i]->calculateModel(b + col * bdim, bdim, kap);
    }
 
    // Make negative
@@ -421,14 +426,12 @@ int DecayModel::addT0Derivatives(double_iterator b, int bdim, double_iterator& k
    col = 0;
    for (int i = 0; i < decay_groups.size(); i++)
    {
-      decay_groups[i]->setT0Shift(t0_shift);
-      decay_groups[i]->precompute();
       col += decay_groups[i]->calculateModel(b + col * bdim, bdim, kap);
-
    }
 
+   double inv_dt = -1.0 / dt;
    for (int i = 0; i<bdim*col; i++)
-      b[i] /= -dt;
+      b[i] *= inv_dt;
 
    return col;
 }
@@ -477,7 +480,7 @@ int DecayModel::addReferenceLifetimeDerivatives(double_iterator b, int bdim, dou
 }
 
 
-void DecayModel::getWeights(float_iterator y, float_iterator a, const std::vector<double>& alf, float_iterator lin_params, double_iterator w, int irf_idx)
+void DecayModel::getWeights(float_iterator y, float_iterator a, const std::vector<double>& alf, float_iterator lin_params, double_iterator w, PixelIndex irf_idx)
 {
    return;
 

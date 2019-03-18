@@ -50,9 +50,9 @@ MultiExponentialDecayGroup::MultiExponentialDecayGroup(const MultiExponentialDec
 }
 
 
-void MultiExponentialDecayGroup::init()
+void MultiExponentialDecayGroup::init_()
 {
-   MultiExponentialDecayGroupPrivate::init();
+   MultiExponentialDecayGroupPrivate::init_();
    if (fit_channel_factors)
    {
       norm_channel_factors = channel_factors; // we don't normalise in this case
@@ -119,9 +119,9 @@ void MultiExponentialDecayGroup::setupIncMatrix(std::vector<int>& inc, int& row,
    }
 }
 
-int MultiExponentialDecayGroup::setVariables(std::vector<double>::const_iterator param_values)
+int MultiExponentialDecayGroup::setVariables_(std::vector<double>::const_iterator param_values)
 {
-   int idx = MultiExponentialDecayGroupPrivate::setVariables(param_values);
+   int idx = MultiExponentialDecayGroupPrivate::setVariables_(param_values);
 
    if (fit_channel_factors)
    {

@@ -127,13 +127,13 @@ void FretDecayGroup::setupParameters()
    parametersChanged();
 }
 
-void FretDecayGroup::init()
+void FretDecayGroup::init_()
 {
    for (auto& b : betaA_parameters)
       if (b->isFittedGlobally())
          throw std::runtime_error("Fitting betaA parameters in FRET model not currently implemented");
 
-   MultiExponentialDecayGroupPrivate::init();
+   MultiExponentialDecayGroupPrivate::init_();
 
    n_kappa = use_static_model ? 120 : 1;
    kappa_factor = KappaFactor(n_kappa);
@@ -308,9 +308,9 @@ void FretDecayGroup::setupIncMatrix(std::vector<int>& inc, int& inc_row, int& in
    inc_col += n_fret_populations;
 }
 
-int FretDecayGroup::setVariables(std::vector<double>::const_iterator param_values)
+int FretDecayGroup::setVariables_(std::vector<double>::const_iterator param_values)
 {
-   int idx = MultiExponentialDecayGroupPrivate::setVariables(param_values);
+   int idx = MultiExponentialDecayGroupPrivate::setVariables_(param_values);
 
    A = A_parameter->getInitialValue();
 
@@ -340,9 +340,9 @@ int FretDecayGroup::setVariables(std::vector<double>::const_iterator param_value
    return idx;
 }
 
-void FretDecayGroup::precompute()
+void FretDecayGroup::precompute_()
 {
-   MultiExponentialDecayGroupPrivate::precompute();
+   MultiExponentialDecayGroupPrivate::precompute_();
 
    for (int i = 0; i<n_fret_populations; i++)
       for (int k = 0; k < n_kappa; k++)

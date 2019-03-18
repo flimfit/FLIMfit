@@ -324,12 +324,9 @@ void FitController::setFitComplete()
 
 void FitController::waitForFit()
 {
+   std::unique_lock<std::mutex> lk(fit_mutex);
    if (!has_fit)
-   {
-      std::unique_lock<std::mutex> lk(fit_mutex);
-      while (!has_fit)
-         fit_cv.wait(lk);
-   }
+      fit_cv.wait(lk, [&] { return has_fit; });
 }
 
 void FitController::setData(std::shared_ptr<FLIMData> data_)

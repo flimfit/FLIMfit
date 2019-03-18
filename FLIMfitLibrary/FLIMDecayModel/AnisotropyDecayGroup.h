@@ -21,8 +21,6 @@ public:
    void setNumAnisotropyPopulations(int n_anisotropy_populations_);
    void setIncludeRInf(bool include_r_inf_);
 
-   int setVariables(std::vector<double>::const_iterator variables);
-   void precompute();
    int calculateModel(double_iterator a, int adim, double& kap);
    int calculateDerivatives(double_iterator b, int bdim, double_iterator& kap_derv);
    int getNonlinearOutputs(float_iterator nonlin_variables, float_iterator output, int& nonlin_idx);
@@ -33,8 +31,12 @@ public:
 
 protected:
 
-   void init();
    void setupParameters();
+
+   void init_();
+   void precompute_();
+   int setVariables_(std::vector<double>::const_iterator variables);
+
    int addLifetimeDerivativesForAnisotropy(int idx, double_iterator b, int bdim, double& kap);
    int addContributionDerivativesForAnisotropy(double_iterator b, int bdim, double_iterator& kap);
    int addRotationalCorrelationTimeDerivatives(double_iterator b, int bdim, double_iterator& kap_derv);

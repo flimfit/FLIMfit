@@ -42,7 +42,7 @@ class MeasuredIrfConvolver : public AbstractConvolver
 public:
    MeasuredIrfConvolver(std::shared_ptr<TransformedDataParameters> dp);
 
-   void compute(double rate, int irf_idx = 0, double t0_shift = 0, double ref_lifetime = 0);
+   void compute(double rate, PixelIndex irf_idx = 0, double t0_shift = 0, double ref_lifetime = 0);
 
    void addDecay(double fact, const std::vector<double>& channel_factors, double_iterator a) const;
    void addDerivative(double fact, const std::vector<double>& channel_factors, double_iterator b) const;
@@ -51,7 +51,7 @@ private:
 
    void calculateIRFMax();
    
-   void computeIRFFactors(double rate, int irf_idx, double t0_shift);
+   void computeIRFFactors(double rate, PixelIndex irf_idx, double t0_shift);
    void computeModelFactors(double rate);
 
    double convolve(int k, int i, double pulse_fact) const;

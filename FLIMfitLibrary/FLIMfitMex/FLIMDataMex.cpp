@@ -54,6 +54,20 @@ DataTransformationSettings getDataTransformationSettings(const mxArray* settings
    return settings;
 }
 
+void getIRFCommon(const mxArray* irf_struct, std::shared_ptr<InstrumentResponseFunction> irf)
+{
+   if (mxGetFieldNumber(irf_struct, "frame_t0") >= 0)
+   {
+      std::vector<double> frame_t0 = getVectorFromStruct<double>(irf_struct, "frame_t0");
+      irf->setFrameT0(frame_t0);
+   }
+
+   auto g_factor = getVectorFromStruct<double>(irf_struct, "g_factor");
+   irf->setGFactor(g_factor);
+
+   // TODO: irf.SetIRFShiftMap()
+}
+
 std::shared_ptr<InstrumentResponseFunction> getAnalyticalIRF(const mxArray* irf_struct)
 {
    AssertInputCondition(mxIsStruct(irf_struct));
@@ -72,8 +86,7 @@ std::shared_ptr<InstrumentResponseFunction> getAnalyticalIRF(const mxArray* irf_
    auto irf = std::make_shared<InstrumentResponseFunction>();
    irf->setGaussianIRF(params);
 
-   auto g_factor = getVectorFromStruct<double>(irf_struct, "g_factor");
-   irf->setGFactor(g_factor);
+   getIRFCommon(irf_struct, irf);
 
    return irf;
 }
@@ -81,7 +94,7 @@ std::shared_ptr<InstrumentResponseFunction> getAnalyticalIRF(const mxArray* irf_
 std::shared_ptr<InstrumentResponseFunction> getIRF(const mxArray* irf_struct)
 {
    AssertInputCondition(mxIsStruct(irf_struct));
-   
+
    auto irf = std::make_shared<InstrumentResponseFunction>();
 
    double timebin_t0 = getValueFromStruct(irf_struct, 0, "timebin_t0");
@@ -104,15 +117,12 @@ std::shared_ptr<InstrumentResponseFunction> getIRF(const mxArray* irf_struct)
       irf->setIRF(n_t, n_chan, timebin_t0, timebin_width, irf_data);
    }
 
-   bool ref_reconvolution = (bool) getValueFromStruct(irf_struct, 0, "ref_reconvolution", false);
+   bool ref_reconvolution = (bool)getValueFromStruct(irf_struct, 0, "ref_reconvolution", false);
    double ref_lifetime_guess = getValueFromStruct(irf_struct, 0, "ref_lifetime_guess", 80.0);
-   
+
    irf->setReferenceReconvolution(ref_reconvolution, ref_lifetime_guess);
 
-   auto g_factor = getVectorFromStruct<double>(irf_struct, "g_factor");
-   irf->setGFactor(g_factor);
-
-   // TODO: irf.SetIRFShiftMap()
+   getIRFCommon(irf_struct, irf);
 
    return irf;
 }

@@ -53,7 +53,7 @@ MeasuredIrfConvolver::MeasuredIrfConvolver(std::shared_ptr<TransformedDataParame
    calculateIRFMax();
 };
 
-void MeasuredIrfConvolver::compute(double rate_, int irf_idx, double t0_shift, double ref_lifetime_)
+void MeasuredIrfConvolver::compute(double rate_, PixelIndex irf_idx, double t0_shift, double ref_lifetime_)
 {
    // Don't compute if rate is the same
 //   if ((rate_ == rate) && (t0_shift == t0_shift_))
@@ -70,7 +70,7 @@ void MeasuredIrfConvolver::compute(double rate_, int irf_idx, double t0_shift, d
    computeModelFactors(rate);
 }
 
-void MeasuredIrfConvolver::computeIRFFactors(double rate, int irf_idx, double t0_shift)
+void MeasuredIrfConvolver::computeIRFFactors(double rate, PixelIndex irf_idx, double t0_shift)
 {
    double_iterator lirf = irf->getIRF(irf_idx, t0_shift, irf_working.begin()); // TODO: add image irf shifting to GetIRF
    double t0 = irf->getT0();

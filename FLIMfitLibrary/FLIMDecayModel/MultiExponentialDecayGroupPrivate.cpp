@@ -118,7 +118,7 @@ void MultiExponentialDecayGroupPrivate::setupParametersMultiExponential()
       beta_parameters.clear();
 }
 
-void MultiExponentialDecayGroupPrivate::init()
+void MultiExponentialDecayGroupPrivate::init_()
 {
    n_lin_components = contributions_global ? 1 : n_exponential;
 
@@ -226,7 +226,7 @@ void MultiExponentialDecayGroupPrivate::setupIncMatrix(std::vector<int>& inc, in
 }
 
 
-int MultiExponentialDecayGroupPrivate::setVariables(std::vector<double>::const_iterator param_value)
+int MultiExponentialDecayGroupPrivate::setVariables_(std::vector<double>::const_iterator param_value)
 {
    int idx = 0;
 
@@ -264,7 +264,7 @@ int MultiExponentialDecayGroupPrivate::setVariables(std::vector<double>::const_i
    return idx;
 }
 
-void MultiExponentialDecayGroupPrivate::precompute()
+void MultiExponentialDecayGroupPrivate::precompute_()
 {
    for (int i = 0; i < n_exponential; i++)
       buffer[i]->compute(k_decay[i], irf_idx, t0_shift, reference_lifetime); // TODO: only when changed

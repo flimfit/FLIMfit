@@ -471,6 +471,9 @@ int VariableProjectionFitter::prepareJacobianCalculation(const double* alf, doub
       for(auto& B : vp)
          B.transformAB(inc);
 
+   for (auto& v : vp)
+      v.last_idx = PixelIndex(-1, -1);
+
    // Set kappa derivatives
    *rnorm = kap[0];
    for (int k = 0; k < nl; k++)
@@ -487,7 +490,7 @@ int VariableProjectionFitter::getJacobianEntry(const double* alf, double *rnorm,
 
    auto& B = vp[thread];
 
-   if (variable_phi)
+   if (variable_phi && !B.model->arePositionsEquivalent(B.last_idx, irf_idx[row]))
    {
       getModel(B.model, irf_idx[row], *(B.a));
       resample(*(B.a), nmax, l + 1);
@@ -495,6 +498,7 @@ int VariableProjectionFitter::getJacobianEntry(const double* alf, double *rnorm,
 
       getDerivatives(B.model, irf_idx[row], *(B.b), *(B.a));
       resample(*(B.b), ndim, p);
+      B.last_idx = irf_idx[row];
    }
 
    if (iterative_weighting)
@@ -538,16 +542,20 @@ int VariableProjectionFitter::getResidualNonNegative(it alf, double *rnorm, int 
 
    std::vector<std::atomic<int>> n_active(l);
 
-   #pragma omp parallel for reduction(+:r_sq) num_threads(n_thread)
+   for (auto& v : vp)
+      v.last_idx = PixelIndex(-1, -1);
+
+   #pragma omp parallel for reduction(+:r_sq) num_threads(n_thread) schedule(static,100)
    for (int j = 0; j < s; j++)
    {
       int omp_thread = omp_get_thread_num();
       auto& B = vp[omp_thread];
    
-      if (variable_phi)
+      if (variable_phi && !B.model->arePositionsEquivalent(B.last_idx, irf_idx[j]))
       {
          getModel(B.model, irf_idx[j], *(B.a));
          resample(*(B.a), nmax, l+1);
+         B.last_idx = irf_idx[j];
       }
 
       if (iterative_weighting)
@@ -561,7 +569,7 @@ int VariableProjectionFitter::getResidualNonNegative(it alf, double *rnorm, int 
       double rj_norm;
       nnls[omp_thread]->compute(B.aw.data(), nr, nmax, B.r.data(), B.work.data(), rj_norm);
 
-      for (int i = 0; i<l; i++) // TODO: this needs to be outside loop!!!!
+      for (int i = 0; i<l; i++)
          n_active[i] += (B.work[i] > 0.);
 
       r_sq += (rj_norm * rj_norm);

@@ -79,15 +79,15 @@ public:
    virtual void getLinearParams() = 0;
    
    int fit(std::shared_ptr<RegionData> region_data, FitResultsRegion& results, int itmax, int& niter, int &ierr, double& c2);
-   int getFit(int irf_idx, const std::vector<double>& alf, float_iterator lin_params, double* fit);
+   int getFit(PixelIndex irf_idx, const std::vector<double>& alf, float_iterator lin_params, double* fit);
    double errMinFcn(double x);
    int calculateErrors(double conf_limit);
 
    template<typename it>
    void setVariables(it alf_);
 
-   void getModel(std::shared_ptr<DecayModel> model, int irf_idx, aligned_vector<double>& a);
-   void getDerivatives(std::shared_ptr<DecayModel> model, int irf_idx, aligned_vector<double>& b, const aligned_vector<double>& a);
+   void getModel(std::shared_ptr<DecayModel> model, PixelIndex irf_idx, aligned_vector<double>& a);
+   void getDerivatives(std::shared_ptr<DecayModel> model, PixelIndex irf_idx, aligned_vector<double>& b, const aligned_vector<double>& a);
 
 protected:
 
@@ -130,7 +130,7 @@ protected:
    std::vector<float> avg_y;
    float_iterator lin_params;
    float_iterator chi2;
-   int_iterator irf_idx;
+   std::vector<PixelIndex>::iterator irf_idx;
 
    float chi2_norm;
    double* cur_chi2;
@@ -161,7 +161,7 @@ private:
    int a_size;
    int b_size;
 
-   std::vector<int> irf_idx_0 = {0};
+   std::vector<PixelIndex> irf_idx_0 = {0};
 };
 
 

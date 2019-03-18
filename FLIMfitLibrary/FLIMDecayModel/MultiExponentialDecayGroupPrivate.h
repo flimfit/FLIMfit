@@ -42,8 +42,6 @@ public:
    virtual const std::vector<double>& getChannelFactors(int index);
    virtual void setChannelFactors(int index, const std::vector<double>& channel_factors);
 
-   virtual int setVariables(std::vector<double>::const_iterator variables);
-   virtual void precompute();
    virtual int calculateModel(double_iterator a, int adim, double& kap);
    virtual int calculateDerivatives(double_iterator b, int bdim, double_iterator& kap_derv);
    virtual int getNonlinearOutputs(float_iterator nonlin_variables, float_iterator output, int& nonlin_idx);
@@ -53,8 +51,11 @@ public:
 
 protected:
 
-   virtual void init();
    void setupParametersMultiExponential();
+
+   virtual void init_();
+   virtual void precompute_();
+   virtual int setVariables_(std::vector<double>::const_iterator variables);
 
    void resizeLifetimeParameters(std::vector<std::shared_ptr<FittingParameter>>& params, int new_size, const std::string& name_prefix, double tau0 = 3000);
    void resizeContributionParameters(std::vector<std::shared_ptr<FittingParameter>>& params, int new_size, const std::string& name_prefix, std::vector<ParameterFittingType> allowed_fitting = { Fixed, FittedGlobally });

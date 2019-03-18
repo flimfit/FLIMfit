@@ -31,9 +31,11 @@
 
 #include <vector>
 #include <memory>
+#include "InstrumentResponseFunction.h" // TODO: break out pixelindex
 
 typedef std::vector<float>::iterator float_iterator;
 typedef std::vector<int>::iterator int_iterator;
+typedef std::vector<PixelIndex>::iterator pixel_index_iterator;
 
 class RegionData
 {
@@ -48,9 +50,9 @@ public:
    RegionData& operator=( const RegionData& other ) = delete;
 
    void clear();
-   void getPointersForInsertion(int n, float_iterator& y, int_iterator& irf_idx);
-   void getPointersForArbitaryInsertion(int pos, int n, float_iterator& y, int_iterator& irf_idx);
-   void getPointers(float_iterator& y, int_iterator& irf_idx);
+   void getPointersForInsertion(int n, float_iterator& y, pixel_index_iterator& irf_idx);
+   void getPointersForArbitaryInsertion(int pos, int n, float_iterator& y, pixel_index_iterator& irf_idx);
+   void getPointers(float_iterator& y, pixel_index_iterator& irf_idx);
    std::shared_ptr<RegionData> getBinnedRegion();
    int getSize();
 
@@ -69,10 +71,10 @@ private:
    int n_meas;
 
    float_iterator data_it;
-   int_iterator irf_idx_it;
+   pixel_index_iterator irf_idx_it;
 
    std::vector<float> data;
-   std::vector<int> irf_idx;
+   std::vector<PixelIndex> irf_idx;
 
    bool is_shallow_ptr;
 

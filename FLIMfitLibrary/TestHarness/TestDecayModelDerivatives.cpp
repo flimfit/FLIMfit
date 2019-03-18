@@ -67,12 +67,12 @@ void validate(std::vector<std::shared_ptr<AbstractDecayGroup>> groups, bool gaus
 
 }
 
-void validate(std::shared_ptr<AbstractDecayGroup> g, bool gaussian_irf)
+void validate(std::shared_ptr<AbstractDecayGroup> g, bool gaussian_irf, bool fit_zernike = false)
 {
 
    //std::cout << "\nTesting derivatives for " << g->objectName().toStdString() << "\n================\n";
    
-   int n_chan = 2;
+   int n_chan = 3;
    FLIMSimulationTCSPC sim(n_chan, 512);
    auto irf = gaussian_irf ? sim.GetGaussianIRF() : sim.GenerateIRF(1e5);
    auto acq = std::make_shared<AcquisitionParameters>(sim);
@@ -84,13 +84,17 @@ void validate(std::shared_ptr<AbstractDecayGroup> g, bool gaussian_irf)
    auto model = std::make_shared<DecayModel>();
    model->setTransformedDataParameters(data->GetTransformedDataParameters());
 
-   model->t0_parameter->setFittingType(FittedGlobally);
+   if (fit_zernike)
+   {
+      model->setUseSpectralCorrection(true);
+      model->setZernikeOrder(2);
+   }
 
    model->addDecayGroup(g);
    model->init();
 
    // Test with all free
-   auto params = g->getParameters();
+   auto params = model->getParameters();
    std::for_each(params.begin(), params.end(), [](auto& p) { p->setFittingType(FittedGlobally); });
    model->init();
    model->validateDerivatives();
@@ -122,6 +126,13 @@ void validate(std::shared_ptr<AbstractDecayGroup> g, bool gaussian_irf)
 int testModelDerivatives(bool gaussian_irf)
 {
    
+   // Fitting zernike modes
+   {
+      auto group = std::make_shared<MultiExponentialDecayGroup>(2);
+      validate(group, gaussian_irf, true);
+   }
+
+
    // Fitting channel factors
    {
       auto group = std::make_shared<MultiExponentialDecayGroup>(2);

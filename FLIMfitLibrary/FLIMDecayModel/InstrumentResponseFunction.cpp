@@ -33,17 +33,13 @@
 #include <cmath>
 #include <cassert>
 
-using std::max;
-using std::min;
-
 InstrumentResponseFunction::InstrumentResponseFunction() :
-   image_irf(false),
-   t0_image(nullptr),
+   spatially_varying_t0(false),
+   frame_varying_t0(false),
    n_irf_rep(1),
    n_chan(1),
-   variable_irf(false),
    type(Scatter),
-   t0(0)
+   full_image_irf(false)
 {
    irf = {0.0, 1.0, 0.0, 0.0};
    
@@ -82,18 +78,50 @@ void InstrumentResponseFunction::setReferenceReconvolution(int ref_reconvolution
 //   this->ref_lifetime_guess = ref_lifetime_guess;
 }
 
-double InstrumentResponseFunction::getT0()
+bool InstrumentResponseFunction::isSpatiallyVariant()
 {
-   return timebin_t0 + t0;
+   return spatially_varying_t0 || frame_varying_t0 || full_image_irf;
 }
 
-double_iterator InstrumentResponseFunction::getIRF(int irf_idx, double t0_shift, double_iterator storage)
+void InstrumentResponseFunction::setFrameT0(const std::vector<double>& frame_t0_)
 {
-   if (image_irf)
-      return irf.begin() + irf_idx * n_irf * n_chan;
+   frame_varying_t0 = true;
+   frame_t0 = frame_t0_;
+}
 
-   if (t0_image)
-      t0_shift = t0_image[irf_idx];
+void InstrumentResponseFunction::setSpatialT0(const cv::Mat& spatial_t0_)
+{
+   spatially_varying_t0 = true;
+   spatial_t0 = spatial_t0_;
+}
+
+double InstrumentResponseFunction::getT0Shift(PixelIndex irf_idx)
+{
+   double t0_shift = 0;
+
+   if (spatially_varying_t0)
+      t0_shift += spatial_t0.at<double>(irf_idx.pixel);
+
+   if (frame_varying_t0)
+      t0_shift += frame_t0[irf_idx.image];
+
+   return t0_shift;
+}
+
+bool InstrumentResponseFunction::arePositionsEquivalent(PixelIndex idx1, PixelIndex idx2)
+{
+   return (!full_image_irf) &&
+          ((!frame_varying_t0) || (idx1.image == idx2.image)) &&
+          ((!spatially_varying_t0) || (idx1.pixel == idx2.pixel));
+}
+
+
+double_iterator InstrumentResponseFunction::getIRF(PixelIndex irf_idx, double t0_shift, double_iterator storage)
+{
+   if (full_image_irf)
+      return irf.begin() + irf_idx.pixel * n_irf * n_chan;
+
+   t0_shift += getT0Shift(irf_idx);
 
    if (t0_shift == 0.0)
       return irf.begin();
@@ -114,11 +142,11 @@ void InstrumentResponseFunction::shiftIRF(double shift, double_iterator storage)
    int c_shift = (int) floor(shift); 
    double f_shift = shift-c_shift;
 
-   int start = max(0,1-c_shift);
-   int end   = min(n_irf,n_irf-c_shift-3);
+   int start = std::max(0,1-c_shift);
+   int end = std::min(n_irf,n_irf-c_shift-3);
 
-   start = min(start, n_irf-1);
-   end   = max(end, 1);
+   start = std::min(start, n_irf-1);
+   end = std::max(end, 1);
 
    for (int c = 0; c < n_chan; c++)
    {

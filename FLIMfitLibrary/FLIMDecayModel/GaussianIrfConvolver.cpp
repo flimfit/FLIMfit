@@ -207,15 +207,17 @@ GaussianIrfConvolver::GaussianIrfConvolver(std::shared_ptr<TransformedDataParame
 };
 
 
-void GaussianIrfConvolver::compute(double rate_, int irf_idx, double t0_shift_, double ref_lifetime)
+void GaussianIrfConvolver::compute(double rate_, PixelIndex irf_idx, double t0_shift, double ref_lifetime)
 {
    if (!std::isfinite(rate_))
       throw(std::runtime_error("Rate not finite"));
 
+   t0_shift += irf->getT0Shift(irf_idx);
+
    rate = rate_;
 
    for (auto& c : convolver)
-      c.compute(rate, t0_shift_);
+      c.compute(rate, t0_shift);
 
 }
 

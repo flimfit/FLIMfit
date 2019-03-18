@@ -28,6 +28,7 @@
 //
 //=========================================================================
 
+#define M_PI 3.14159265358979323846264338327950288
 
 #include "FLIMSimulation.h"
 
@@ -213,7 +214,7 @@ int testFittingCoreDouble()
 int testFittingCoreSingle(double tau, int N, bool use_gaussian_irf)
 {
    // Create simulator
-   int n_t = use_gaussian_irf ? 64 : 512;
+   int n_t = use_gaussian_irf ? 66 : 512;
    int n_x = 5;
    int n_chan = 1;
    int n_im = 3;
@@ -329,14 +330,14 @@ int testFittingCoreMultiChannel()
    std::vector<double> tau = { 1000, 3000 };
    std::vector<double> test = { 700, 4000 };
 
-   //std::vector<std::vector<double>> channel_factors = { { 0.5, 0.25, 0.25 },{ 0.25, 0.5, 0.25 }, { 0.33, 0.33, 0.34 } };
-   std::vector<std::vector<double>> channel_factors = { { 0.75, 0.25 },{ 0.25, 0.75 } };
+   std::vector<std::vector<double>> channel_factors = { { 0.5, 0.25, 0.25 },{ 0.25, 0.5, 0.25 } };
+   //std::vector<std::vector<double>> channel_factors = { { 0.75, 0.25 },{ 0.25, 0.75 } };
 
    int n_x = 50;
    int n_y = 50;
 
    // Create simulator
-   FLIMSimulationTCSPC sim(test.size());
+   FLIMSimulationTCSPC sim(channel_factors[0].size());
    sim.setImageSize(n_x, n_y);
 
    bool use_background = false;
@@ -358,20 +359,38 @@ int testFittingCoreMultiChannel()
       size_t sz = image->getImageSizeInBytes();
       std::fill_n((char*)data_ptr, sz, 0);
       for (int j = 0; j < tau.size(); j++)
-         for (int c = 0; c < channel_factors.size(); c++)
+         for (int c = 0; c < channel_factors[j].size(); c++)
             sim.GenerateImage(tau[j], N * channel_factors[j][c], c, data_ptr);
       image->releaseModifiedPointer<uint32_t>();
 
+
+      // Add circular segmentation mask
+      cv::Mat mask(n_y, n_x, CV_16U);
+      double r2 = n_x * n_y;
+      for (int i = 0; i < n_x*n_y; i++)
+      {
+         double x = ((double)(i % n_x - n_x/2)) / n_x;
+         double y = ((double)(i / n_x - n_x/2)) / n_y;
+         double angle = atan2(y, x) / M_PI + 1.0;
+         int idx = floor(angle * 2);
+         mask.at<uint16_t>(i) = (x*x + y * y < r2) ? idx : 0;
+      }
+      image->setSegmentationMask(mask);
+
       images.push_back(image);
+
    }
 
-   std::vector<std::shared_ptr<Attenuator>> attenuator;
-   attenuator.push_back(std::make_shared<Attenuator>([&](int x, int y) { return (0.1 * x) / n_x + 0.4; }, 1));
-   //attenuator.push_back(std::make_shared<Attenuator>([&](int x, int y) { return (0.2 * y) / n_y + 0.4; }, 2));
+   std::vector<std::shared_ptr<Attenuator>> attenuator{
+      //std::make_shared<Attenuator>([&](int x, int y) { return (0.1 * x) / n_x + 0.4; }, 1),
+      //std::make_shared<Attenuator>([&](int x, int y) { return (0.1 * y) / n_y + 0.4; }, 1),
+      std::make_shared<Attenuator>([&](int x, int y) { return (0.1 * x) * (0.1 * y) / (n_y * n_x) + 0.4; }, 1),
+      std::make_shared<Attenuator>([&](int x, int y) { return (0.1 * x) * (0.1 * y) / (n_y * n_x) + 0.4; }, 2),
+   };
 
-   for(auto& im : images)
-      for(auto& a : attenuator)
-         a->attenuate(im);
+   //for(auto& im : images)
+   //   for(auto& a : attenuator)
+   //      a->attenuate(im);
 
 
    // Make data
@@ -382,9 +401,12 @@ int testFittingCoreMultiChannel()
 
 
    auto model = std::make_shared<DecayModel>();
-   model->setZernikeOrder(1);
-   model->setUseSpectralCorrection(true);
-   model->setTransformedDataParameters(data->GetTransformedDataParameters());
+   //model->setZernikeOrder(2);
+   //model->setUseSpectralCorrection(true);
+   //model->setTransformedDataParameters(data->GetTransformedDataParameters());
+
+   auto params = model->getParameters();
+   std::for_each(params.begin(), params.end(), [](auto& p) { p->setFittingType(FittedGlobally); });
 
    for (int i = 0; i < test.size(); i++)
    {

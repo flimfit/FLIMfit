@@ -48,8 +48,6 @@ public:
    const std::vector<double>& getChannelFactors(int index);
    void setChannelFactors(int index, const std::vector<double>& channel_factors);
 
-   int setVariables(std::vector<double>::const_iterator variables);
-   void precompute();
    int calculateModel(double_iterator a, int adim, double& kap);
    int calculateDerivatives(double_iterator b, int bdim, double_iterator& kap_derv);
 
@@ -64,7 +62,10 @@ public:
 protected:
 
    void setupParameters();
-   void init();
+
+   void init_();
+   void precompute_();
+   int setVariables_(std::vector<double>::const_iterator variables);
 
    int addLifetimeDerivativesForFret(int idx, double_iterator b, int bdim, double_iterator& kap_derv);
    int addContributionDerivativesForFret(double_iterator b, int bdim, double_iterator& kap_derv);

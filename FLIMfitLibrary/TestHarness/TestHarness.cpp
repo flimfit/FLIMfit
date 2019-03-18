@@ -135,7 +135,7 @@ TEST_CASE("Gaussian IRF", "[irf]")
       auto conv = AbstractConvolver::make(dp);
 
       auto start = steady_clock::now();
-      for (int k = 0; k < 1000; k++)
+      for (int k = 0; k < 1; k++)
       {
          std::fill(a.begin(), a.end(), 0);
          for (int j = 0; j < 100; j++)
@@ -163,6 +163,39 @@ TEST_CASE("Gaussian IRF", "[irf]")
    for (int i = 0; i < diff.size(); i++)
       if (fabs(diff[i]) > 0.05)
          throw std::runtime_error("Difference too large");
+
+}
+
+#include "RegionStatsCalculator.h"
+
+TEST_CASE("Truncated mean", "[stats]")
+{
+   RegionStats<float> stats(2, 1);
+
+   int n = 200000;
+   std::vector<float> x(n), w(n, 1.0);
+
+   float mu = 0.2, sigma = 4;
+
+   auto norm_dist = boost::random::normal_distribution<double>(mu, sigma);
+
+   boost::lagged_fibonacci44497 gen;
+   gen.seed(100);
+
+   for (int i = 0; i < n; i++)
+      x[i] = norm_dist(gen);
+
+
+   RegionStatsCalculator calc(0.05);
+   calc.calculateRegionStats(n, x.begin(), 1, w.begin(), 1, stats, 1);
+
+   float est_mu = stats.GetStat(1, 0, PARAM_MEAN);
+   float est_sigma = stats.GetStat(1, 0, PARAM_STD);
+
+   std::cout << "mu: " << est_mu << " (" << mu << ")" << ", " << "sigma: " << est_sigma << " (" << sigma << ")" << std::endl;
+
+   if (abs(mu - est_mu) > 0.05) throw std::runtime_error("Error in estimated truncated mean");
+   if (abs(sigma - est_sigma) > 0.5) throw std::runtime_error("Error in estimated truncated mean");
 
 }
 
