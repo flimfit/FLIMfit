@@ -386,6 +386,9 @@ classdef flim_model_controller < handle
         end
         
         function load(obj,filename)
+            if ~isdeployed % so we can dynamically unload mex file
+                obj.new_model();
+            end
             ff_DecayModel(obj.model,'LoadModel',filename);
             obj.draw();
         end

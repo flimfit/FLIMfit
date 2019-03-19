@@ -150,6 +150,13 @@ function fit(obj, data_series, fit_params, roi_mask, selected)
         irf.ref_lifetime_guess = d.irf.ref_lifetime;
     end
     irf.g_factor = d.irf.g_factor;
+
+    if numel(d.frame_t0) == d.n_datasets
+        irf.frame_t0 = d.frame_t0;
+    end
+    if numel(d.frame_sigma) == d.n_datasets
+        irf.frame_sigma = d.frame_sigma;
+    end
     
     if all(size(d.tvb_profile) == d.data_size(1:2)')
         tvb = d.tvb_profile;

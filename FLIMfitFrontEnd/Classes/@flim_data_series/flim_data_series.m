@@ -102,6 +102,9 @@ classdef flim_data_series < handle & h5_serializer
         
         polarisation_resolved = false;
         
+        frame_t0;
+        frame_sigma;
+
         acceptor;
         intensity_normalisation;
         root_path;

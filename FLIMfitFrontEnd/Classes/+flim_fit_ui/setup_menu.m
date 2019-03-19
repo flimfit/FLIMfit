@@ -138,6 +138,8 @@ function handles = setup_menu(window,handles)
     
     handles.menu_irf_fit_gaussian_irf = uimenu(menu_irf,'Label','Estimate IRF ...','Separator','on');
     handles.menu_irf_fit_analytical_irf = uimenu(menu_irf,'Label','Estimate IRF (Analytical Gaussian)...');
+
+    handles.menu_irf_estimate_t0 = uimenu(menu_irf,'Label','Estimate Imagewise T0 ...','Separator','on');
     
     handles.menu_irf_estimate_background = uimenu(menu_irf,'Label','Estimate IRF Background','Separator','on');
     handles.menu_irf_estimate_g_factor = uimenu(menu_irf,'Label','Estimate G Factor');

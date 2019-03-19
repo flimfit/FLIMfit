@@ -12,13 +12,19 @@ function [analytical_decay] = generate_decay_analytical_irf(t, dt, T, tau, mu, s
         a = 1 / (sqrt(2) * sigma);
         b = (sigma^2 / tau + mu) * a;
         c = (erf(b - T * a) - exp(T/tau) * erf(b)) / (exp(T/tau) - 1);
-        d = 0.5 * tau * exp(0.5*(sigma/tau)^2+mu/tau);
+        d = 0.5 * tau;
+        
+        r0 = 0.5*(sigma/tau)^2+mu/tau;
 
+        if ~isfinite(c); c = -1; end
+        %if (d == inf); d = 0; end
+        
         P = 0.5 * erf(a*(t-mu));
         Q = erf(b-t*a);
-        R = exp(-t/tau);
-
-        h = tau * P + d .* R .* (Q + c);        
+        R = exp(r0-t/tau);
+        R(R==inf) = realmax;
+        
+        h = tau * P + d .* (R .* (Q + c));     
     end
 
 end

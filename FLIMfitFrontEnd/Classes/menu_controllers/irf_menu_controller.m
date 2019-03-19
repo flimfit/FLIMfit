@@ -95,11 +95,7 @@ classdef irf_menu_controller < handle
         function menu_irf_estimate_background(obj)
             obj.data_series_controller.data_series.estimate_irf_background();
         end
-        
-        function menu_irf_estimate_t0(obj)
-            obj.data_masking_controller.t0_guess();    
-        end
-        
+                
         function menu_irf_estimate_g_factor(obj)
             obj.data_masking_controller.g_factor_guess();    
         end        
@@ -125,6 +121,40 @@ classdef irf_menu_controller < handle
             data = sum(double(data),3);
                         
             estimate_irf_interface(t,data,d.polarisation,T,analytical,default_path);
+            
+        end
+        
+        function menu_irf_estimate_t0(obj)
+            d = obj.data_series_controller.data_series;
+
+            ch = 2;
+            T = 1e6 / d.rep_rate;
+            t = d.tr_t(:);
+            f = figure(100);
+            ax1 = subplot(1,2,1);
+            ax2 = subplot(1,2,2);
+            
+            sigma0 = d.irf.gaussian_parameters(ch).sigma;
+            mu0 = d.irf.gaussian_parameters(ch).mu;
+            disp(ch);
+            
+            h = waitbar(0,'Estimating t0...');
+            for i=1:d.n_datasets
+                d.switch_active_dataset(i);
+                data = sum(sum(d.cur_tr_data,3),4);
+                
+                dataj = data(:,ch);
+                [mu(i), sigma(i)] = estimate_t0(t, dataj, mu0, sigma0, T,ax1,ax2);
+                
+                waitbar(i/d.n_datasets,h);
+            end
+            close(h);
+            
+            mu = mu - mu0;
+            d.frame_t0 = mu;
+            d.frame_sigma = sigma;
+
+            disp([mu' sigma'])
             
         end
         
