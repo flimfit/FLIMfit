@@ -514,7 +514,6 @@ int FitController::getFit(int im, int n_fit, uint fit_loc[], double fit[], int& 
    auto& mask = results->getMask(im);
 
    int iml = data->getImLoc(im);
-   im = iml;
    if (iml == -1)
       return 0;
    
@@ -530,7 +529,7 @@ int FitController::getFit(int im, int n_fit, uint fit_loc[], double fit[], int& 
    n_valid = 0;
    for(int rg=1; rg<MAX_REGION; rg++)
    {
-      int r_idx = data->getRegionIndex(im, rg);
+      int r_idx = data->getRegionIndex(iml, rg);
 
       if (r_idx > -1)
       {         
@@ -546,10 +545,10 @@ int FitController::getFit(int im, int n_fit, uint fit_loc[], double fit[], int& 
                   lin_idx += (mask.at<uint16_t>(j) == rg);
                last_idx = idx;
 
-               results->getNonLinearParams(im, rg, lin_idx, nl_params);
-               results->getLinearParams(im, rg, lin_idx, l_params);
+               results->getNonLinearParams(iml, rg, lin_idx, nl_params);
+               results->getLinearParams(iml, rg, lin_idx, l_params);
 
-               fitters[thread]->getFit(idx, nl_params, l_params.begin(), fit+n_meas*i);
+               fitters[thread]->getFit(PixelIndex(idx, im), nl_params, l_params.begin(), fit+n_meas*i);
                n_valid++;
 
             }    

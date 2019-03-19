@@ -56,7 +56,7 @@ DataTransformationSettings getDataTransformationSettings(const mxArray* settings
    return settings;
 }
 
-void getIRFCommon(const mxArray* irf_struct, std::shared_ptr<InstrumentResponseFunction> irf)
+void getIrfCommon(const mxArray* irf_struct, std::shared_ptr<InstrumentResponseFunction> irf)
 {
    if (mxGetFieldNumber(irf_struct, "frame_t0") >= 0)
    {
@@ -70,7 +70,7 @@ void getIRFCommon(const mxArray* irf_struct, std::shared_ptr<InstrumentResponseF
    // TODO: irf.SetIRFShiftMap()
 }
 
-std::shared_ptr<InstrumentResponseFunction> getAnalyticalIRF(const mxArray* irf_struct)
+std::shared_ptr<InstrumentResponseFunction> getAnalyticalIrf(const mxArray* irf_struct)
 {
    AssertInputCondition(mxIsStruct(irf_struct));
 
@@ -87,12 +87,18 @@ std::shared_ptr<InstrumentResponseFunction> getAnalyticalIRF(const mxArray* irf_
 
    auto irf = std::make_shared<GaussianIrf>(params);
 
-   getIRFCommon(irf_struct, irf);
+   if (mxGetFieldNumber(irf_struct, "frame_sigma") >= 0)
+   {
+      std::vector<double> frame_sigma = getVectorFromStruct<double>(irf_struct, "frame_sigma");
+      irf->setFrameSigma(frame_sigma);
+   }
+
+   getIrfCommon(irf_struct, irf);
 
    return irf;
 }
 
-std::shared_ptr<InstrumentResponseFunction> getIRF(const mxArray* irf_struct)
+std::shared_ptr<InstrumentResponseFunction> getIrf(const mxArray* irf_struct)
 {
    AssertInputCondition(mxIsStruct(irf_struct));
 
@@ -123,7 +129,7 @@ std::shared_ptr<InstrumentResponseFunction> getIRF(const mxArray* irf_struct)
 
    irf->setReferenceReconvolution(ref_reconvolution, ref_lifetime_guess);
 
-   getIRFCommon(irf_struct, irf);
+   getIrfCommon(irf_struct, irf);
 
    return irf;
 }
@@ -141,13 +147,13 @@ void FLIMDataMex(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       if (isArgument(nrhs, prhs, "irf"))
       {
          const mxArray* irf_struct = getNamedArgument(nrhs, prhs, "irf");
-         transformation_settings.irf = getIRF(irf_struct);
+         transformation_settings.irf = getIrf(irf_struct);
       }
 
       if (isArgument(nrhs, prhs, "analytical_irf"))
       {
          const mxArray* irf_struct = getNamedArgument(nrhs, prhs, "analytical_irf");
-         transformation_settings.irf = getAnalyticalIRF(irf_struct);
+         transformation_settings.irf = getAnalyticalIrf(irf_struct);
       }
 
       double background_value = 0.0;

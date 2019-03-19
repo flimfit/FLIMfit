@@ -43,14 +43,6 @@
 #include "AlignedVectors.h"
 #include "DataTransformer.h"
 
-/*
-#include "MeasuredIrfConvolver.h"
-#include "InstrumentResponseFunction.h"
-#include "DataTransformer.h"
-#include "IRFConvolution.h"
-#include "FittingParameter.h"
-*/
-
 class FittingParameter;
 class TransformedDataParmeters;
 

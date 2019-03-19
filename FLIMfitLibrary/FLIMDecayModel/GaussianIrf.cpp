@@ -59,3 +59,33 @@ double GaussianIrf::calculateMean()
 {
    return gaussian_params[0].mu;
 }
+
+void GaussianIrf::setFrameSigma(const std::vector<double>& frame_sigma_)
+{
+   frame_varying_sigma = true;
+   frame_sigma = frame_sigma_;
+}
+bool GaussianIrf::isSpatiallyVariant()
+{
+   return InstrumentResponseFunction::isSpatiallyVariant() || frame_varying_sigma;
+}
+
+bool GaussianIrf::arePositionsEquivalent(PixelIndex idx1, PixelIndex idx2)
+{
+   return (!frame_varying_sigma || (idx1.image == idx2.image)) 
+      && InstrumentResponseFunction::arePositionsEquivalent(idx1, idx2);
+}
+
+bool GaussianIrf::hasSpatiallyVaryingSigma()
+{
+   return spatially_varying_t0;
+}
+
+double GaussianIrf::getSigma(PixelIndex idx)
+{
+   if (frame_varying_sigma)
+      return frame_sigma[idx.image];
+   else
+      return -1.0;
+}
+

@@ -43,11 +43,22 @@ public:
 
    std::shared_ptr<AbstractConvolver> getConvolver(std::shared_ptr<TransformedDataParameters> dp);
 
+   void setFrameSigma(const std::vector<double>& frame_sigma);
+
+   bool isSpatiallyVariant();
+   bool arePositionsEquivalent(PixelIndex idx1, PixelIndex idx2);
+   bool hasSpatiallyVaryingSigma(); 
+
+   double getSigma(PixelIndex idx);
+
    double calculateMean();
 
    std::vector<GaussianParameters> gaussian_params;
 
 private:
+
+   bool frame_varying_sigma = false;
+   std::vector<double> frame_sigma;
 
    template<class Archive>
    void serialize(Archive & ar, const unsigned int version)

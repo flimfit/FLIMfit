@@ -17,8 +17,6 @@ GaussianChannelConvolver::GaussianChannelConvolver(const GaussianParameters& par
    t0_shift = std::numeric_limits<double>::infinity();
    rate = -1;
    
-   a = 1.0 / (sqrt(2) * sigma);
-
    dt = timepoints[1] - timepoints[0];
    t0 = timepoints[0];
    n_t = (int) timepoints.size();
@@ -34,11 +32,17 @@ GaussianChannelConvolver::GaussianChannelConvolver(const GaussianParameters& par
    P.resize(q_size);
 }
 
-void GaussianChannelConvolver::compute(double rate_, double t0_shift_)
+void GaussianChannelConvolver::compute(double rate_, double t0_shift_, double sigma_override)
 {   
    // Don't compute if rate, t0 are the same
-   if ((rate_ == rate) && (t0_shift_ == t0_shift))
+   if ((rate_ == rate) && (t0_shift_ == t0_shift) && 
+       (sigma_override < 0 || sigma == sigma_override))
       return;
+
+   if (sigma_override >= 0)
+      sigma = sigma_override;
+
+   a = 1.0 / (sqrt(2) * sigma);
 
    rate = rate_;
    double d_rate = eps * rate;
@@ -219,10 +223,12 @@ void GaussianIrfConvolver::compute(double rate_, PixelIndex irf_idx, double t0_s
 
    t0_shift += irf->getT0Shift(irf_idx);
 
+   double sigma_override = irf->getSigma(irf_idx);
+
    rate = rate_;
 
    for (auto& c : convolver)
-      c.compute(rate, t0_shift);
+      c.compute(rate, t0_shift, sigma_override);
 
 }
 

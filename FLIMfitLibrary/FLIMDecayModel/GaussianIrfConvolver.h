@@ -18,7 +18,7 @@ public:
 
    GaussianChannelConvolver(const GaussianParameters& params, const std::vector<double>& timepoints, double T);
 
-   void compute(double rate, double t0_shift);
+   void compute(double rate, double t0_shift, double sigma_override = -1);
 
    void addDecay(double fact, double_iterator decay) const;
    void addDerivative(double fact, double_iterator derv) const;
