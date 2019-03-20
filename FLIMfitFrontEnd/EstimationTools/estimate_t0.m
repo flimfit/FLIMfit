@@ -72,10 +72,10 @@ function [mu,sigma] = estimate_t0(td, d, mu0, sigma0, T, fit_ax, res_ax)
             ylabel(fit_ax,'Intensity');
             text(fit_ax,max(td),1.2*max(d),label,'HorizontalAlignment','right','FontSize',12,'BackgroundColor',label_color);
             
-            %plot(res_ax,tau,beta,'x-')
-            plot(res_ax,td,(d-dc)./sqrt(d)/n_free,'b');
-            set(res_ax,'Box','off','TickDir','out')
-            xlim(res_ax,[min(td),max(td)])
+            plot(res_ax,tau,beta,'x-')
+            %plot(res_ax,td,(d-dc)./sqrt(d)/n_free,'b');
+            %set(res_ax,'Box','off','TickDir','out')
+            %xlim(res_ax,[min(td),max(td)])
             drawnow
         end
         count = count + 1;
