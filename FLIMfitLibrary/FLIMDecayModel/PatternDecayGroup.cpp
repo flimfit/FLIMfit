@@ -47,10 +47,12 @@ void PatternDecayGroup::precompute_()
          channel_factors[j] = (j == i);
 
       for (int j = 0; j < n_exp; j++)
-      {
-         buffer->compute(1 / pattern[i].tau[j], irf_idx, t0_shift, reference_lifetime);
-         buffer->addDecay(pattern[i].beta[j], channel_factors, decay.begin());
-      }
+         if (pattern[i].beta[j] > 0)
+         {
+
+            buffer->compute(1 / pattern[i].tau[j], irf_idx, t0_shift, reference_lifetime);
+            buffer->addDecay(pattern[i].beta[j], channel_factors, decay.begin());
+         }
    }
 
    for (int i = 0; i < dp->n_chan; i++)
@@ -96,7 +98,7 @@ void PatternDecayGroup::addConstantContribution(float_iterator a)
       a[i] += fact * decay[i];
 }
 
-void PatternDecayGroup::setupIncMatrix(std::vector<int>& inc, int& row, int& col)
+void PatternDecayGroup::setupIncMatrix(inc_matrix& inc, int& row, int& col)
 {
    if (fit->isFittedLocally()) 
       col++; // one column, no variables

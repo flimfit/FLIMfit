@@ -14,8 +14,9 @@ public:
    int calculateModel(double_iterator a, int adim, double& kap);
    int calculateDerivatives(double_iterator b, int bdim, double_iterator& kap_derv);
    void addConstantContribution(float_iterator a);
+   void addUnscaledContribution(double_iterator a);
 
-   void setupIncMatrix(std::vector<int>& inc, int& row, int& col);
+   void setupIncMatrix(inc_matrix& inc, int& row, int& col);
    int getNonlinearOutputs(float_iterator nonlin_variables, float_iterator output, int& nonlin_idx);
    int getLinearOutputs(float_iterator lin_variables, float_iterator output, int& lin_idx);
 
@@ -39,19 +40,19 @@ protected:
 
    int addOffsetColumn(double_iterator a, int adim, double& kap);
    int addScatterColumn(double_iterator a, int adim, double& kap);
-   int addTVBColumn(double_iterator a, int adim, double& kap);
+   //int addTVBColumn(double_iterator a, int adim, double& kap);
    int addGlobalBackgroundLightColumn(double_iterator a, int adim, double& kap);
 
-   int addOffsetDerivatives(double_iterator b, int bdim, double& kap_derv);
-   int addScatterDerivatives(double_iterator b, int bdim, double& kap_derv);
-   int addTVBDerivatives(double_iterator b, int bdim, double& kap_derv);
+   int addOffsetDerivatives(double_iterator b, int bdim, double_iterator& kap_derv);
+   int addScatterDerivatives(double_iterator b, int bdim, double_iterator& kap_derv);
+   //int addTVBDerivatives(double_iterator b, int bdim, double& kap_derv);
 
    std::vector<double> channel_factors;
 
    // RUNTIME VARIABLE PARAMETERS
    double offset = 0;
    double scatter = 0;
-   double tvb = 0;
+   //double tvb = 0;
    std::shared_ptr<AbstractConvolver> convolver;
 
    template<class Archive>

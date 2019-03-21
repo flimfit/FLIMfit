@@ -44,6 +44,7 @@
 
 #include <memory>
 
+
 class FittingError : public std::runtime_error
 {
 public:
@@ -103,8 +104,8 @@ protected:
    FittingOptions options;
 
    // Used by variable projection
-   std::vector<int> inc;
-   std::vector<int> inc_full;
+   inc_matrix inc;
+   inc_matrix inc_full;
    int philp1;
 
    aligned_vector<double> a;

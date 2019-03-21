@@ -342,23 +342,32 @@ void VariableProjectionFitter::fitFcn(int nl, std::vector<double>& initial, int&
                auto& B = vp[0];
 
 
-               std::vector<LinearMLModel> model;
+               std::vector<LinearMLModel> ml_model;
                std::vector<column_vector> x(n_thread);
 
-               for (int i = 0; i < n_thread; i++)
+               for (int thread = 0; thread < n_thread; thread++)
                {
-                  getModel(vp[i].model, irf_idx[0], *(vp[i].a));
-                  model.emplace_back(n, l, (*(vp[i].a)).begin(), nmax);
-                  x[i].set_size(l);
+                  auto& B = vp[thread];
+                  getModel(B.model, irf_idx[0], *(B.a));
+                  ml_model.emplace_back(n, l, (*(B.a)).begin(), nmax);
+                  x[thread].set_size(l);
+                  B.last_idx = -1;
                }
 
                #pragma omp parallel for num_threads(n_thread)
                for (int i = 0; i < s; i++)
                {
                   int thread = omp_get_thread_num();
+                  auto& B = vp[thread];
                   auto& xt = x[thread];
 
-                  model[thread].setData(y + i * n);
+                  if (variable_phi && !B.model->arePositionsEquivalent(B.last_idx, irf_idx[i]))
+                     getModel(B.model, irf_idx[i], *(B.a));
+
+                  B.setData(y + i * n);
+                  B.last_idx = i;
+
+                  ml_model[thread].setData(B.r.begin());
 
                   for (int j = 0; j < l; j++)
                      x[thread](j) = log(lin_params[j + i * lmax]);
@@ -366,7 +375,7 @@ void VariableProjectionFitter::fitFcn(int nl, std::vector<double>& initial, int&
                   double r =
                      dlib::find_min_trust_region(
                         dlib::objective_delta_stop_strategy(1e-7),
-                        model[thread], xt, 10);
+                        ml_model[thread], xt, 10);
 
                   chi2[i] = 2 * r / chi2_norm;
 
@@ -588,7 +597,7 @@ int VariableProjectionFitter::getResidualNonNegative(it alf, double *rnorm, int 
    } // loop over pixels
 
    // Determine which columns have active pixels
-   std::vector<bool> active(l + 1, true);
+   std::vector<bool> active(l+1, true);
    for (int i = 0; i < l; i++)
       active[i] = n_active[i] > (1e-4 * s);
    B.setActiveColumns(active);

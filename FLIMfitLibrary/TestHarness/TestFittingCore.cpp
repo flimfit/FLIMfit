@@ -68,7 +68,7 @@ bool checkResult(std::shared_ptr<FitResults> results, const std::string& param_n
       float std_use = std;
 
       // If global, use expected value
-      if (!isfinite(std_use))
+      if (!isfinite(std_use) || std_use == 0)
       {
          if (expected_std > 0)
             std_use = expected_std;
@@ -112,8 +112,6 @@ int testFittingCoreDouble()
    FLIMSimulationTCSPC sim;
    sim.setImageSize(10, 10);
 
-   bool use_background = false;
-
    int n_image = 2;
 
    // Add decays to image
@@ -136,8 +134,6 @@ int testFittingCoreDouble()
       std::fill_n((char*)data_ptr, sz, 0);
       for (auto taui : tau)
          sim.GenerateImage(taui, N, 0, data_ptr);
-      if (use_background)
-         sim.GenerateImageBackground(N_bg, data_ptr);
       image->releaseModifiedPointer<uint16_t>();
 
       images.push_back(image);
@@ -163,14 +159,6 @@ int testFittingCoreDouble()
       params[i]->setInitialValue(test[i]);
       params[i]->initial_search = false;
    }
-
-   auto bg = std::make_shared<BackgroundLightDecayGroup>();
-   bg->getParameter("offset")->setFittingType(FittedLocally);
-   bg->getParameter("offset")->setInitialValue(N_bg);
-   if (use_background)
-      model->addDecayGroup(bg);
-
-
 
    FitController controller;   
 
@@ -200,8 +188,6 @@ int testFittingCoreDouble()
       pass &= checkResult(results, "G1_tau_1", tau[0], 100);
       pass &= checkResult(results, "G1_tau_2", tau[1], 100);
       //pass &= checkResult(results, "G1_beta_1", beta1);
-      if (use_background)
-         pass &= checkResult(results, "G2_offset", N_bg, 0.5);
 
       if (!pass)
          throw std::runtime_error("Failed test");
@@ -210,6 +196,125 @@ int testFittingCoreDouble()
    return 0;
 }
 
+
+int testFittingCoreBackground()
+{
+   // Create simulator
+   int n_t = 512;
+   int n_x = 5;
+   int n_chan = 2;
+   int n_im = 3;
+
+   int N = 5000;
+   double tau = 1500;
+
+   FLIMSimulationTCSPC sim(n_chan, n_t);
+   sim.setImageSize(n_x, n_x);
+
+
+   auto acq = std::make_shared<AcquisitionParameters>(sim);
+
+   double dt = acq->t_rep / acq->n_t_full;
+   double expected_I0 = N / tau * dt * n_chan;
+
+   int N_bg = 0.05 * N / dt;
+
+   std::vector<std::shared_ptr<FLIMImage>> images;
+
+   for (int i = 0; i < n_im; i++)
+   {
+      auto image = std::make_shared<FLIMImage>(acq, FLIMImage::InMemory, FLIMImage::DataUint16);
+
+      auto data_ptr = image->getDataPointer<uint16_t>();
+      size_t sz = image->getImageSizeInBytes();
+      std::fill_n((char*)data_ptr, sz, 0);
+      for (int c = 0; c < n_chan; c++)
+      {
+         sim.GenerateImage(tau, N, c, data_ptr);
+         sim.GenerateImageBackground(N_bg * (1 + 0.5*c), c, data_ptr);
+      }
+
+      image->releaseModifiedPointer<uint16_t>();
+
+      images.push_back(image);
+   }
+
+   // Make data
+   auto irf = sim.GetGaussianIRF();
+
+   DataTransformationSettings transform(irf);
+   auto data = std::make_shared<FLIMData>(images, transform);
+
+
+   auto model = std::make_shared<DecayModel>();
+   model->setTransformedDataParameters(data->GetTransformedDataParameters());
+
+   auto group = std::make_shared<MultiExponentialDecayGroup>(1);
+   {
+      auto tau_group = group->getParameter("tau_1");
+      tau_group->setFittingType(FittedGlobally);
+      tau_group->setInitialValue(1.2 * tau);
+      tau_group->initial_search = false;
+      group->setChannelFactors(0, { 1.0, 1.0 });
+   }
+   model->addDecayGroup(group);
+
+   auto bg = std::make_shared<BackgroundLightDecayGroup>();
+   bg->getParameter("offset")->setFittingType(FittedGlobally);
+   bg->getParameter("offset")->setInitialValue(N_bg * 0.5);
+   bg->setChannelFactors(0, { 1, 1.5 });
+   model->addDecayGroup(bg);
+
+   auto group2 = std::make_shared<MultiExponentialDecayGroup>(1);
+   group2->setChannelFactors(0, { 3.0, 1.0 });
+   model->addDecayGroup(group2);
+   {
+      auto tau_group = group2->getParameter("tau_1");
+      tau_group->setFittingType(FittedGlobally);
+      tau_group->setInitialValue(4 * tau);
+      tau_group->initial_search = false;
+   }
+
+   std::vector<FitSettings> settings{
+      FitSettings(VariableProjection, Pixelwise, GlobalAnalysis, AverageWeighting, 1),
+      FitSettings(VariableProjection, Imagewise, GlobalAnalysis, AverageWeighting, 1),
+      FitSettings(VariableProjection, Global, GlobalAnalysis, AverageWeighting, 1),
+      FitSettings(MaximumLikelihood, Pixelwise, GlobalAnalysis, AverageWeighting, 4)
+   };
+
+   FitController controller;
+   FittingOptions options;
+   options.use_ml_refinement = true;
+
+   bool pass = true;
+   for (auto s : settings)
+   {
+      controller.setFitSettings(s);
+      controller.setFittingOptions(options);
+      controller.setModel(model);
+      controller.setData(data);
+      controller.init();
+      controller.runWorkers();
+
+      controller.waitForFit();
+
+      // Get results
+      auto results = controller.getResults();
+      auto stats = results->getStats();
+
+      double expected_std = tau / sqrt(N) * 10; // reduced due to background
+      pass &= checkResult(results, "G1_tau_1", tau, expected_std);
+      pass &= checkResult(results, "G2_offset", N_bg, 0.5);
+      pass &= checkResult(results, "G3_I_0", 0, 0.5);
+      pass &= checkResult(results, "G1_I_0", expected_I0, 0.5);
+
+      if (!pass)
+         throw std::runtime_error("Failed test");
+   }
+
+   return 0;
+
+}
 
 int testFittingCoreSingle(double tau, int N, bool use_gaussian_irf)
 {
@@ -222,15 +327,8 @@ int testFittingCoreSingle(double tau, int N, bool use_gaussian_irf)
    FLIMSimulationTCSPC sim(n_chan, n_t);
    sim.setImageSize(n_x, n_x);
 
-   bool use_background = false;
-
-   // Add decays to image
-   int N_bg = 30;
-
    auto acq = std::make_shared<AcquisitionParameters>(sim);
-
    double dt = acq->t_rep / acq->n_t_full;
-
    double expected_I0 = N / tau * dt;
 
 
@@ -245,8 +343,6 @@ int testFittingCoreSingle(double tau, int N, bool use_gaussian_irf)
       std::fill_n((char*)data_ptr, sz, 0);
       for(int c=0; c<n_chan; c++)
          sim.GenerateImage(tau, N * (1+0.5*c), c, data_ptr);
-      if (use_background)
-         sim.GenerateImageBackground(N_bg, data_ptr);
       image->releaseModifiedPointer<uint16_t>();
 
       images.push_back(image);
@@ -274,14 +370,6 @@ int testFittingCoreSingle(double tau, int N, bool use_gaussian_irf)
       params[i]->setInitialValue(test[i]);
    }
 
-   //params[1]->setFittingType(FittedGlobally);
-
-   auto bg = std::make_shared<BackgroundLightDecayGroup>();
-   bg->getParameter("offset")->setFittingType(FittedLocally);
-   bg->getParameter("offset")->setInitialValue(N_bg);
-   if (use_background)
-      model->addDecayGroup(bg);
-
    std::vector<FitSettings> settings {
       FitSettings(VariableProjection, Pixelwise, GlobalAnalysis, AverageWeighting, 4),
       FitSettings(VariableProjection, Imagewise, GlobalAnalysis, AverageWeighting, 1),
@@ -292,7 +380,7 @@ int testFittingCoreSingle(double tau, int N, bool use_gaussian_irf)
    FitController controller;
    FittingOptions options;
 
-   options.use_ml_refinement = true;
+   options.use_ml_refinement = false;
 
    bool pass = true;
    for (auto s : settings)
@@ -313,8 +401,6 @@ int testFittingCoreSingle(double tau, int N, bool use_gaussian_irf)
       double expected_std = tau / sqrt(N);
       pass &= checkResult(results, "G1_tau_1", tau, expected_std);
       pass &= checkResult(results, "G1_I_0", expected_I0);
-      if (use_background)
-         pass &= checkResult(results, "G2_offset", N_bg, 0.5);
 
       if (!pass)
          throw std::runtime_error("Failed test");

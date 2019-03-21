@@ -7,7 +7,7 @@ LinearMLModel::LinearMLModel(int n, int nl, double_iterator a, int adim) :
    mu.set_size(n);
 }
 
-void LinearMLModel::setData(float_iterator y_)
+void LinearMLModel::setData(double_iterator y_)
 {
    y = y_;
    const_chi = 0;

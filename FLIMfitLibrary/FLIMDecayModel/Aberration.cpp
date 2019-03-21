@@ -90,14 +90,14 @@ void Aberration::setOrder(int order_)
    coeff.resize(active_parameters.size());
 }
 
-void Aberration::setupIncMatrix(std::vector<int>& inc, int& row, int& col)
+void Aberration::setupIncMatrix(inc_matrix& inc, int& row, int& col)
 {
    for (auto& p : active_parameters)
    {
       if (p->isFittedGlobally())
       {
          for (int i = 0; i < col; i++)
-            inc[row + i * MAX_VARIABLES] = 1;
+            inc(row,i) = 1;
          row++;
       }
    }

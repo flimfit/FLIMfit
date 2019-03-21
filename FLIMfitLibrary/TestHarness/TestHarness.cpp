@@ -28,6 +28,9 @@
 //
 //=========================================================================
 
+#define CATCH_CONFIG_MAIN
+#include "catch.hpp"
+
 #include "FLIMSimulation.h"
 #include <iostream>
 #include <string>
@@ -45,9 +48,7 @@ extern void testDecayResampler();
 extern int testFittingCoreSingle(double tau, int N, bool use_gaussian_irf);
 extern int testModelDerivatives(bool use_gaussian_irf);
 extern int testFittingCoreMultiChannel();
-
-#define CATCH_CONFIG_MAIN
-#include "catch.hpp"
+extern int testFittingCoreBackground();
 
 #include <chrono>
 
@@ -243,6 +244,11 @@ TEST_CASE("Single fit", "[fitting]")
 TEST_CASE("Double fit", "[fitting]")
 {
    testFittingCoreDouble();
+}
+
+TEST_CASE("Background fit", "[fitting]")
+{
+   testFittingCoreBackground();
 }
 
 TEST_CASE("Multichannel fit", "[fitting]")

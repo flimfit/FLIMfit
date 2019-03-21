@@ -261,25 +261,35 @@ void DecayModel::getOutputParamNames(std::vector<std::string>& param_names, std:
 Set up matrix indicating which parmeters affect which column.
 Each row of the matrix corresponds to a variable
 */
-void DecayModel::setupIncMatrix(std::vector<int>& inc)
+void DecayModel::setupIncMatrix(inc_matrix& inc)
 {
-   // Clear inc and ensure correct size
-   inc.resize(INC_ENTRIES);
-   std::fill(inc.begin(), inc.end(), 0);
+   inc = false;
 
    // Set up inc matrix for groups in buffer
    int g_row = 0, col = 0;
-   std::vector<int> group_inc(INC_ENTRIES, 0);
+   inc_matrix group_inc;
+   group_inc = false;
+
    for (auto& group : decay_groups)
       group->setupIncMatrix(group_inc, g_row, col);
+
+   // Copy last column into lp1
+   int lp1entries = 0;
+   for (int r = 0; r < g_row; r++)
+   {
+      group_inc(r, col) = group_inc(r, group_inc.nc() - 1);
+      lp1entries += group_inc(r, group_inc.nc() - 1);
+   }
+   if (lp1entries)
+      col++;
 
    // Setup t0 and spectral correction parameters which affect each column
 
    int row = 0;
    if (t0_parameter->isFittedGlobally())
    {
-      for (int i = 0; i<col; i++)
-         inc[row + i * MAX_VARIABLES] = 1;
+      for (int i = 0; i < col; i++)
+         inc(row, i) = 1;
       row++;
    }
 
@@ -288,10 +298,10 @@ void DecayModel::setupIncMatrix(std::vector<int>& inc)
 
    // Copy entries from group inc matrix into main inc matrix
    for (int r = 0; r < g_row; r++)
-      for (int c = 0; c < col; c++)
-         inc[(r + row) + c * MAX_VARIABLES] = group_inc[r + c * MAX_VARIABLES];
+      for (int c = 0; c < inc.nc(); c++)
+         inc(r + row, c) = group_inc(r, c);
 
-   n_derivatives = std::count(inc.begin(), inc.end(), 1);
+   n_derivatives = sum(inc);
 }
 
 int DecayModel::getNumDerivatives()
@@ -343,7 +353,7 @@ int DecayModel::calculateModel(double_iterator a, int adim, double_iterator kap,
    int col = 0;
 
    size_t n_cols = getNumColumns();
-   std::fill_n(a, n_cols * adim, 0);
+   std::fill_n(a, (n_cols + 1) * adim, 0);
 
    for (int i = 0; i < decay_groups.size(); i++)
    {
@@ -351,16 +361,19 @@ int DecayModel::calculateModel(double_iterator a, int adim, double_iterator kap,
       decay_groups[i]->precompute();
       col += decay_groups[i]->calculateModel(a + col * adim, adim, kap[0]);
    }
+   for (int i = 0; i < decay_groups.size(); i++)
+      decay_groups[i]->addUnscaledContribution(a + col * adim);
+   col++;
 
    // Apply scaling to convert counts -> photons
-   for (int i = 0; i < adim*(col + 1); i++)
+   for (int i = 0; i < adim*col; i++)
       a[i] *= photons_per_count;
  
    int x = irf_idx.pixel % dp->n_x;
    int y = irf_idx.pixel / dp->n_x;
 
    for (auto& s : spectral_correction)
-      s->apply(x, y, a, adim, col + 1);
+      s->apply(x, y, a, adim, col);
 
    return col;
 }
@@ -578,7 +591,7 @@ const std::vector<std::shared_ptr<FittingParameter>> DecayModel::getAllParameter
 
 
 
-void DecayModel::getParameterIntensityIndices(std::vector<size_t>& linear, std::vector<size_t>& nonlinear)
+void DecayModel::getParameterIntensityIndices(std::vector<int>& linear, std::vector<int>& nonlinear)
 {
    linear.clear();
    nonlinear.clear();
@@ -593,10 +606,18 @@ void DecayModel::getParameterIntensityIndices(std::vector<size_t>& linear, std::
       size_t n_group_nonlinear = g->getNonlinearOutputParamNames().size();
       size_t n_group_linear = g->getLinearOutputParamNames().size();
 
-      for (size_t i = 0; i<n_group_nonlinear; i++)
-         nonlinear.push_back(n_linear);
-      for (size_t i = 0; i<n_group_linear; i++)
-         linear.push_back(n_linear);
+      if (n_group_linear > 0)
+      {
+         for (size_t i = 0; i < n_group_nonlinear; i++)
+            nonlinear.push_back(n_linear);
+         for (size_t i = 0; i < n_group_linear; i++)
+            linear.push_back(n_linear);
+      }
+      else
+      {
+         for (size_t i = 0; i < n_group_nonlinear; i++)
+            nonlinear.push_back(-1);
+      }
 
       n_linear += n_group_linear;
    }
@@ -616,7 +637,7 @@ void DecayModel::validateDerivatives()
    double epsf = factor*epsmch;
    double epslog = log10(eps);
 
-   std::vector<int> inc(INC_ENTRIES);
+   inc_matrix inc;
    setupIncMatrix(inc);
 
    int n_nonlinear = getNumNonlinearVariables();
@@ -658,7 +679,7 @@ void DecayModel::validateDerivatives()
    for (int i = 0; i < n_nonlinear; i++)
       for (int j = 0; j < n_cols; j++)
       {
-         if (inc[i + j * MAX_VARIABLES])
+         if (inc(i,j))
          {
             std::vector<double> alf_p(alf);
 

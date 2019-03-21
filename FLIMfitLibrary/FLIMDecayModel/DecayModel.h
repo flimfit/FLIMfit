@@ -76,7 +76,7 @@ public:
 
    void init();
 
-   void setupIncMatrix(std::vector<int>& inc);
+   void setupIncMatrix(inc_matrix& inc);
    void setVariables(const std::vector<double>& alf);
    int calculateModel(double_iterator a, int adim, double_iterator kap, PixelIndex irf_idx);
    int calculateDerivatives(double_iterator b, int bdim, const_double_iterator a, int adim, int n_col, double_iterator kap, PixelIndex irf_idx);
@@ -90,7 +90,7 @@ public:
    int getNonlinearOutputs(float_iterator nonlin_variables, float_iterator outputs);
    int getLinearOutputs(float_iterator lin_variables, float_iterator outputs);
 
-   void getParameterIntensityIndices(std::vector<size_t>& linear, std::vector<size_t>& nonlinear);
+   void getParameterIntensityIndices(std::vector<int>& linear, std::vector<int>& nonlinear);
 
    int getNumNonlinearVariables();
    int getNumColumns();

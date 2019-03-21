@@ -38,6 +38,7 @@
 #include <vector>
 #include <memory>
 #include <QObject>
+#include <dlib/matrix.h>
 
 #include "PixelIndex.h"
 #include "AlignedVectors.h"
@@ -48,6 +49,10 @@ class TransformedDataParmeters;
 
 #define INC_ENTRIES     256
 #define MAX_VARIABLES   32
+#define MAX_COLUMNS     32
+
+typedef dlib::matrix<int, MAX_VARIABLES, MAX_COLUMNS> inc_matrix;
+
 
 typedef std::vector<float>::iterator float_iterator;
 
@@ -81,8 +86,9 @@ public:
    virtual int calculateModel(double_iterator a, int adim, double& kap) = 0;
    virtual int calculateDerivatives(double_iterator b, int bdim, double_iterator& kap_derv) = 0;
    virtual void addConstantContribution(float_iterator a) {}
+   virtual void addUnscaledContribution(double_iterator a) {}
 
-   virtual void setupIncMatrix(std::vector<int>& inc, int& row, int& col) = 0;
+   virtual void setupIncMatrix(inc_matrix& inc, int& row, int& col) = 0;
    virtual int getNonlinearOutputs(float_iterator nonlin_variables, float_iterator output, int& nonlin_idx) = 0;
    virtual int getLinearOutputs(float_iterator lin_variables, float_iterator output, int& lin_idx) = 0;
 

@@ -222,7 +222,7 @@ void FitResults::computeRegionStats(float confidence_factor)
    RegionStatsCalculator stats_calculator(confidence_factor);
    
    std::vector<float> lin_buf, nonlin_buf;
-   std::vector<size_t> linear_intensity_index, nonlinear_intensity_index;
+   std::vector<int> linear_intensity_index, nonlinear_intensity_index;
 
    model->getParameterIntensityIndices(linear_intensity_index, nonlinear_intensity_index);
    

@@ -195,7 +195,7 @@ void MultiExponentialDecayGroupPrivate::setChannelFactors(int index, const std::
 
 
 
-void MultiExponentialDecayGroupPrivate::setupIncMatrix(std::vector<int>& inc, int& inc_row, int& inc_col)
+void MultiExponentialDecayGroupPrivate::setupIncMatrix(inc_matrix& inc, int& inc_row, int& inc_col)
 {
    // Set diagonal elements of incidence matrix for variable tau's   
       
@@ -205,7 +205,7 @@ void MultiExponentialDecayGroupPrivate::setupIncMatrix(std::vector<int>& inc, in
    {
       if (tau_parameters[i]->isFittedGlobally())
       {
-         inc[inc_row + (inc_col + cur_col) * MAX_VARIABLES] = 1;
+         inc(inc_row,(inc_col + cur_col)) = 1;
          inc_row++;
       }
 
@@ -220,7 +220,7 @@ void MultiExponentialDecayGroupPrivate::setupIncMatrix(std::vector<int>& inc, in
       {
          if (beta_parameters[i]->isFittedGlobally())
          {
-            inc[inc_row + inc_col * MAX_VARIABLES] = 1;
+            inc(inc_row,inc_col) = 1;
             inc_row++;
          }
       }

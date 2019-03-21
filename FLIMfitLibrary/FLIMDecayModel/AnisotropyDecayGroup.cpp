@@ -131,7 +131,7 @@ void AnisotropyDecayGroup::precompute_()
 Set up matrix indicating which parmeters affect which column.
 Each row of the matrix corresponds to a variable
 */
-void AnisotropyDecayGroup::setupIncMatrix(std::vector<int>& inc, int& inc_row, int& inc_col)
+void AnisotropyDecayGroup::setupIncMatrix(inc_matrix& inc, int& inc_row, int& inc_col)
 {
    int n_anisotropy_group = n_anisotropy_populations + include_r_inf + 1;
 
@@ -140,7 +140,7 @@ void AnisotropyDecayGroup::setupIncMatrix(std::vector<int>& inc, int& inc_row, i
       if (p->isFittedGlobally())
       {
          for (int j = 0; j<n_anisotropy_group; j++)
-            inc[inc_row + (inc_col + j) * MAX_VARIABLES] = 1;
+            inc(inc_row, inc_col + j) = 1;
          inc_row++;
       }
 
@@ -149,7 +149,7 @@ void AnisotropyDecayGroup::setupIncMatrix(std::vector<int>& inc, int& inc_row, i
       if (p->isFittedGlobally())
       {
          for (int j = 0; j<n_anisotropy_group; j++)
-            inc[inc_row + (inc_col + j) * MAX_VARIABLES] = 1;
+            inc(inc_row, inc_col + j) = 1;
          inc_row++;
       }
 
@@ -159,7 +159,7 @@ void AnisotropyDecayGroup::setupIncMatrix(std::vector<int>& inc, int& inc_row, i
    for (int j=0; j<n_anisotropy_populations; j++)
       if (theta_parameters[j]->isFittedGlobally())
       {
-         inc[inc_row + (inc_col + j) * MAX_VARIABLES] = 1;
+         inc(inc_row, inc_col + j) = 1;
          inc_row++;
       }
 

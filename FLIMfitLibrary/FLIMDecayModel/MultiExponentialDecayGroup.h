@@ -17,7 +17,7 @@ public:
 
    virtual int calculateDerivatives(double_iterator b, int bdim, double_iterator& kap_derv);
    virtual int getNonlinearOutputs(float_iterator nonlin_variables, float_iterator output, int& nonlin_idx);
-   virtual void setupIncMatrix(std::vector<int>& inc, int& row, int& col);
+   virtual void setupIncMatrix(inc_matrix& inc, int& row, int& col);
 
    void setFitChannelFactors(bool fit_channel_factors_);
 

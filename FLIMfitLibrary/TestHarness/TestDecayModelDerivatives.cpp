@@ -30,16 +30,18 @@
 
 
 #include "FLIMSimulation.h"
-
-#include <iostream>
-#include <string>
-#include <cmath>
 #include "FitController.h"
 #include "MultiExponentialDecayGroup.h"
 #include "BackgroundLightDecayGroup.h"
 #include "AnisotropyDecayGroup.h"
 #include "FLIMImage.h"
 #include "PatternDecayGroup.h"
+
+#include <iostream>
+#include <string>
+#include <cmath>
+#include <future>
+
 
 void validate(std::vector<std::shared_ptr<AbstractDecayGroup>> groups, bool gaussian_irf)
 {
@@ -94,7 +96,7 @@ void validate(std::shared_ptr<AbstractDecayGroup> g, bool gaussian_irf, bool fit
    model->init();
 
    // Test with all free
-   auto params = model->getParameters();
+   auto params = model->getAllParameters();
    std::for_each(params.begin(), params.end(), [](auto& p) { p->setFittingType(FittedGlobally); });
    model->init();
    model->validateDerivatives();
@@ -125,91 +127,116 @@ void validate(std::shared_ptr<AbstractDecayGroup> g, bool gaussian_irf, bool fit
 
 int testModelDerivatives(bool gaussian_irf)
 {
-   
-   // Fitting zernike modes
-   {
-      auto group = std::make_shared<MultiExponentialDecayGroup>(2);
-      validate(group, gaussian_irf, true);
-   }
 
+   std::vector<std::function<void(void)>> tasks;
+
+   // Background groups
+   tasks.push_back([=]
+      {
+         auto group = std::make_shared<BackgroundLightDecayGroup>();
+         validate(group, gaussian_irf);
+      });
+
+
+   // Fitting zernike modes
+   tasks.push_back([=]
+      {
+         auto group = std::make_shared<MultiExponentialDecayGroup>(2);
+         validate(group, gaussian_irf, true);
+      });
 
    // Fitting channel factors
-   {
-      auto group = std::make_shared<MultiExponentialDecayGroup>(2);
-      group->setFitChannelFactors(true);
-      validate(group, gaussian_irf);
-   }
+   tasks.push_back([=]
+      {
+         auto group = std::make_shared<MultiExponentialDecayGroup>(2);
+         group->setFitChannelFactors(true);
+         validate(group, gaussian_irf);
+      });
 
    // Test multiexponential group
    for (int n_exp : { 1,3 })
-   {
-      auto group = std::make_shared<MultiExponentialDecayGroup>(n_exp);
-      validate(group, gaussian_irf);
+      tasks.push_back([=]
+         {
+            auto group = std::make_shared<MultiExponentialDecayGroup>(n_exp);
+            validate(group, gaussian_irf);
 
-      // with global beta
-      group->setContributionsGlobal(true);
-      validate(group, gaussian_irf);
-   }
+            // with global beta
+            group->setContributionsGlobal(true);
+            validate(group, gaussian_irf);
+         });
    
    
    // Test some basic combinations of FRET groups
-   {
-      std::vector<std::shared_ptr<AbstractDecayGroup>> groups;
-      groups.push_back(std::make_shared<FretDecayGroup>(1, 1, true));
-      validate(groups, gaussian_irf);
-   }
+   tasks.push_back([=]
+      {
+         std::vector<std::shared_ptr<AbstractDecayGroup>> groups;
+         groups.push_back(std::make_shared<FretDecayGroup>(1, 1, true));
+         validate(groups, gaussian_irf);
+      });
 
    // Test FRET group
    for (int n_fret : {1, 2})
       for (int n_exp : {1, 3})
          for (int n_acc : {1, 2})
-         {
-            auto group = std::make_shared<FretDecayGroup>(n_exp, n_fret, false);
-            group->setNumAcceptorExponential(n_acc);
-            group->setUseStaticModel(false);
-            group->setIncludeAcceptor(false);
-            validate(group, gaussian_irf);
+            tasks.push_back([=]
+               {
+                  auto group = std::make_shared<FretDecayGroup>(n_exp, n_fret, false);
+                  group->setNumAcceptorExponential(n_acc);
+                  group->setUseStaticModel(false);
+                  group->setIncludeAcceptor(false);
+                  validate(group, gaussian_irf);
 
-            group->setIncludeAcceptor(true);
-            validate(group, gaussian_irf);
+                  group->setIncludeAcceptor(true);
+                  validate(group, gaussian_irf);
 
-            group->setIncludeDonorOnly(true);
-            validate(group, gaussian_irf);
+                  group->setIncludeDonorOnly(true);
+                  validate(group, gaussian_irf);
 
-            group->setUseStaticModel(true);
-            //validate(group, gaussian_irf);
+                  group->setUseStaticModel(true);
+                  validate(group, gaussian_irf);
 
-         }
+               });
    
    // Test anisotropy group
    for (int n_exp : {1, 2})
       for (int n_pol : {1, 2})
-      {
-         auto group = std::make_shared<AnisotropyDecayGroup>(n_exp, n_pol);
-         validate(group, gaussian_irf);
-      }
+         tasks.push_back([=]
+            {
+               auto group = std::make_shared<AnisotropyDecayGroup>(n_exp, n_pol);
+               validate(group, gaussian_irf);
+            });
       
    // Test combination of multiexponential groups
-   {
-      std::vector<std::shared_ptr<AbstractDecayGroup>> groups;
-      groups.push_back(std::make_shared<MultiExponentialDecayGroup>(3, true));
-      groups.push_back(std::make_shared<MultiExponentialDecayGroup>(2, true));
-      validate(groups, gaussian_irf);
-   }
+   tasks.push_back([=]
+      {
+         std::vector<std::shared_ptr<AbstractDecayGroup>> groups;
+         groups.push_back(std::make_shared<MultiExponentialDecayGroup>(3, true));
+         groups.push_back(std::make_shared<MultiExponentialDecayGroup>(2, true));
+         validate(groups, gaussian_irf);
+      });
    // Test some basic combinations of FRET groups
-   {
-      std::vector<std::shared_ptr<AbstractDecayGroup>> groups;
-      groups.push_back(std::make_shared<FretDecayGroup>(1, 1, true));
-      groups.push_back(std::make_shared<FretDecayGroup>(1, 2, true));
-      validate(groups, gaussian_irf);
-   }
+   tasks.push_back([=]
+      {
+         std::vector<std::shared_ptr<AbstractDecayGroup>> groups;
+         groups.push_back(std::make_shared<FretDecayGroup>(1, 1, true));
+         groups.push_back(std::make_shared<FretDecayGroup>(1, 2, true));
+         validate(groups, gaussian_irf);
+      });
 
-   {
-      std::vector<std::shared_ptr<AbstractDecayGroup>> groups;
-      groups.push_back(std::make_shared<FretDecayGroup>(2, 1, false));
-      groups.push_back(std::make_shared<FretDecayGroup>(1, 1, false));
-      validate(groups, gaussian_irf);
-   }
+   tasks.push_back([=]
+      {
+         std::vector<std::shared_ptr<AbstractDecayGroup>> groups;
+         groups.push_back(std::make_shared<FretDecayGroup>(2, 1, false));
+         groups.push_back(std::make_shared<FretDecayGroup>(1, 1, false));
+         validate(groups, gaussian_irf);
+      });
 
+   #pragma omp parallel for schedule(dynamic)
+   for (int i = 0; i < tasks.size(); i++)
+   {
+      tasks[i]();
+      std::cout << "*";
+   }
+   std::cout << std::endl;
    return 0;
 }

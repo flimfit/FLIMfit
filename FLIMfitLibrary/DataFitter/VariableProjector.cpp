@@ -85,7 +85,7 @@ void VariableProjector::weightActiveModel()
       }
 }
 
-void VariableProjector::computeJacobian(const std::vector<int>& inc, double residual[], double jacobian[])
+void VariableProjector::computeJacobian(const inc_matrix& inc, double residual[], double jacobian[])
 {
    int nml = nr - la;
    for (int i = 0; i < nml; i++)
@@ -96,16 +96,17 @@ void VariableProjector::computeJacobian(const std::vector<int>& inc, double resi
       {
          int ja = 0;
          double acum = 0.;
-         for (int j = 0; j < la; ++j)
+         for (int j = 0; j < l; ++j)
          {
-            if (active[j] && inc[k + j * MAX_VARIABLES])
+            if (active[j] && inc(k,j))
             {
-               acum += bw[ipl + m * ndim] * r[j];
+               acum += bw[ipl + m * ndim] * r[ja];
                ++m;
+               ++ja;
             }
          }
 
-         if (inc[k + l * MAX_VARIABLES])
+         if (inc(k,l))
          {
             acum += bw[ipl + m * ndim];
             ++m;
@@ -119,14 +120,15 @@ void VariableProjector::computeJacobian(const std::vector<int>& inc, double resi
 
 
 
-void VariableProjector::transformAB(const std::vector<int>& inc)
+void VariableProjector::transformAB(const inc_matrix& inc)
 {
    weightActiveModel();
 
+   int lp1 = l + 1;
    int m = 0, ma = 0;
    for (int k = 0; k < nl; ++k)
-      for (int j = 0; j < l; ++j)
-         if (inc[k + j * MAX_VARIABLES])
+      for (int j = 0; j < lp1; ++j)
+         if (inc(k,j))
          {
             if (active[j])
             {

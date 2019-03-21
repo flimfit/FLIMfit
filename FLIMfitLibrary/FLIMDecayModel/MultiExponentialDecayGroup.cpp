@@ -104,7 +104,7 @@ int MultiExponentialDecayGroup::getNonlinearOutputs(float_iterator nonlin_variab
    return output_idx;
 }
 
-void MultiExponentialDecayGroup::setupIncMatrix(std::vector<int>& inc, int& row, int& col)
+void MultiExponentialDecayGroup::setupIncMatrix(inc_matrix& inc, int& row, int& col)
 {
    MultiExponentialDecayGroupPrivate::setupIncMatrix(inc, row, col);
 
@@ -114,7 +114,7 @@ void MultiExponentialDecayGroup::setupIncMatrix(std::vector<int>& inc, int& row,
          if (p->isFittedGlobally())
          {
             for (int i = 0; i < col; i++)
-               inc[row + i * MAX_VARIABLES] = 1;
+               inc(row,i) = 1;
             row++;
          }
    }

@@ -40,7 +40,7 @@ public:
    void GenerateImage(double tau, int N, int chan, U* decay);
 
    template <class U>
-   void GenerateImageBackground(int N, U* decay);
+   void GenerateImageBackground(int N, int chan, U* decay);
 
    std::shared_ptr<InstrumentResponseFunction> GenerateIRF(int N);
    std::shared_ptr<InstrumentResponseFunction> GetGaussianIRF();
@@ -121,7 +121,7 @@ void FLIMSimulation::GenerateImage(double tau, int N, int chan, U* decay)
 }
 
 template <class U>
-void FLIMSimulation::GenerateImageBackground(int N, U* decay)
+void FLIMSimulation::GenerateImageBackground(int N, int chan, U* decay)
 {
    boost::random::poisson_distribution<int> poisson_dist(N);
 
@@ -130,8 +130,8 @@ void FLIMSimulation::GenerateImageBackground(int N, U* decay)
       for (int y = 0; y < n_y; y++)
       {
          size_t pos = y + n_y*x;
-         for (int i = 0; i < n_meas_full; i++)
-            decay[pos * n_meas_full + i] += (U) poisson_dist(gen);
+         for (int i = 0; i < n_t_full; i++)
+            decay[(pos * n_chan + chan) * n_t_full + i] += (U) poisson_dist(gen);
       }
    }
 }

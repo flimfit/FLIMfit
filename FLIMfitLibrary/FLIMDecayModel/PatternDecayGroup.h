@@ -66,7 +66,7 @@ public:
    int calculateDerivatives(double_iterator b, int bdim, double_iterator& kap_derv);
    void addConstantContribution(float_iterator a);
 
-   void setupIncMatrix(std::vector<int>& inc, int& row, int& col);
+   void setupIncMatrix(inc_matrix& inc, int& row, int& col);
    int getNonlinearOutputs(float_iterator nonlin_variables, float_iterator output, int& nonlin_idx);
    int getLinearOutputs(float_iterator lin_variables, float_iterator output, int& lin_idx);
 

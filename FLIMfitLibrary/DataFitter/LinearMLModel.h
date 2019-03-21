@@ -13,7 +13,7 @@ public:
 
    LinearMLModel(int n, int nl, double_iterator a, int adim);
 
-   void setData(float_iterator y);
+   void setData(double_iterator y);
 
    double operator()(const column_vector& x) const;
    void get_derivative_and_hessian(const column_vector& x, column_vector& J, general_matrix& H) const;
@@ -25,7 +25,7 @@ protected:
    int adim;
 
    double_iterator a;
-   float_iterator y;
+   double_iterator y;
 
    mutable column_vector beta;
    mutable column_vector mu;

@@ -54,7 +54,7 @@ public:
    int getNonlinearOutputs(float_iterator nonlin_variables, float_iterator output, int& nonlin_idx);
    int getLinearOutputs(float_iterator lin_variables, float_iterator output, int& lin_idx);
 
-   void setupIncMatrix(std::vector<int>& inc, int& row, int& col);
+   void setupIncMatrix(inc_matrix& inc, int& row, int& col);
 
    std::vector<std::string> getLinearOutputParamNames();
    std::vector<std::string> getNonlinearOutputParamNames();

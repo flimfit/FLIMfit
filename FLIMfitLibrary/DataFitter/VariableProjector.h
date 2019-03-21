@@ -21,11 +21,11 @@ public:
 protected:   
    void setData(const_float_iterator y);
    void setNumResampled(int nr_) { nr = nr_; }
-   void transformAB(const std::vector<int>& inc);
+   void transformAB(const inc_matrix& inc);
    void backSolve();
    void weightModel();
    void weightActiveModel();
-   void computeJacobian(const std::vector<int>& inc, double *residual, double *jacobian);
+   void computeJacobian(const inc_matrix& inc, double *residual, double *jacobian);
 
    double d_sign(double *a, double *b);
 

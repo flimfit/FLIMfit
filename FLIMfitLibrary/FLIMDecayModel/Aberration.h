@@ -4,6 +4,7 @@
 #include <opencv2/core.hpp>
 #include "AbstractConvolver.h"
 #include "FittingParameter.h"
+#include "AbstractDecayGroup.h"
 
 class Aberration
 {
@@ -13,7 +14,7 @@ public:
    void setTransformedDataParameters(std::shared_ptr<TransformedDataParameters> dp);
    void setOrder(int order);
 
-   void setupIncMatrix(std::vector<int>& inc, int& row, int& col);
+   void setupIncMatrix(inc_matrix& inc, int& row, int& col);
    int setVariables(std::vector<double>::const_iterator params);
 
    void apply(int x, int y, double_iterator a, int adim, int n_col);
