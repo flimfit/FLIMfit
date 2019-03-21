@@ -141,7 +141,8 @@ protected:
 private:
 
    int n_derivatives = -1;
-   
+   bool has_lp1entries = false;
+
    double t0_shift;
    double reference_lifetime;
 

@@ -129,7 +129,6 @@ void BackgroundLightDecayGroup::setupIncMatrix(inc_matrix& inc, int& inc_row, in
          inc_col++;   
    }
 
-   // TODO: setup LP1 column for global stray light
    for (int i = 0; i < parameters.size(); i++)
    {
       if (parameters[i]->isFittedGlobally())

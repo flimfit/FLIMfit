@@ -98,18 +98,21 @@ void VariableProjector::computeJacobian(const inc_matrix& inc, double residual[]
          double acum = 0.;
          for (int j = 0; j < l; ++j)
          {
-            if (active[j] && inc(k,j))
+            if (active[j])
             {
-               acum += bw[ipl + m * ndim] * r[ja];
-               ++m;
-               ++ja;
+               if (inc(k, j))
+               {
+                  acum += bw[ipl + m * ndim] * r[ja];
+                  m++;
+               }
+               ja++;
             }
          }
 
          if (inc(k,l))
          {
             acum += bw[ipl + m * ndim];
-            ++m;
+            m++;
          }
 
          jacobian[i*nl + k] = -acum;

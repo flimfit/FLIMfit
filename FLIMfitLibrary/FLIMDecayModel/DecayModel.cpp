@@ -274,13 +274,14 @@ void DecayModel::setupIncMatrix(inc_matrix& inc)
       group->setupIncMatrix(group_inc, g_row, col);
 
    // Copy last column into lp1
-   int lp1entries = 0;
+   has_lp1entries = false;
    for (int r = 0; r < g_row; r++)
    {
       group_inc(r, col) = group_inc(r, group_inc.nc() - 1);
-      lp1entries += group_inc(r, group_inc.nc() - 1);
+      has_lp1entries |= group_inc(r, group_inc.nc() - 1) > 0;
+      group_inc(r, group_inc.nc() - 1) = 0;
    }
-   if (lp1entries)
+   if (has_lp1entries)
       col++;
 
    // Setup t0 and spectral correction parameters which affect each column
@@ -375,7 +376,7 @@ int DecayModel::calculateModel(double_iterator a, int adim, double_iterator kap,
    for (auto& s : spectral_correction)
       s->apply(x, y, a, adim, col);
 
-   return col;
+   return col - 1;
 }
 
 int DecayModel::calculateDerivatives(double_iterator b, int bdim, const_double_iterator a, int adim, int n_col, double_iterator kap, PixelIndex irf_idx)
@@ -430,8 +431,15 @@ int DecayModel::addT0Derivatives(double_iterator b, int bdim, double_iterator& k
       decay_groups_derv[i]->precompute();
       col += decay_groups_derv[i]->calculateModel(b + col * bdim, bdim, kap);
    }
+   if (has_lp1entries)
+   {
+      for (int i = 0; i < decay_groups_derv.size(); i++)
+         decay_groups_derv[i]->addUnscaledContribution(b + col * bdim);
+      col++;
+   }
 
-   // Make negative
+
+      // Make negative
    for (int i = 0; i<bdim*col; i++)
       b[i] *= -1;
 
@@ -440,6 +448,12 @@ int DecayModel::addT0Derivatives(double_iterator b, int bdim, double_iterator& k
    for (int i = 0; i < decay_groups.size(); i++)
    {
       col += decay_groups[i]->calculateModel(b + col * bdim, bdim, kap);
+   }
+   if (has_lp1entries)
+   {
+      for (int i = 0; i < decay_groups_derv.size(); i++)
+         decay_groups_derv[i]->addUnscaledContribution(b + col * bdim);
+      col++;
    }
 
    double inv_dt = -1.0 / dt;
