@@ -79,5 +79,5 @@ set(HEADERS
 # Make library
 #===================================================
 add_library(DataFitter STATIC ${SOURCE} ${HEADERS})
-target_link_libraries(DataFitter PRIVATE levmar PUBLIC FLIMDecayModel dlib::dlib OpenMP::OpenMP_CXX)
+target_link_libraries(DataFitter PUBLIC levmar FLIMDecayModel dlib::dlib OpenMP::OpenMP_CXX)
 target_include_directories(DataFitter INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
