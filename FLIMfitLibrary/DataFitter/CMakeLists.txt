@@ -79,6 +79,5 @@ set(HEADERS
 # Make library
 #===================================================
 add_library(DataFitter STATIC ${SOURCE} ${HEADERS})
-target_link_libraries(DataFitter PUBLIC Qt5::Core FLIMDecayModel levmar ${LEVMAR_LIBRARIES} dlib::dlib OpenMP::OpenMP_CXX)
-target_include_directories(DataFitter INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}
-                                      PUBLIC ${LEVMAR_INCLUDE_DIRS})
+target_link_libraries(DataFitter PRIVATE levmar PUBLIC FLIMDecayModel dlib::dlib OpenMP::OpenMP_CXX)
+target_include_directories(DataFitter INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})

@@ -30,8 +30,6 @@
 cmake_minimum_required(VERSION 3.9)
 project(FLIMfitMex)
 
-# Find MATLAB
-set(MATLAB_FIND_DEBUG TRUE)
 find_package(Matlab COMPONENTS MEX_COMPILER MX_LIBRARY REQUIRED)
 
 matlab_add_mex(NAME FLIMfitMex SRC MexUtils.h 
@@ -43,8 +41,6 @@ matlab_add_mex(NAME FLIMfitMex SRC MexUtils.h
                                    FLIMDataMex.cpp 
                                    FLIMImageMex.cpp
                LINK_TO FLIMfitLib)
-
-set(CMAKE_INSTALL_OPENMP_LIBRARIES TRUE)
 
 add_custom_command(TARGET FLIMfitMex POST_BUILD COMMAND ${CMAKE_COMMAND} -E 
    copy $<TARGET_FILE:FLIMfitMex> ${MEX_OUT_DIR})

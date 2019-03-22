@@ -1,10 +1,10 @@
 # levmar CMake file; see http://www.cmake.org and 
 #                        http://www.insightsoftwareconsortium.org/wiki/index.php/CMake_Tutorial
 
-CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.0)
 PROJECT(LEVMAR)
 
-#FIND_PACKAGE(LAPACK)
+FIND_PACKAGE(LAPACK)
 
 SET(HAVE_LAPACK ${LAPACK_FOUND} CACHE BOOL "Do we have LAPACK/BLAS?")
 # the directory where the lapack/blas/f2c libraries reside
@@ -16,7 +16,7 @@ IF(HAVE_PLASMA)
 ENDIF(HAVE_PLASMA)
 SET(LINSOLVERS_RETAIN_MEMORY 0 CACHE BOOL "Should linear solvers retain working memory between calls? (non-reentrant!)")
 SET(LM_DBL_PREC 1 CACHE BOOL "Build double precision routines?")
-SET(LM_SNGL_PREC 1 CACHE BOOL "Build single precision routines?")
+SET(LM_SNGL_PREC 0 CACHE BOOL "Build single precision routines?")
 OPTION(BUILD_DEMO "Build demo program?" FALSE)
 
 # actual names for the lapack/blas/f2c libraries
@@ -66,9 +66,8 @@ ADD_LIBRARY(levmar STATIC
   lm.c Axb.c misc.c lmlec.c lmbc.c lmblec.c lmbleic.c
   levmar.h misc.h compiler.h
 )
+target_include_directories(levmar PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
-set( LEVMAR_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE STRING "Include-dir for Stuff." PARENT_SCOPE)
-set( LEVMAR_LIBRARIES ${LAPACK_LIBRARIES} PARENT_SCOPE)
 # demo program
 IF(BUILD_DEMO)
   SET(LIBS levmar)

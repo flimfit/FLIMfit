@@ -29,13 +29,6 @@
 
 project(TestHarness)
 
-# Include the BOOST header files
-#===================================================
-find_package(Boost REQUIRED COMPONENTS system filesystem serialization)
-find_package(Qt5 COMPONENTS Core)
-
-# Set the source and header files
-#===================================================
 set(SOURCE
    TestDecayModelDerivatives.cpp
    TestHarness.cpp
@@ -47,18 +40,14 @@ set(SOURCE
 )
 
 set(HEADERS
-   catch.hpp
    FLIMSimulation.h
    Attenuator.h
    QR_test.h
 )
 
-#link_directories(${LAPACKBLAS_DIR}) # lapack doesn't give us the right path
-add_executable(TestHarness ${SOURCE} ${HEADERS} )
+add_executable(TestHarness ${SOURCE} ${HEADERS})
 
-target_link_libraries(TestHarness FLIMfitLib
-                        ${OpenCV_LIBS} Qt5::Core
-                        ${Boost_LIBRARIES})
+target_link_libraries(TestHarness FLIMfitLib)
 
 
 # Run tests after compile
