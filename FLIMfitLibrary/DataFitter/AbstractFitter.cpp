@@ -373,7 +373,7 @@ void AbstractFitter::getDerivatives(std::shared_ptr<DecayModel> model, PixelInde
 
 int AbstractFitter::getFit(PixelIndex irf_idx, const std::vector<double>& alf, float_iterator lin_params, double* fit)
 {
-   float_iterator adjust = model->getConstantAdjustment();
+   double_iterator adjust = model->getConstantAdjustment();
    model->setVariables(alf);
    model->calculateModel(a.begin(), nmax, kap.begin(), irf_idx);
 

@@ -37,7 +37,8 @@
 #include <cmath>
 #include "FitController.h"
 #include "MultiExponentialDecayGroup.h"
-#include "BackgroundLightDecayGroup.h"
+#include "ScatterDecayGroup.h"
+#include "OffsetDecayGroup.h"
 #include "FLIMImage.h"
 #include "PatternDecayGroup.h"
 #include "Attenuator.h"
@@ -259,7 +260,7 @@ int testFittingCoreBackground()
    }
    model->addDecayGroup(group);
 
-   auto bg = std::make_shared<BackgroundLightDecayGroup>();
+   auto bg = std::make_shared<OffsetDecayGroup>();
    bg->getParameter("offset")->setFittingType(FittedGlobally);
    bg->getParameter("offset")->setInitialValue(N_bg * 0.5);
    bg->setChannelFactors(0, { 1, 1.5 });

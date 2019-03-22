@@ -81,7 +81,7 @@ public:
    int calculateModel(double_iterator a, int adim, double_iterator kap, PixelIndex irf_idx);
    int calculateDerivatives(double_iterator b, int bdim, const_double_iterator a, int adim, int n_col, double_iterator kap, PixelIndex irf_idx);
    void getWeights(float_iterator y, float_iterator a, const std::vector<double>& alf, float_iterator lin_params, double_iterator w, PixelIndex irf_idx);
-   float_iterator getConstantAdjustment() { return adjust_buf.begin(); };
+   double_iterator getConstantAdjustment() { return adjust_buf.begin(); };
 
    bool arePositionsEquivalent(PixelIndex idx1, PixelIndex idx2) { return dp->irf->arePositionsEquivalent(idx1, idx2); }
 
@@ -131,7 +131,7 @@ protected:
 
    float photons_per_count;
    std::vector<std::vector<double>> channel_factor;
-   std::vector<float> adjust_buf;
+   std::vector<double> adjust_buf;
 
    bool use_spectral_correction = false;
    int zernike_order = 1;

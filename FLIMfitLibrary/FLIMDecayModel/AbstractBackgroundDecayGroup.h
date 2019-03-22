@@ -2,18 +2,18 @@
 #include "AbstractDecayGroup.h"
 #include "AbstractConvolver.h"
 
-class BackgroundLightDecayGroup : public AbstractDecayGroup
+class AbstractBackgroundDecayGroup : public AbstractDecayGroup
 {
    Q_OBJECT
 
 public:
 
-   BackgroundLightDecayGroup();
-   BackgroundLightDecayGroup(const BackgroundLightDecayGroup& obj);
+   AbstractBackgroundDecayGroup(const QString& name);
+   AbstractBackgroundDecayGroup(const AbstractBackgroundDecayGroup& obj);
 
    int calculateModel(double_iterator a, int adim, double& kap);
    int calculateDerivatives(double_iterator b, int bdim, double_iterator& kap_derv);
-   void addConstantContribution(float_iterator a);
+   void addConstantContribution(double_iterator a);
    void addUnscaledContribution(double_iterator a);
 
    void setupIncMatrix(inc_matrix& inc, int& row, int& col);
@@ -26,35 +26,24 @@ public:
    const std::vector<double>& getChannelFactors(int index);
    void setChannelFactors(int index, const std::vector<double>& channel_factors);
 
-   AbstractDecayGroup* clone() const { return new BackgroundLightDecayGroup(*this); }
-
 protected:
 
-   
-   const std::array<std::string, 3> names = { "offset", "scatter", "tvb" };
+   std::string name;
+
    void setupParameters();
    
-   void init_();
-   void precompute_();
+   virtual void init_();
    int setVariables_(std::vector<double>::const_iterator variables);
 
-   int addOffsetColumn(double_iterator a, int adim, double& kap);
-   int addScatterColumn(double_iterator a, int adim, double& kap);
-   //int addTVBColumn(double_iterator a, int adim, double& kap);
-   int addGlobalBackgroundLightColumn(double_iterator a, int adim, double& kap);
-
-   int addOffsetDerivatives(double_iterator b, int bdim, double_iterator& kap_derv);
-   int addScatterDerivatives(double_iterator b, int bdim, double_iterator& kap_derv);
-   //int addTVBDerivatives(double_iterator b, int bdim, double& kap_derv);
+   virtual void addContribution(double scale, double_iterator a) = 0;
+   
+   std::shared_ptr<FittingParameter> scale_param;
 
    std::vector<double> channel_factors;
 
    // RUNTIME VARIABLE PARAMETERS
-   double offset = 0;
-   double scatter = 0;
-   //double tvb = 0;
-   std::shared_ptr<AbstractConvolver> convolver;
-
+   double scale = 0;
+ 
    template<class Archive>
    void serialize(Archive & ar, const unsigned int version);
 
@@ -62,11 +51,12 @@ protected:
 };
 
 template<class Archive>
-void BackgroundLightDecayGroup::serialize(Archive & ar, const unsigned int version)
+void AbstractBackgroundDecayGroup::serialize(Archive & ar, const unsigned int version)
 {
    ar & boost::serialization::base_object<AbstractDecayGroup>(*this);
-   ar & parameters;
+   ar & name;
+   ar & scale_param;
    ar & channel_factors;
 };
 
-BOOST_CLASS_TRACKING(BackgroundLightDecayGroup, track_always)
+BOOST_CLASS_TRACKING(AbstractBackgroundDecayGroup, track_always)

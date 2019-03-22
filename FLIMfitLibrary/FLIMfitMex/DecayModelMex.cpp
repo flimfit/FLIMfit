@@ -34,7 +34,8 @@
 #include <boost/serialization/export.hpp>
 
 #include "DecayModel.h"
-#include "BackgroundLightDecayGroup.h"
+#include "ScatterDecayGroup.h"
+#include "OffsetDecayGroup.h"
 #include "MultiExponentialDecayGroup.h"
 #include "FretDecayGroup.h"
 #include "AnisotropyDecayGroup.h"
@@ -93,9 +94,13 @@ void addDecayGroup(std::shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[]
       std::string name = getStringFromMatlab(prhs[4]);
       group = std::make_shared<PatternDecayGroup>(patterns,QString::fromStdString(name));
    }
-   else if (group_type == "Background Light")
+   else if (group_type == "Scatter")
    {
-      group = std::make_shared<BackgroundLightDecayGroup>();
+      group = std::make_shared<ScatterDecayGroup>();
+   }
+   else if (group_type == "Offset")
+   {
+      group = std::make_shared<OffsetDecayGroup>();
    }
 
    if (group)
@@ -417,7 +422,8 @@ void loadModel(std::shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], in
 }
 
 
-BOOST_CLASS_EXPORT_GUID(BackgroundLightDecayGroup, "BackgroundLightDecayGroup");
+BOOST_CLASS_EXPORT_GUID(OffsetDecayGroup, "OffsetDecayGroup");
+BOOST_CLASS_EXPORT_GUID(ScatterDecayGroup, "ScatterDecayGroup");
 BOOST_CLASS_EXPORT_GUID(AnisotropyDecayGroup, "AnisotropyDecayGroup");
 BOOST_CLASS_EXPORT_GUID(MultiExponentialDecayGroup, "MultiExponentialDecayGroup");
 BOOST_CLASS_EXPORT_GUID(FretDecayGroup, "FretDecayGroup");

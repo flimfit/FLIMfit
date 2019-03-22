@@ -47,7 +47,9 @@ set(SOURCE
    MultiExponentialDecayGroup.cpp
    FretDecayGroup.cpp
    AnisotropyDecayGroup.cpp
-   BackgroundLightDecayGroup.cpp
+   AbstractBackgroundDecayGroup.cpp
+   ScatterDecayGroup.cpp
+   OffsetDecayGroup.cpp
    PatternDecayGroup.cpp
    AcquisitionParameters.cpp
    DecayModel.cpp
@@ -67,7 +69,9 @@ set(HEADERS
    MultiExponentialDecayGroupPrivate.h
    MultiExponentialDecayGroup.h
    AnisotropyDecayGroup.h
-   BackgroundLightDecayGroup.h
+   AbstractBackgroundDecayGroup.h
+   ScatterDecayGroup.h
+   OffsetDecayGroup.h
    PatternDecayGroup.h
    IRFConvolution.h
    InstrumentResponseFunction.h

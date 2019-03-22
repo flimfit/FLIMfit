@@ -27,53 +27,18 @@
 //
 //=========================================================================
 
-#pragma once
+#include "OffsetDecayGroup.h"
+#include "FittingParameter.h"
 
-
-#include "InstrumentResponseFunction.h"
-
-class AbstractConvolver;
-class TransformedDataParameters;
-
-class GaussianIrf : public InstrumentResponseFunction
+OffsetDecayGroup::OffsetDecayGroup() :
+   AbstractBackgroundDecayGroup("Offset")
 {
-public:
-   GaussianIrf(const std::vector<GaussianParameters>& gaussian_params);
-   GaussianIrf(const GaussianParameters& gaussian_params);
-
-   std::shared_ptr<AbstractConvolver> getConvolver(std::shared_ptr<TransformedDataParameters> dp);
-
-   void setFrameSigma(const std::vector<double>& frame_sigma);
-
-   bool isSpatiallyVariant();
-   bool arePositionsEquivalent(PixelIndex idx1, PixelIndex idx2);
-   bool hasSpatiallyVaryingSigma(); 
-
-   double getSigma(PixelIndex idx);
-
-   double calculateMean();
-
-   std::vector<GaussianParameters> gaussian_params;
-
-private:
-
-   bool frame_varying_sigma = false;
-   std::vector<double> frame_sigma;
-
-   template<class Archive>
-   void serialize(Archive & ar, const unsigned int version);
-
-   friend class boost::serialization::access;
-};
-
-template<class Archive>
-void GaussianIrf::serialize(Archive & ar, const unsigned int version)
-{
-   ar & boost::serialization::base_object<InstrumentResponseFunction>(*this);
-   ar & gaussian_params;
-   ar & frame_varying_sigma;
-   ar & frame_sigma;
 }
 
-BOOST_CLASS_VERSION(GaussianIrf, 1)
-
+void OffsetDecayGroup::addContribution(double scale, double_iterator a)
+{
+   int idx = 0;
+   for (int k = 0; k < dp->n_chan; k++)
+      for (int j = 0; j < dp->n_t; j++)
+         a[idx++] += scale * channel_factors[k];
+}

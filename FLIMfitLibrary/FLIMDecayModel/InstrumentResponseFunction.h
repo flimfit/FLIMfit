@@ -100,41 +100,54 @@ protected:
    template<class Archive>
    void serialize(Archive & ar, const unsigned int version)
    {
-      double timebin_width, timebin_t0, polarisation_angle;
-      int n_irf, n_chan, n_irf_rep;
-      int type;
-      aligned_vector<double> irf;
-      std::vector<GaussianParameters> gaussian_params;
-      
-      ar & timebin_width;
-      ar & timebin_t0;
-      if (version < 5)
-      {
-         bool variable_irf;
-         ar & variable_irf;
-      }
-      ar & n_irf;
-      ar & n_chan;
-      ar & n_irf_rep;
-
-      if (version >= 4)
+      if (version >= 6)
       {
          ar & g_factor;
+         ar & n_chan;
+         ar & spatially_varying_t0;
+         ar & spatial_t0;
+         ar & frame_varying_t0;
+         ar & frame_t0;
       }
-      else if (Archive::is_loading::value)
+      else
       {
-         double g;
-         ar & g;
-         g_factor.resize(n_chan, 1.0);
+         double timebin_width, timebin_t0, polarisation_angle;
+         int n_irf, n_chan, n_irf_rep;
+         int type;
+         aligned_vector<double> irf;
+         std::vector<GaussianParameters> gaussian_params;
+         
+         // To support loading older formats
+         ar & timebin_width;
+         ar & timebin_t0;
+         if (version < 5)
+         {
+            bool variable_irf;
+            ar & variable_irf;
+         }
+         ar & n_irf;
+         ar & n_chan;
+         ar & n_irf_rep;
+
+         if (version >= 4)
+         {
+            ar & g_factor;
+         }
+         else if (Archive::is_loading::value)
+         {
+            double g;
+            ar & g;
+            g_factor.resize(n_chan, 1.0);
+         }
+
+         ar & type;
+         ar & irf;
+
+         if (version >= 2)
+            ar & gaussian_params;
+         if (version >= 3)
+            ar & polarisation_angle;
       }
-
-      ar & type;
-      ar & irf;
-
-      if (version >= 2)
-         ar & gaussian_params;
-      if (version >= 3)
-         ar & polarisation_angle;
 
    }
 

@@ -248,7 +248,7 @@ void GaussianIrfConvolver::addDerivative(double fact, const std::vector<double>&
 
 void GaussianIrfConvolver::addIrf(double fact, const std::vector<double>& channel_factors, double_iterator derv) const
 {
-   throw std::runtime_error("Adding IRF with gaussian convolver not implemented yet"); // TODO
+   //throw std::runtime_error("Adding IRF with gaussian convolver not implemented yet"); // TODO
 }
 
 

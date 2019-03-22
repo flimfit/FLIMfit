@@ -64,7 +64,7 @@ public:
 
    int calculateModel(double_iterator a, int adim, double& kap);
    int calculateDerivatives(double_iterator b, int bdim, double_iterator& kap_derv);
-   void addConstantContribution(float_iterator a);
+   void addConstantContribution(double_iterator a);
 
    void setupIncMatrix(inc_matrix& inc, int& row, int& col);
    int getNonlinearOutputs(float_iterator nonlin_variables, float_iterator output, int& nonlin_idx);

@@ -307,14 +307,11 @@ void MeasuredIrfConvolver::calculateIRFMax()
    
    for (int j = 0; j<n_chan; j++)
    {
+      int k = 0;
       for (int i = 0; i<n_t; i++)
       {
-         int k = 0;
-         while (k < n_irf && (t[i] - t0 - k*dt_irf) >= -1.0)
-         {
-            irf_max[j*n_t + i] = k;
-            k++;
-         }
+         while ((k+1) < n_irf && (t[i] - t0 - (k+1) * dt_irf) >= -1.0) k++;
+         irf_max[j*n_t + i] = k;
       }
    }
 }

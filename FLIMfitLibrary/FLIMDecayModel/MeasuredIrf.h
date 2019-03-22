@@ -86,12 +86,24 @@ private:
    bool full_image_irf;
 
    template<class Archive>
-   void serialize(Archive & ar, const unsigned int version)
-   {
-      // TODO
-   }
+   void serialize(Archive & ar, const unsigned int version);
+
+   friend class boost::serialization::access;
 
 };
+
+template<class Archive>
+void MeasuredIrf::serialize(Archive & ar, const unsigned int version)
+{
+   ar & boost::serialization::base_object<InstrumentResponseFunction>(*this);
+   ar & timebin_width;
+   ar & timebin_t0;
+   ar & reference_reconvolution;
+   ar & n_irf;
+   ar & n_irf_rep;
+   ar & irf;
+   ar & full_image_irf;
+}
 
 template<typename it>
 void MeasuredIrf::setIrf(int n_t, int n_chan_, double timebin_t0_, double timebin_width_, it irf)

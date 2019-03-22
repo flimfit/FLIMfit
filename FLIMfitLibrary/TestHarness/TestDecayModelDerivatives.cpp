@@ -32,16 +32,28 @@
 #include "FLIMSimulation.h"
 #include "FitController.h"
 #include "MultiExponentialDecayGroup.h"
-#include "BackgroundLightDecayGroup.h"
+#include "ScatterDecayGroup.h"
 #include "AnisotropyDecayGroup.h"
 #include "FLIMImage.h"
 #include "PatternDecayGroup.h"
+#include "OffsetDecayGroup.h"
 
 #include <iostream>
 #include <string>
 #include <cmath>
 #include <future>
 
+#include <QRunnable>
+#include <QThreadPool>
+
+class TaskRunner : public QRunnable
+{
+public:
+   TaskRunner(std::function<void(void)> fcn) : fcn(fcn) {} 
+   void run() { fcn(); }
+private:
+   std::function<void(void)> fcn;
+};
 
 void validate(std::vector<std::shared_ptr<AbstractDecayGroup>> groups, bool gaussian_irf)
 {
@@ -74,8 +86,8 @@ void validate(std::shared_ptr<AbstractDecayGroup> g, bool gaussian_irf, bool fit
 
    //std::cout << "\nTesting derivatives for " << g->objectName().toStdString() << "\n================\n";
    
-   int n_chan = 3;
-   FLIMSimulationTCSPC sim(n_chan, 512);
+   int n_chan = 2;
+   FLIMSimulationTCSPC sim(n_chan, 128);
    auto irf = gaussian_irf ? sim.GetGaussianIRF() : sim.GenerateIRF(1e5);
    auto acq = std::make_shared<AcquisitionParameters>(sim);
    auto image = std::make_shared<FLIMImage>(acq, FLIMImage::InMemory, FLIMImage::DataUint16);
@@ -131,22 +143,26 @@ int testModelDerivatives(bool gaussian_irf)
    std::vector<std::function<void(void)>> tasks;
 
    // Background groups
-   tasks.push_back([=]
+   tasks.push_back([gaussian_irf]
       {
-         auto group = std::make_shared<BackgroundLightDecayGroup>();
+         auto group = std::make_shared<ScatterDecayGroup>();
+         validate(group, gaussian_irf);
+      });
+   tasks.push_back([gaussian_irf]
+      {
+         auto group = std::make_shared<OffsetDecayGroup>();
          validate(group, gaussian_irf);
       });
 
-
    // Fitting zernike modes
-   tasks.push_back([=]
+   tasks.push_back([gaussian_irf]
       {
          auto group = std::make_shared<MultiExponentialDecayGroup>(2);
          validate(group, gaussian_irf, true);
       });
 
    // Fitting channel factors
-   tasks.push_back([=]
+   tasks.push_back([gaussian_irf]
       {
          auto group = std::make_shared<MultiExponentialDecayGroup>(2);
          group->setFitChannelFactors(true);
@@ -155,7 +171,7 @@ int testModelDerivatives(bool gaussian_irf)
 
    // Test multiexponential group
    for (int n_exp : { 1,3 })
-      tasks.push_back([=]
+      tasks.push_back([gaussian_irf,n_exp]
          {
             auto group = std::make_shared<MultiExponentialDecayGroup>(n_exp);
             validate(group, gaussian_irf);
@@ -167,7 +183,7 @@ int testModelDerivatives(bool gaussian_irf)
    
    
    // Test some basic combinations of FRET groups
-   tasks.push_back([=]
+   tasks.push_back([gaussian_irf]
       {
          std::vector<std::shared_ptr<AbstractDecayGroup>> groups;
          groups.push_back(std::make_shared<FretDecayGroup>(1, 1, true));
@@ -178,7 +194,7 @@ int testModelDerivatives(bool gaussian_irf)
    for (int n_fret : {1, 2})
       for (int n_exp : {1, 3})
          for (int n_acc : {1, 2})
-            tasks.push_back([=]
+            tasks.push_back([gaussian_irf,n_fret,n_exp,n_acc]
                {
                   auto group = std::make_shared<FretDecayGroup>(n_exp, n_fret, false);
                   group->setNumAcceptorExponential(n_acc);
@@ -200,14 +216,14 @@ int testModelDerivatives(bool gaussian_irf)
    // Test anisotropy group
    for (int n_exp : {1, 2})
       for (int n_pol : {1, 2})
-         tasks.push_back([=]
+         tasks.push_back([gaussian_irf,n_exp,n_pol]
             {
                auto group = std::make_shared<AnisotropyDecayGroup>(n_exp, n_pol);
                validate(group, gaussian_irf);
             });
       
    // Test combination of multiexponential groups
-   tasks.push_back([=]
+   tasks.push_back([gaussian_irf]
       {
          std::vector<std::shared_ptr<AbstractDecayGroup>> groups;
          groups.push_back(std::make_shared<MultiExponentialDecayGroup>(3, true));
@@ -215,7 +231,7 @@ int testModelDerivatives(bool gaussian_irf)
          validate(groups, gaussian_irf);
       });
    // Test some basic combinations of FRET groups
-   tasks.push_back([=]
+   tasks.push_back([gaussian_irf]
       {
          std::vector<std::shared_ptr<AbstractDecayGroup>> groups;
          groups.push_back(std::make_shared<FretDecayGroup>(1, 1, true));
@@ -223,7 +239,7 @@ int testModelDerivatives(bool gaussian_irf)
          validate(groups, gaussian_irf);
       });
 
-   tasks.push_back([=]
+   tasks.push_back([gaussian_irf]
       {
          std::vector<std::shared_ptr<AbstractDecayGroup>> groups;
          groups.push_back(std::make_shared<FretDecayGroup>(2, 1, false));
@@ -231,12 +247,13 @@ int testModelDerivatives(bool gaussian_irf)
          validate(groups, gaussian_irf);
       });
 
-   #pragma omp parallel for schedule(dynamic)
-   for (int i = 0; i < tasks.size(); i++)
-   {
-      tasks[i]();
-      std::cout << "*";
-   }
+   // Execute in reverse order since last tasks are significantly more
+   // computationally intensive   
+   QThreadPool pool;
+   pool.setMaxThreadCount(QThread::idealThreadCount());
+   for (auto it=tasks.rbegin(); it != tasks.rend(); it++)
+      pool.start(new TaskRunner(*it));
+
    std::cout << std::endl;
    return 0;
 }

@@ -40,7 +40,7 @@ protected:
 
    std::shared_ptr<DecayModel> model;
 
-   float_iterator adjust;
+   double_iterator adjust;
 
    PixelIndex last_idx;
 

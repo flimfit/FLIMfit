@@ -85,7 +85,7 @@ public:
 
    virtual int calculateModel(double_iterator a, int adim, double& kap) = 0;
    virtual int calculateDerivatives(double_iterator b, int bdim, double_iterator& kap_derv) = 0;
-   virtual void addConstantContribution(float_iterator a) {}
+   virtual void addConstantContribution(double_iterator a) {}
    virtual void addUnscaledContribution(double_iterator a) {}
 
    virtual void setupIncMatrix(inc_matrix& inc, int& row, int& col) = 0;

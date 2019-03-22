@@ -37,7 +37,7 @@
 #include <cmath>
 #include "FitController.h"
 #include "MultiExponentialDecayGroup.h"
-#include "BackgroundLightDecayGroup.h"
+#include "ScatterDecayGroup.h"
 #include "FLIMImage.h"
 #include "PatternDecayGroup.h"
 #include "GaussianIrfConvolver.h"
