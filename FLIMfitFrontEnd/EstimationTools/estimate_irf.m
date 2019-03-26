@@ -48,8 +48,8 @@ function [irf,t_irf,chi2_final] = estimate_irf(td, d, T, fit_ax, res_ax)
         offset = x(7);
         
         irf = generate_irf(t0, sigma, lambda);
-        dc = generate_decay_measured_irf(t_irf,irf,T,tau);
-        dc2 = generate_decay_measured_irf(t_irf,irf,T,tau2);
+        dc = generate_decay_measured_irf(t_irf,T,tau,irf);
+        dc2 = generate_decay_measured_irf(t_irf,T,tau2,irf);
 
         dc = beta * dc + (1-beta) * dc2 + offset; 
         dc = dc(t_sel);

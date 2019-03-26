@@ -70,10 +70,10 @@ function [analytical_params,chi2_final] = estimate_analytical_irf(t, decay, pola
         
         for i=1:n_chan
             irf(:,i) = normpdf(t_irf, p.t0(i), p.sigma);
-            F = generate_decay_analytical_irf(t, dt, T, p.tau, p.t0(i), p.sigma);
+            F = generate_decay_analytical_irf(t, T, p.tau, p.t0(i), p.sigma);
             
             if isfinite(nu(i))
-                Fr = generate_decay_analytical_irf(t, dt, T, 1/(1/p.tau+1/p.theta), p.t0(i), p.sigma);
+                Fr = generate_decay_analytical_irf(t, T, 1/(1/p.tau+1/p.theta), p.t0(i), p.sigma);
                 I(:,i) = 1/3*(F+nu(i)*Fr);
             else
                 I(:,i) = F;
@@ -115,7 +115,7 @@ function [analytical_params,chi2_final] = estimate_analytical_irf(t, decay, pola
         A = decay(dvalid) .* log(analytical_decay(dvalid)./decay(dvalid));
         chi2 = -2 * ( sum(decay(:)-analytical_decay(:)) + sum(A(:))) / n_free;
         
-        if mod(count,100) == 0
+        if mod(count,10) == 0
             label = ['\chi^2 = ' num2str(chi2,4)];
             if chi2 < 1.3
                 label_color = 'g';

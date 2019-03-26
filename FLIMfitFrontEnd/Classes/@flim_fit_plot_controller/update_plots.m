@@ -82,8 +82,9 @@ function update_plots(obj,file_root)
         if save
             % replace any full-stops in name with an underscore 
             % full stops seem to be interpreted as start of an extension
-             name = r.names{cur_im};
-             name = strrep(name,'.','_');
+             %name = r.names{cur_im};
+             %name = strrep(name,'.','_');
+             name = num2str(cur_im,'%03i');
              name_root = [root ' ' name];
         end
 

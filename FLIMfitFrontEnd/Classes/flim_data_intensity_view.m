@@ -125,11 +125,12 @@ classdef flim_data_intensity_view < handle & flim_data_series_observer
 
                     cmap = jet(m-1);
                 case 6 % ratio
-                    intensity = obj.data_series.cur_data;
+                    intensity = obj.data_series.cur_tr_data;
                     intensity = sum(intensity,1);
                     intensity = permute(intensity,[3 4 2 1]);
                     
-                    intensity = intensity(:,:,2) ./ intensity(:,:,1);
+                    intensity = intensity(:,:,1) ./ sum(intensity(:,:,2:end),3);    
+                    intensity = 1./intensity;
                     lim = prctile(intensity(isfinite(intensity)),[0.05 95]);
                     flt = intensity;
                     cmap = jet(m-1);

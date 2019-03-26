@@ -132,25 +132,21 @@ classdef tools_menu_controller < handle
             profile = profile_controller.get_instance();
             profile.set_profile();
         end
-
         
-        function menu_tools_estimate_irf(obj)
-            d = obj.data_series_controller.data_series;
-            estimate_irf_shift(d.tr_t_irf,d.tr_irf);
-        end
-                
         function menu_tools_add_pattern(obj)
             
             d = obj.data_series_controller.data_series;
             mask = obj.data_masking_controller.roi_controller.roi_mask;
 
             T = 1e6 / d.rep_rate;
+            irf = d.get_irf();
             
             t = d.tr_t(:);
             data = d.get_roi(mask,obj.data_series_list.selected);
             data = mean(double(data),3);
             
-            generate_pattern_ui(t,data,d.irf,T);
+            
+            generate_pattern_ui(t,data,irf,T);
 
         end
 		

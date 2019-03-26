@@ -1,4 +1,4 @@
-function decay = generate_decay_measured_irf(t, irf, T, tau)
+function decay = generate_decay_measured_irf(t, T, tau, irf)
 
     % Convolve exponential decay with lifetime tau with measured irf given
     % repetition rate T using trapezium integration across irf

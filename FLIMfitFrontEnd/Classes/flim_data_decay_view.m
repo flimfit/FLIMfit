@@ -142,14 +142,16 @@ classdef flim_data_decay_view < handle & abstract_display_controller ...
                 end
 
                 obj.t = d.tr_t(:);
-                obj.t_irf = obj.data_series.irf.tr_t_irf(:);
 
                 switch decay_mode
                     case 1
-                        [obj.data, obj.irf] = obj.data_series.get_roi(mask,dataset);
+                        [obj.data, sirf] = obj.data_series.get_roi(mask,dataset);
+                        obj.irf = sirf.irf;
+                        obj.t_irf = sirf.t;
                     case 2
-                        obj.data = obj.data_series.irf.irf;
-                        obj.t = d.irf.t_irf;
+                        sirf = obj.data_series.get_irf();
+                        obj.data = sirf.irf;
+                        obj.t = sirf.t;
                         obj.bg_line = ones(size(obj.t))*d.irf.irf_background;
                     case 3
                         obj.data = obj.data_series.tr_tvb_profile;
@@ -159,7 +161,7 @@ classdef flim_data_decay_view < handle & abstract_display_controller ...
                         obj.data = obj.data_series.get_anisotropy_roi(mask,dataset);
                     case 6
                         obj.data = obj.data_series.get_g_factor_roi(mask,dataset);
-                        obj.bg_line = ones(size(obj.t))*d.g_factor;
+                        %obj.bg_line = ones(size(obj.t))*d.g_factor;
                 end
 
                 if length(size(obj.data)) > 2

@@ -39,14 +39,7 @@ function generate_pattern_ui(t, data, irf, T)
     
     for i=1:n_chan
         tabs.Selection = i;
-        
-        if irf.is_analytical    
-            mu = irf.gaussian_parameters(i).mu;
-            sigma = irf.gaussian_parameters(i).sigma;
-            pattern(:,i) = generate_pattern_analytical(t,data(:,i),mu,sigma,T,fit_ax(i),res_ax(i));
-        else
-            pattern(:,i) = generate_pattern(t,data(:,i),irf.tr_t_irf,irf.tr_irf(:,i),T,fit_ax(i),res_ax(i));
-        end
+        pattern(:,i) = generate_pattern(t,data(:,i),T,irf.get_channel(i),fit_ax(i),res_ax(i));
     end
     
     save_button.Enable = 'on';

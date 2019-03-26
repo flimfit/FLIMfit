@@ -84,6 +84,9 @@ function load_segmentation(obj,folder)
             mask = ones([d.height d.width],'uint16');
         end
 
+        if ~all(size(mask)==[d.height d.width])
+            mask = imresize(mask,[d.height d.width],'nearest');
+        end
         switch choice
             case 1
                 new_mask(:,i) = mask(:);

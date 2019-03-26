@@ -250,7 +250,7 @@ classdef flim_data_series < handle & h5_serializer
             
         end
         
-        function n(obj,src,evt)
+        function n(obj,~,~)
             try
                 notify(obj,'data_updated')
             catch e
@@ -340,9 +340,42 @@ classdef flim_data_series < handle & h5_serializer
         
         %===============================================================
         
+        function tr_irf = get_irf(obj,dataset)
+            if nargin < 2
+                dataset = obj.active;
+            end
+
+            t0_shift = 0;
+            sigma_override = -1;
+            
+            if ~isempty(obj.frame_t0)
+                t0_shift = t0_shift + obj.frame_t0(dataset);
+            end
+            if ~isempty(obj.frame_sigma)
+                sigma_override = obj.frame_sigma(dataset);
+            end
+        
+            tr_irf = obj.irf.get_irf('t0_shift',t0_shift,'sigma_override',sigma_override);
+            
+            %{
+            % TODO : move this to IRF
+            if obj.irf.has_image_irf
+                irf = obj.irf.tr_image_irf(:,:,roi_mask);
+                irf = mean(irf,3);
+            elseif ~isempty(obj.irf.t0_image)
+                offset = mean(obj.irf.t0_image(roi_mask));
+                irf = interp1(obj.irf.tr_t_irf,obj.irf.tr_irf,obj.irf.tr_t_irf+offset,'pchip','extrap');
+            else
+                irf = obj.irf.tr_irf;
+            end
+            %}
+            
+        end
+
+        
         function [data,irf] = get_roi(obj,roi_mask,dataset)
-            %> Return an array of data points both in internal mask
-            %> and roi_mask from dataset selected
+            % Return an array of data points both in internal mask
+            % and roi_mask from dataset selected
             
             obj.switch_active_dataset(dataset);
                         
@@ -367,23 +400,10 @@ classdef flim_data_series < handle & h5_serializer
             end
                         
             % Get data
-
             data = obj.cur_tr_data;
-            
             data = data(:,:,roi_mask);
 
-            % TODO : move this to IRF
-            if obj.irf.has_image_irf
-                irf = obj.irf.tr_image_irf(:,:,roi_mask);
-                irf = mean(irf,3);
-            elseif ~isempty(obj.irf.t0_image)
-                offset = mean(obj.irf.t0_image(roi_mask));
-                irf = interp1(obj.irf.tr_t_irf,obj.irf.tr_irf,obj.irf.tr_t_irf+offset,'pchip','extrap');
-            else
-                irf = obj.irf.tr_irf;
-            end
-            
-            
+            irf = obj.get_irf();                      
         end
         
         
@@ -461,7 +481,9 @@ classdef flim_data_series < handle & h5_serializer
             
             if obj.polarisation_resolved
                 data = obj.get_roi(roi_mask,dataset);
-                                                
+                
+                tr_irf = obj.irf.get_irf(dataset).irf;
+                
                 data = nanmean(data,3);
                 
                 para = data(:,1);
@@ -469,16 +491,18 @@ classdef flim_data_series < handle & h5_serializer
                 %perp_shift = obj.shifted_perp(perp) * obj.g_factor;
                 %magic_irf = obj.irf.tr_irf(:,1);
 
-                parac = conv(para,obj.irf.tr_irf(:,2));
-                perpc = conv(perp,obj.irf.tr_irf(:,1));
-                magic_irf = conv(obj.irf.tr_irf(:,1),obj.irf.tr_irf(:,2));
                 
-                [~,n] = max(obj.irf.tr_irf(:,1));
+                
+                parac = conv(para,tr_irf(:,2));
+                perpc = conv(perp,tr_irf(:,1));
+                magic_irf = conv(tr_irf(:,1),tr_irf(:,2));
+                
+                [~,n] = max(tr_irf(:,1));
                 
                 magic = (parac+2*perpc);
                 
                 magic = magic((1:size(data,1))+n,:);
-                magic_irf = magic_irf((1:size(obj.irf.tr_irf))+n);
+                magic_irf = magic_irf((1:size(tr_irf))+n);
                 
             else
                 magic = [];

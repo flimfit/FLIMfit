@@ -53,7 +53,7 @@ classdef irf_controller < control_binder & flim_data_series_observer
             obj.bind_control(handles,'ref_lifetime','edit');
             obj.bind_control(handles,'irf_type','popupmenu');
             obj.bind_control(handles,'t0','edit');
-            obj.bind_control(handles,'use_image_t0_correction','checkbox');
+            %obj.bind_control(handles,'use_image_t0_correction','checkbox');
                        
             obj.update_controls();
             

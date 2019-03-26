@@ -1,10 +1,14 @@
-function [analytical_decay] = generate_decay_analytical_irf(t, dt, T, tau, mu, sigma)
+function [analytical_decay] = generate_decay_analytical_irf(t, T, tau, mu, sigma, dt)
 
     % Generate a exponential decay with lifetime tau convolved with a
     % gaussian IRF with centre mu and width sigma sampled at t with bin
     % width dt and repetition period T.    
     % Accounts for analyical convolution across bin width
     % See Mathematica document for more details   
+    
+    if nargin < 6
+        dt = t(2)-t(1);
+    end
     
     analytical_decay = (H(t+dt, tau, mu, sigma) - H(t, tau, mu, sigma)) / dt;
 

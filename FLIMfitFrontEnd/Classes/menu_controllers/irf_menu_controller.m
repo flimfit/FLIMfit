@@ -142,9 +142,8 @@ classdef irf_menu_controller < handle
             for i=1:d.n_datasets
                 d.switch_active_dataset(i);
                 data = sum(sum(d.cur_tr_data,3),4);
-                
                 dataj = data(:,ch);
-                [mu(i), sigma(i)] = estimate_t0(t, dataj, mu0, sigma0, T,ax1,ax2);
+                [mu(i), sigma(i)] = estimate_t0(t, dataj, T, mu0, sigma0, ax1, ax2);
                 
                 waitbar(i/d.n_datasets,h);
             end

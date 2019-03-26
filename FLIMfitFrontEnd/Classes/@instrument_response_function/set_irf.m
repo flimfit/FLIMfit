@@ -34,9 +34,7 @@ function set_irf(obj,t_irf,irf)
     obj.t_irf_max = max(obj.t_irf);
     
     obj.irf_background = min(obj.irf(:));
-    
-    obj.compute_tr_irf();
-    
+        
     notify(obj,'updated');
     
 end

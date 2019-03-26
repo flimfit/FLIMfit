@@ -1,7 +1,6 @@
-function [mu,sigma] = estimate_t0(td, d, mu0, sigma0, T, fit_ax, res_ax)
+function [mu,sigma] = estimate_t0(td, d, T, mu0, sigma0, fit_ax, res_ax)
             
     d = double(d);
-    dt = td(2)-td(1);
     dvalid = d > 0;
     
     
@@ -29,10 +28,10 @@ function [mu,sigma] = estimate_t0(td, d, mu0, sigma0, T, fit_ax, res_ax)
     function chi2 = fit(x, forcedraw)
         mu = x(1);
         sigma = x(2);
-        
+                
         dc = [];
         for i=1:length(tau)
-            dc(:,i) = generate_decay_analytical_irf(td, dt, T, tau(i), mu, sigma);
+            dc(:,i) = generate_decay_analytical_irf(td, T, tau(i), mu, sigma);
         end
         % dc(:,end+1) = 1;
             
