@@ -352,6 +352,7 @@ void VariableProjectionFitter::fitFcn(int nl, std::vector<double>& initial, int&
                   ml_model.emplace_back(n, l, (*(B.a)).begin(), nmax);
                   x[thread].set_size(l);
                   B.last_idx = -1;
+                  std::fill((*B.wp).begin(), (*B.wp).end(), 1.0);
                }
 
                #pragma omp parallel for num_threads(n_thread)
@@ -365,12 +366,12 @@ void VariableProjectionFitter::fitFcn(int nl, std::vector<double>& initial, int&
                      getModel(B.model, irf_idx[i], *(B.a));
 
                   B.setData(y + i * n);
-                  B.last_idx = i;
+                  B.last_idx = irf_idx[i];
 
                   ml_model[thread].setData(B.r.begin());
 
                   for (int j = 0; j < l; j++)
-                     x[thread](j) = log(lin_params[j + i * lmax]);
+                     xt(j) = log(lin_params[j + i * lmax] + 1e-5);
 
                   double r =
                      dlib::find_min_trust_region(

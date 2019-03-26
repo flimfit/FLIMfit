@@ -38,7 +38,7 @@ class TransformedDataParameters;
 class GaussianIrf : public InstrumentResponseFunction
 {
 public:
-   GaussianIrf(const std::vector<GaussianParameters>& gaussian_params);
+   GaussianIrf(const std::vector<GaussianParameters>& gaussian_params = {});
    GaussianIrf(const GaussianParameters& gaussian_params);
 
    std::shared_ptr<AbstractConvolver> getConvolver(std::shared_ptr<TransformedDataParameters> dp);

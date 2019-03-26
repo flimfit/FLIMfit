@@ -207,13 +207,9 @@ void DecayModel::setupAdjust()
 {
    adjust_buf.resize(dp->n_meas);
 
-   for (int i = 0; i < dp->n_meas; i++)
-      adjust_buf[i] = 0;
+   std::fill(adjust_buf.begin(), adjust_buf.end(), 0);
 
    for (auto& group : decay_groups)
-      group->addConstantContribution(adjust_buf.begin());
-
-   for (auto& group : decay_groups_derv)
       group->addConstantContribution(adjust_buf.begin());
 
    for (int i = 0; i < dp->n_meas; i++)

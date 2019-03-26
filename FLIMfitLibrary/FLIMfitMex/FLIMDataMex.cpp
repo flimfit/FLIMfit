@@ -29,6 +29,10 @@
 
 #pragma warning(disable: 4244 4267)
 
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/serialization/export.hpp>
+
 #include "FitStatus.h"
 #include "FLIMData.h"
 #include "GaussianIrf.h"
@@ -133,6 +137,10 @@ std::shared_ptr<InstrumentResponseFunction> getIrf(const mxArray* irf_struct)
 
    return irf;
 }
+
+
+BOOST_CLASS_EXPORT_GUID(GaussianIrf, "GaussianIrf");
+BOOST_CLASS_EXPORT_GUID(MeasuredIrf, "MeasuredIrf");
 
 void FLIMDataMex(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {

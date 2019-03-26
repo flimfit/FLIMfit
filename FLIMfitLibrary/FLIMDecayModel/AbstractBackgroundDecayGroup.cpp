@@ -140,7 +140,10 @@ int AbstractBackgroundDecayGroup::getLinearOutputs(float_iterator lin_variables,
 
 std::vector<std::string> AbstractBackgroundDecayGroup::getLinearOutputParamNames()
 {
-   return { name };
+   if (scale_param->isFittedLocally())
+      return { scale_param->name };
+   else
+      return {};
 }
 
 int AbstractBackgroundDecayGroup::calculateModel(double_iterator a, int adim, double& kap)
@@ -171,7 +174,7 @@ void AbstractBackgroundDecayGroup::addConstantContribution(double_iterator a)
       scale_ = scale_param->getInitialValue();
 
    if (scale_ != 0.0)
-      addContribution(scale, a);
+      addContribution(scale_, a);
 }
 
 
