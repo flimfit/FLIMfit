@@ -33,7 +33,6 @@ project(FLIMfitLib)
 # Set the source and header files
 #===================================================
 set(SOURCE
-   ModelADA.cpp
    FitController.cpp
    FLIMGlobalFitController_ProcessRegion.cpp
    FLIMGlobalFitController_GetImageResults.cpp
@@ -43,7 +42,6 @@ set(SOURCE
 set(HEADERS   
    FitController.h
    FLIMGlobalAnalysis.h
-   ModelADA.h
    FitSettings.h
    QFitController.h
 )

@@ -32,7 +32,6 @@
 #include "FitController.h"
 #include "FitStatus.h"
 #include "InstrumentResponseFunction.h"
-#include "ModelADA.h" 
 #include "FLIMGlobalAnalysis.h"
 #include "FLIMData.h"
 #include <utility>

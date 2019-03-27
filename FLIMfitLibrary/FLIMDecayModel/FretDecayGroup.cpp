@@ -499,6 +499,8 @@ int FretDecayGroup::calculateModel(double_iterator a, int adim, double& kap)
       for (int m = 0; m < n_acceptor_exponential; m++)
          acceptor_buffer[m]->addDecay(Qsigma * betaA[m], norm_acceptor_channel_factors, a + col*adim);
     
+	  kap += constrainPositive(k_transfer_0[i]);
+
       col++;
    }
 
@@ -693,12 +695,10 @@ int FretDecayGroup::addFretEfficiencyDerivatives(double_iterator b, int bdim, do
             }
          }
 
-//         *kap_derv = -kappaLim(tau_transfer[i]);
-
+         *(kap_derv++) = constrainPositiveGradient(k_transfer_0[i]);
 
          col++;
          idx += bdim;
-         kap_derv++;
       }
    }
 

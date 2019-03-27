@@ -19,19 +19,18 @@ double kappaSpacer(double tau2, double tau1)
    return kappa;
 }
 
-double kappaLim(double tau)
+double mu = 1e-6;
+
+double constrainPositive(double x)
 {
-   //return 0;
-
-   double diff_max = 30;
-   double tau_min = 5;
-
-   double diff = - tau + tau_min;
-
-   diff = diff > diff_max ? diff_max : diff;
-   double kappa = exp(diff);
-   return kappa;
+   return -mu * log(x);
 }
+
+double constrainPositiveGradient(double x)
+{
+   return -mu / x;
+}
+
 
 double transformRange(double v, double v_min, double v_max)
 {

@@ -405,7 +405,7 @@ int MultiExponentialDecayGroupPrivate::addDecayGroup(const std::vector<std::shar
       if (!contributions_global)
          col++;
 
-      kap += 0; //TODO: kappaLim(tau[j]);
+      kap += constrainPositive(k_decay[j]);
    }
 
    // Keep tau's in order
@@ -449,7 +449,7 @@ int MultiExponentialDecayGroupPrivate::addLifetimeDerivative(int idx, double_ite
 void MultiExponentialDecayGroupPrivate::addLifetimeKappaDerivative(int idx, double_iterator& kap_derv)
 {
    if (tau_parameters[idx]->isFittedGlobally())
-      *(kap_derv++) = 0; // TODO: -kappaLim(tau[idx]);
+      *(kap_derv++) = constrainPositiveGradient(k_decay[idx]);
 }
 
 
