@@ -6,6 +6,8 @@ project(FLIMfit)
 include("cmake/ConfigureMSVCRuntime.cmake")
 configure_msvc_runtime()
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+
 find_package(Qt5 COMPONENTS Widgets PrintSupport REQUIRED)
 set(CMAKE_AUTOMOC ON)
 
