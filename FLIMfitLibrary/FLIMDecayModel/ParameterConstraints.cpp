@@ -23,12 +23,12 @@ double mu = 1e-6;
 
 double constrainPositive(double x)
 {
-   return -mu * log(x);
+   return 0; // -mu * log(x);
 }
 
 double constrainPositiveGradient(double x)
 {
-   return -mu / x;
+   return 0; // -mu / x;
 }
 
 

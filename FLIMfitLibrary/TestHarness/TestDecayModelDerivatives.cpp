@@ -154,21 +154,6 @@ int testModelDerivatives(bool gaussian_irf)
          validate(group, gaussian_irf);
       });
 
-   // Fitting zernike modes
-   tasks.push_back([gaussian_irf]
-      {
-         auto group = std::make_shared<MultiExponentialDecayGroup>(2);
-         validate(group, gaussian_irf, true);
-      });
-
-   // Fitting channel factors
-   tasks.push_back([gaussian_irf]
-      {
-         auto group = std::make_shared<MultiExponentialDecayGroup>(2);
-         group->setFitChannelFactors(true);
-         validate(group, gaussian_irf);
-      });
-
    // Test multiexponential group
    for (int n_exp : { 1,3 })
       tasks.push_back([gaussian_irf,n_exp]
@@ -181,7 +166,21 @@ int testModelDerivatives(bool gaussian_irf)
             validate(group, gaussian_irf);
          });
    
-   
+   // Fitting zernike modes
+   tasks.push_back([gaussian_irf]
+   {
+      auto group = std::make_shared<MultiExponentialDecayGroup>(2);
+      validate(group, gaussian_irf, true);
+   });
+
+   // Fitting channel factors
+   tasks.push_back([gaussian_irf]
+   {
+      auto group = std::make_shared<MultiExponentialDecayGroup>(2);
+      group->setFitChannelFactors(true);
+      validate(group, gaussian_irf);
+   });
+
    // Test some basic combinations of FRET groups
    tasks.push_back([gaussian_irf]
       {
@@ -248,11 +247,21 @@ int testModelDerivatives(bool gaussian_irf)
       });
 
    // Execute in reverse order since last tasks are significantly more
-   // computationally intensive   
-   QThreadPool pool;
-   pool.setMaxThreadCount(QThread::idealThreadCount());
-   for (auto it=tasks.rbegin(); it != tasks.rend(); it++)
-      pool.start(new TaskRunner(*it));
+   // computationally intensive 
+
+   bool run_in_parallel = false;
+   if (run_in_parallel)
+   {
+      QThreadPool pool;
+      pool.setMaxThreadCount(QThread::idealThreadCount());
+      for (auto it = tasks.rbegin(); it != tasks.rend(); it++)
+         pool.start(new TaskRunner(*it));
+      pool.waitForDone();
+   }
+   else
+   {
+      for (auto& t : tasks) t();
+   }
 
    std::cout << std::endl;
    return 0;

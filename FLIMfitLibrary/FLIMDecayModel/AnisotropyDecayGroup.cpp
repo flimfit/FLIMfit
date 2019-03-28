@@ -109,7 +109,7 @@ int AnisotropyDecayGroup::setVariables_(std::vector<double>::const_iterator para
 
    k_theta.resize(n_anisotropy_populations);
    for (int i = 0; i<n_anisotropy_populations; i++)
-      k_theta[i] = theta_parameters[i]->getTransformedValue<double>(param_value, idx);
+      k_theta[i] = 1.0/theta_parameters[i]->getValue<double>(param_value, idx);
 
    return idx;
 }
@@ -265,7 +265,7 @@ int AnisotropyDecayGroup::addLifetimeDerivativesForAnisotropy(int j, double_iter
    int col = 0;
    for (int p = 0; p < n_anisotropy_populations; p++)
    {
-      double fact = beta[j];
+      double fact = -k_decay[j] * beta[j];
       anisotropy_buffer[p][j]->addDerivative(fact, pol_channel_factors, b + col * bdim);
       col++;
    }
@@ -307,7 +307,7 @@ int AnisotropyDecayGroup::addContributionDerivativesForAnisotropy(double_iterato
             }
             col++;
          }
-         kap_derv++;
+         *(kap_derv++) = 0;
          ji++;
       }
 
@@ -325,7 +325,7 @@ int AnisotropyDecayGroup::addRotationalCorrelationTimeDerivatives(double_iterato
       {
          for (int j = 0; j < n_exponential; j++)
          {
-            double factor = beta[j];
+            double factor = -k_theta[p] * beta[j];
             anisotropy_buffer[p][j]->addDerivative(factor, pol_channel_factors, b + col * bdim);
          }
 

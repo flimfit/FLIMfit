@@ -351,6 +351,7 @@ int DecayModel::calculateModel(double_iterator a, int adim, double_iterator kap,
 
    size_t n_cols = getNumColumns();
    std::fill_n(a, (n_cols + 1) * adim, 0);
+   kap[0] = 0;
 
    for (int i = 0; i < decay_groups.size(); i++)
    {

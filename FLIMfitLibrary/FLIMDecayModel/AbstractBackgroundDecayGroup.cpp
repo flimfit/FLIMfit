@@ -161,7 +161,7 @@ int AbstractBackgroundDecayGroup::calculateDerivatives(double_iterator b, int bd
    if (scale_param->isFittedGlobally())
    {
       addContribution(1.0, b);
-      kap_derv++;
+      *(kap_derv++) = 0;
       return 1;
    }
    return 0;

@@ -76,16 +76,20 @@ void MultiExponentialDecayGroup::setupParameters()
 
    if (fit_channel_factors)
    {
-      channel_factor_parameters.resize(n_chan-1);
+      channel_factor_parameters.resize(n_chan - 1);
       std::vector<ParameterFittingType> fixed_or_global = { Fixed, FittedGlobally };
       for (int i = 0; i < channel_factor_parameters.size(); i++)
       {
          if (!channel_factor_parameters[i])
          {
             std::string name = "ch_" + boost::lexical_cast<std::string>(i + 1);
-            channel_factor_parameters[i] = std::make_shared<FittingParameter>(name, channel_factors[i+1], 0, 1, 1, fixed_or_global, FittedGlobally);            
+            channel_factor_parameters[i] = std::make_shared<FittingParameter>(name, channel_factors[i + 1], 0, 1, 1, fixed_or_global, FittedGlobally);
          }
       }
+   }
+   else
+   {
+      channel_factor_parameters.clear();
    }
 
    for (auto& p : channel_factor_parameters)

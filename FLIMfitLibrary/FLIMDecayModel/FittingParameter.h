@@ -204,7 +204,7 @@ private:
    friend class boost::serialization::access;
 };
 
-BOOST_CLASS_VERSION(FittingParameter, 4)
+BOOST_CLASS_VERSION(FittingParameter, 5)
 
 template<class Archive>
 void FittingParameter::serialize(Archive & ar, const unsigned int version)
@@ -226,12 +226,13 @@ void FittingParameter::serialize(Archive & ar, const unsigned int version)
 
    if (version >= 4)
       ar & transform_type;
-   else
+   
+   if (version <= 4)
    {
       if ((name.compare(0, 3, "tau")==0) || (name.compare(0, 5, "theta")==0))
       {
-         transform_type = Inverse;
-         scale = 1e3;
+         transform_type = Exponential;
+         scale = 1;
       }
       else if (name.compare(0, 1, "Q")==0)
       {
