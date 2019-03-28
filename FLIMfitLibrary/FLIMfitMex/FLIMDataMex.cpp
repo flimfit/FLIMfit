@@ -54,8 +54,9 @@ DataTransformationSettings getDataTransformationSettings(const mxArray* settings
    settings.smoothing_factor = getValueFromStruct(settings_struct, 0, "smoothing_factor", 0);
    settings.t_start = getValueFromStruct(settings_struct, 0, "t_start");
    settings.t_stop = getValueFromStruct(settings_struct, 0, "t_stop");
-   settings.threshold = getValueFromStruct(settings_struct, 0, "threshold", 0);
-   settings.limit = getValueFromStruct(settings_struct, 0, "limit", 0); // 0 = no limit
+   settings.intensity_min = getValueFromStruct(settings_struct, 0, "intensity_min", 0);
+   settings.intensity_max = getValueFromStruct(settings_struct, 0, "intensity_max", std::numeric_limits<float>::max());
+   settings.gate_max = getValueFromStruct(settings_struct, 0, "gate_max", 0); // 0 = no limit
 
    return settings;
 }
