@@ -50,6 +50,7 @@ classdef flim_data_series < handle & h5_serializer
         t_min = 0;
         t_max = 0;
         thresh_min = 0;
+        thresh_max = 1e10;
         gate_max = 2^16-1;
                 
         counts_per_photon = 1;
@@ -633,6 +634,12 @@ classdef flim_data_series < handle & h5_serializer
             obj.compute_mask;
             notify(obj,'masking_updated');
         end
+
+        function set.thresh_max(obj,thresh_max)
+            obj.thresh_max = thresh_max;
+            obj.compute_mask;
+            notify(obj,'masking_updated');
+        end
         
         function set.gate_max(obj,gate_max)
            obj.gate_max = gate_max;
@@ -700,7 +707,9 @@ classdef flim_data_series < handle & h5_serializer
                 max_gate = (max(max(obj.cur_data,[],1),[],2));
                 max_gate = reshape(max_gate,obj.data_size(3:4)');
                 
-                obj.thresh_mask = obj.intensity >= obj.thresh_min & max_gate < obj.gate_max;
+                obj.thresh_mask = obj.intensity >= obj.thresh_min & ...
+                                  obj.intensity <= obj.thresh_max & ...
+                                  max_gate < obj.gate_max;
                 obj.mask = obj.thresh_mask;
                 
                 % If we have a segmentation mask apply it the mask

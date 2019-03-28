@@ -34,24 +34,24 @@ function handles = add_data_transformation_panel(handles,parent)
     data_layout = uix.VBox( 'Parent', dataset_panel );
     data_transformation_layout = uix.Grid( 'Parent', data_layout, 'Spacing', 1, 'Padding', 3  );
     uicontrol( 'Style', 'text', 'String', 'Smoothing ',       'HorizontalAlignment', 'right', 'Parent', data_transformation_layout );
-    uicontrol( 'Style', 'text', 'String', 'Integrated Min. ', 'HorizontalAlignment', 'right', 'Parent', data_transformation_layout );
+    uicontrol( 'Style', 'text', 'String', 'Intensiy Min. ', 'HorizontalAlignment', 'right', 'Parent', data_transformation_layout );
     uicontrol( 'Style', 'text', 'String', 'Time Min. ',    'HorizontalAlignment', 'right', 'Parent', data_transformation_layout );
     uicontrol( 'Style', 'text', 'String', 'Counts/Photon ',    'HorizontalAlignment', 'right', 'Parent', data_transformation_layout );
     
-    handles.binning_popupmenu = uicontrol( 'Style', 'popupmenu', 'String', {'None', '3x3 (B&H 1)', '5x5 (B&H 2)', '7x7 (B&H 3)' '9x9 (B&H 4)' '11x11 (B&H 5)' '13x13 (B&H 6)' '15x15 (B&H 7)'}, 'Parent', data_transformation_layout );
-    handles.thresh_min_edit   = uicontrol( 'Style', 'edit', 'String', '0', 'Parent', data_transformation_layout );
-    handles.t_min_edit        = uicontrol( 'Style', 'edit', 'String', '0', 'Parent', data_transformation_layout );
+    handles.binning_popupmenu      = uicontrol( 'Style', 'popupmenu', 'String', {'None', '3x3 (B&H 1)', '5x5 (B&H 2)', '7x7 (B&H 3)' '9x9 (B&H 4)' '11x11 (B&H 5)' '13x13 (B&H 6)' '15x15 (B&H 7)'}, 'Parent', data_transformation_layout );
+    handles.thresh_min_edit        = uicontrol( 'Style', 'edit', 'String', '0', 'Parent', data_transformation_layout );
+    handles.t_min_edit             = uicontrol( 'Style', 'edit', 'String', '0', 'Parent', data_transformation_layout );
     handles.counts_per_photon_edit = uicontrol( 'Style', 'edit', 'String', '0', 'Parent', data_transformation_layout );
     
     uicontrol( 'Style', 'text', 'String', 'Rep. Rate ', 'HorizontalAlignment', 'right', 'Parent', data_transformation_layout );
-    uicontrol( 'Style', 'text', 'String', 'Gate Max. ',    'HorizontalAlignment', 'right', 'Parent', data_transformation_layout );
+    uicontrol( 'Style', 'text', 'String', 'Intensity Max. ',    'HorizontalAlignment', 'right', 'Parent', data_transformation_layout );
     uicontrol( 'Style', 'text', 'String', 'Time Max. ',    'HorizontalAlignment', 'right', 'Parent', data_transformation_layout );
-    uix.Empty( 'Parent', data_transformation_layout );
+    uicontrol( 'Style', 'text', 'String', 'Gate Max. ',    'HorizontalAlignment', 'right', 'Parent', data_transformation_layout );
     
     handles.rep_rate_edit          = uicontrol( 'Style', 'edit', 'String', '0', 'Parent', data_transformation_layout );
-    handles.gate_max_edit          = uicontrol( 'Style', 'edit', 'String', '1e10', 'Parent', data_transformation_layout );
+    handles.thresh_max_edit        = uicontrol( 'Style', 'edit', 'String', '1e10', 'Parent', data_transformation_layout );
     handles.t_max_edit             = uicontrol( 'Style', 'edit', 'String', '1e10', 'Parent', data_transformation_layout );
-    uix.Empty( 'Parent', data_transformation_layout );
+    handles.gate_max_edit          = uicontrol( 'Style', 'edit', 'String', '1e10', 'Parent', data_transformation_layout );
     
     set(data_transformation_layout,'Heights',[22 22 22 22]);
     set(data_transformation_layout,'Widths',[120 120 120 120]);   

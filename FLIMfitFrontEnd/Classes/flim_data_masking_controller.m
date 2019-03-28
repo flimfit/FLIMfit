@@ -47,6 +47,7 @@ classdef flim_data_masking_controller < control_binder & flim_data_series_observ
             
             obj.bind_control(handles,'binning','popupmenu');
             obj.bind_control(handles,'thresh_min','edit');
+            obj.bind_control(handles,'thresh_max','edit');
             obj.bind_control(handles,'gate_max','edit');
             obj.bind_control(handles,'t_min','edit');
             obj.bind_control(handles,'t_max','edit');

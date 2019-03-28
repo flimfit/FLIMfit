@@ -134,8 +134,9 @@ function fit(obj, data_series, fit_params, roi_mask, selected)
     transform.smoothing_factor = d.binning;
     transform.t_start = d.t_min;
     transform.t_stop = d.t_max;
-    transform.threshold = d.thresh_min;
-    transform.limit = d.gate_max;
+    transform.intensity_min = d.thresh_min;
+    transform.intensity_max = d.thresh_max;
+    transform.gate_max = d.gate_max;
 
     irf = struct();
     if d.irf.is_analytical

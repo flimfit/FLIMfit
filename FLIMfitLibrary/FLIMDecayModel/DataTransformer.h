@@ -16,8 +16,9 @@ public:
    int smoothing_factor = 0;
    double t_start = 0;
    double t_stop = 25000;
-   double threshold = 0;
-   double limit = 0;
+   double intensity_min = 0;
+   double intensity_max = std::numeric_limits<double>::max();
+   double gate_max = 0;
    std::shared_ptr<FLIMBackground> background;
    std::shared_ptr<InstrumentResponseFunction> irf;
 };
@@ -32,8 +33,9 @@ public:
    Q_PROPERTY(int smoothing_factor MEMBER smoothing_factor USER true);
    Q_PROPERTY(double t_start MEMBER t_start USER true);
    Q_PROPERTY(double t_stop MEMBER t_stop USER true);
-   Q_PROPERTY(double threshold MEMBER threshold USER true);
-   Q_PROPERTY(double limit MEMBER limit USER true);
+   Q_PROPERTY(double intensity_min MEMBER intensity_min USER true);
+   Q_PROPERTY(double intensity_max MEMBER intensity_max USER true);
+   Q_PROPERTY(double gate_max MEMBER gate_max USER true);
    Q_PROPERTY(std::shared_ptr<FLIMBackground> background MEMBER background USER true);
 
 private:
@@ -43,7 +45,7 @@ private:
    friend class boost::serialization::access;
 };
 
-BOOST_CLASS_VERSION(QDataTransformationSettings, 2);
+BOOST_CLASS_VERSION(QDataTransformationSettings, 3);
 
 template<class Archive>
 void QDataTransformationSettings::serialize(Archive & ar, const unsigned int version)
@@ -60,16 +62,19 @@ void QDataTransformationSettings::serialize(Archive & ar, const unsigned int ver
       
       t_start = (double) i_t_start;
       t_stop = (double) i_t_stop;
-      threshold = (double) i_threshold;
-      limit = (double) i_limit;
+      intensity_min = (double) i_threshold;
+      gate_max = (double) i_limit;
    }
    else
    {
       ar & t_start;
       ar & t_stop;
-      ar & threshold;
-      ar & limit;
+      ar & intensity_min;
+      ar & gate_max;
    }
+
+   if (version >= 3)
+      ar & intensity_max;
 
    ar & background;
    ar & irf;
@@ -261,10 +266,10 @@ void DataTransformer::calculateMask()
       }
       
       T* ptr = data_ptr + p*n_meas_full;
-      if (transform.limit > 0)
+      if (transform.gate_max > 0)
       {
          for(int i=0; i<n_meas_full; i++)
-            if (ptr[i] >= (T) transform.limit)
+            if (ptr[i] >= (T) transform.gate_max)
             {
                mp = 0;
                break;
@@ -272,7 +277,8 @@ void DataTransformer::calculateMask()
       }
       
       float bg_val = transform.background->getAverageBackgroundPerGate(p) * n_meas_full;
-      if ((intensity.at<float>(p)-bg_val) < transform.threshold)
+      float intensity_value = intensity.at<float>(p) - bg_val;
+      if ((intensity_value < transform.intensity_min) || (intensity_value > transform.intensity_max))
          mp = 0;
       
    }
