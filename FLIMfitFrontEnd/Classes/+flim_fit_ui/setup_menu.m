@@ -163,6 +163,7 @@ function handles = setup_menu(window,handles)
     %handles.menu_tools_estimate_irf = uimenu(menu_tools,'Label','Estimate IRF');
     handles.menu_tools_create_irf_shift_map = uimenu(menu_tools,'Label','Create IRF Shift Map...');
     handles.menu_tools_create_tvb_intensity_map = uimenu(menu_tools,'Label','Create TVB Intensity Map...');
+    handles.menu_tools_determine_bidirectional_phase = uimenu(menu_tools,'Label','Determine Bidirectional Phase...','Separator','on');
     handles.menu_tools_spectral_calibration = uimenu(menu_tools,'Label','Generate Detector Spectral Calibration...','Separator','on');
 
     handles.menu_tools_add_pattern = uimenu(menu_tools,'Label','Add Pattern to Library...','Separator','on');

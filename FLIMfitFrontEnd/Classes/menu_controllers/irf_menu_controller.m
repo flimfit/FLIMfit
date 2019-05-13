@@ -157,6 +157,14 @@ classdef irf_menu_controller < handle
             
         end
         
+        function menu_tools_determine_bidirectional_phase(obj)
+            d = obj.data_series_controller.data_series;
+            
+            phase = determine_bidirectional_phase(d.integrated_intensity);
+            disp(['Phase = ' num2str(phase) ' px']);
+            
+        end
+        
     end
     
 end

@@ -734,6 +734,10 @@ classdef flim_data_series < handle & h5_serializer
         
         
         function inten = integrated_intensity(obj,sel)
+
+            if nargin < 2
+                sel = obj.active;
+            end
             
             inten = zeros([obj.height obj.width length(sel)]);
 
