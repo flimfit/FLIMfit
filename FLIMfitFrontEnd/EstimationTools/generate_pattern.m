@@ -3,7 +3,7 @@ function pattern = generate_pattern(td, d, T, irf, fit_ax, res_ax)
     dt = td(2)-td(1);
     dvalid = d > 0;
         
-    tau = logspace(log10(100),log10(30000),32)';
+    tau = logspace(log10(50),log10(30000),32)';
     
     dc = [];
     for i=1:length(tau)
