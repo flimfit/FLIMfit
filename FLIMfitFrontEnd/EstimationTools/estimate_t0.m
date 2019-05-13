@@ -64,7 +64,7 @@ function [mu,sigma] = estimate_t0(td, d, T, mu0, sigma0, fit_ax, res_ax)
             semilogy(fit_ax,td,dc,'-b');
             semilogy(fit_ax,irft,irfc/max(irfc)*max(d),'r');
             xlim(fit_ax,[min(td),max(td)])
-            ylim(fit_ax,[0.8*min(d) 1.2*max(d)])
+            ylim(fit_ax,[0.8*min(d) 1.2*max(d)+1])
             hold(fit_ax,'off');
             set(fit_ax,'Box','off','TickDir','out')
             xlabel(fit_ax,'Time (ps)');
