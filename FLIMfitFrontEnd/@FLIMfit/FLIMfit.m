@@ -46,6 +46,7 @@ classdef FLIMfit < handle
         corr_controller
         graph_controller
         platemap_controller
+        project_controller
     end
     
     methods
@@ -88,6 +89,10 @@ classdef FLIMfit < handle
             while ~obj.fit_controller.has_fit
                 pause(0.001)
             end
+        end
+        
+        function save_project(obj, path, project_name)
+            obj.project_controller.save(path, project_name);
         end
         
         function stats = get_result_statistics(obj)
