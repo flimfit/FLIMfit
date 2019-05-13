@@ -33,7 +33,7 @@ jobs:
       windows:
         imageName: 'vs2017-win2016'
         buildPlatform: 'windows'
-        setupCommand: ''
+        setupCommand: python .\install-mcr.py
         buildCommand: .\build-mex.bat
 
 
