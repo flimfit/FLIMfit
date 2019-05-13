@@ -8,6 +8,9 @@ configure_msvc_runtime()
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
+set(CMAKE_MAP_IMPORTED_CONFIG_MINSIZEREL Release)
+set(CMAKE_MAP_IMPORTED_CONFIG_RELWITHDEBINFO Release) 
+
 find_package(Qt5 COMPONENTS Widgets PrintSupport REQUIRED)
 set(CMAKE_AUTOMOC ON)
 
