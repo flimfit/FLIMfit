@@ -1,0 +1,71 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- 6.0
+
+pr:
+- master
+
+jobs:
+- job: Build
+  timeoutInMinutes: 360
+
+  strategy:
+    matrix:
+#      linux:
+#        imageName: 'ubuntu-16.04'
+#        CXX: '/usr/bin/clang++'
+#        CC: '/usr/bin/clang'
+#        buildPlatform: 'linux'
+#        setupCommand: 'sudo apt-get install ninja-build'
+#        buildCommand: './build-flim-ui.sh'
+
+#      mac:
+#        imageName: 'macos-10.13'
+#        DEVELOPER_DIR: '/Applications/Xcode_10.1.app'
+#        buildPlatform: 'osx'
+#        setupCommand: 'brew install ninja'
+#        buildCommand: './build-flim-ui.sh'
+
+      windows:
+        imageName: 'vs2017-win2016'
+        buildPlatform: 'windows'
+        setupCommand: ''
+        buildCommand: .\build-mex.bat
+
+
+  variables:
+    VCPKG_ROOT: '$(Build.SourcesDirectory)/env/vcpkg'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/flimfit-$(buildPlatform).zip'
+
+  pool:
+    vmImage: $(imageName)
+
+  steps:
+
+  - script: $(setupCommand)
+    displayName: 'Setup environment'
+
+  - task: DownloadBuildArtifacts@0
+    inputs:
+      buildType: 'specific'
+      project: 'FLIMfit'
+      pipeline: 'FLIMfit vcpkg'
+      specificBuildWithTriggering: true
+      buildVersionToDownload: 'latestFronBranch'
+      allowPartiallySucceededBuilds: true
+      branchName: 'refs/heads/master'
+      artifactName: 'flimfit-env-$(buildPlatform)'
+      downloadPath: '$(System.ArtifactsDirectory)' 
+
+  - task: ExtractFiles@1
+    inputs:
+      archiveFilePatterns: '$(System.ArtifactsDirectory)/**/*.zip' 
+      destinationFolder: '$(Build.SourcesDirectory)/env'
+      cleanDestinationFolder: false
+
+  - script: $(buildCommand)
+    displayName: 'Build FLIMfit'
