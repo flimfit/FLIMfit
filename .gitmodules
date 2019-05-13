@@ -7,9 +7,3 @@
 [submodule "FLIMfitLibrary/bm3d"]
 	path = FLIMfitLibrary/bm3d
 	url = https://github.com/seanwarren/bm3d
-[submodule "FLIMfitLibrary/da3d"]
-	path = FLIMfitLibrary/da3d
-	url = https://github.com/seanwarren/da3d
-[submodule "FLIMfitLibrary/vbm3d"]
-	path = FLIMfitLibrary/vbm3d
-	url = https://github.com/seanwarren/vbm3d
