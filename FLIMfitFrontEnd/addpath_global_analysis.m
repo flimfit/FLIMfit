@@ -60,6 +60,7 @@ function addpath_global_analysis()
         end
         get_bioformats(thirdpartydir,'5.9.2');
         get_omero(thirdpartydir,'5.4');
+        get_cellsegm(thirdpartydir);
         get_gui_layout_toolbox();
 
             
