@@ -33,7 +33,7 @@ jobs:
       windows:
         imageName: 'vs2017-win2016'
         buildPlatform: 'windows'
-        setupCommand: python .\install-mcr.py
+        setupCommand: python install-mcr.py
         buildCommand: .\build-mex.bat
 
 
@@ -45,6 +45,11 @@ jobs:
     vmImage: $(imageName)
 
   steps:
+
+  - task: UsePythonVersion@0
+    inputs:
+      versionSpec: '3.6'
+      architecture: 'x64'
 
   - script: $(setupCommand)
     displayName: 'Setup environment'
