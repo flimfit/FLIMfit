@@ -1,4 +1,4 @@
-import platform, zipfile, subprocess, urllib.request
+import platform, zipfile, subprocess, urllib.request, os
 
 
 mcr_url = {
@@ -14,9 +14,9 @@ mcr_name = {
 }
 
 mcr_command = {
-   "Windows": "setup -mode silent -agreeToLicense yes",
-   "Darwin":  "./install -mode silent -agreeToLicense yes",
-   "Linux": "./install -mode silent -agreeToLicense yes"
+   "Windows": "setup.exe -mode silent -agreeToLicense yes",
+   "Darwin":  "install -mode silent -agreeToLicense yes",
+   "Linux": "install -mode silent -agreeToLicense yes"
 }
 
 system = platform.system()
@@ -33,4 +33,4 @@ zip = zipfile.ZipFile(filename, 'r')
 zip.extractall('mcr')
 
 print(" - Installing MCR")
-subprocess.run(command.split(" "), check=True, cwd='mcr')
+subprocess.run(command, check=True, cwd='mcr', shell=True)
