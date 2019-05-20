@@ -34,7 +34,7 @@ echo Generating CMake Project in: %PROJECT_DIR%
 cmake -G"Visual Studio %VS_VERSION% %VS_YEAR%" -A x64 -H. -B%PROJECT_DIR%^
    -DCMAKE_TOOLCHAIN_FILE="%TOOLCHAIN_FILE%"^
    -DNO_CUDA=1^
-   -DMatlab_ROOT_DIR=%Matlab_ROOT_DIR%^
+   -DMatlab_ROOT_DIR="%Matlab_ROOT_DIR%"^
    -DVCPKG_TARGET_TRIPLET=%TRIPLET%^
    -DMSVC_CRT_LINKAGE=static
 if %ERRORLEVEL% GEQ 1 EXIT /B %ERRORLEVEL%
