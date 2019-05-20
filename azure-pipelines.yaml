@@ -35,6 +35,7 @@ jobs:
         buildPlatform: 'windows'
         setupCommand: python install-mcr.py
         buildCommand: .\build-mex.bat
+        MATLAB_ROOT: C:\Program Files\MATLAB\MATLAB Runtime\v95 
 
 
   variables:
