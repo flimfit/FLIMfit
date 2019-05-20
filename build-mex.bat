@@ -17,10 +17,10 @@ ECHO Error: Visual Studio install not found && EXIT /B 1
 
 :BUILD
 
-IF NOT DEFINED MATLAB_VER SET MATLAB_VER=R2018b
+::IF NOT DEFINED MATLAB_VER SET MATLAB_VER=R2018b
 
 SET TRIPLET=x64-windows-static
-SET PATH=%PATH%;%VCPKG_ROOT%\installed\%TRIPLET%\bin;%VCPKG_ROOT%\installed\%TRIPLET%\debug\bin
+   SET PATH=%PATH%;%VCPKG_ROOT%\installed\%TRIPLET%\bin;%VCPKG_ROOT%\installed\%TRIPLET%\debug\bin
 SET TOOLCHAIN_FILE=%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake
 
 SET PROJECT_DIR=GeneratedProjects\VS%VS_YEAR%
