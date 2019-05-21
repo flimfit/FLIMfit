@@ -1,6 +1,5 @@
 import platform, zipfile, subprocess, urllib.request, os
 
-
 mcr_url = {
    "Windows" : "http://ssd.mathworks.com/supportfiles/downloads/R2018b/deployment_files/R2018b/installers/win64/MCR_R2018b_win64_installer.exe",
    "Darwin": "http://ssd.mathworks.com/supportfiles/downloads/R2018b/deployment_files/R2018b/installers/maci64/MCR_R2018b_maci64_installer.dmg.zip",
@@ -26,11 +25,12 @@ filename = mcr_name[system]
 command = mcr_command[system]
 
 print(" - Downloading: " + url)
-urllib.request.urlretrieve(url, filename)
+#urllib.request.urlretrieve(url, filename)
 
 print(" - Extracting: " + filename + " to 'mcr'")
-zip = zipfile.ZipFile(filename, 'r')
-zip.extractall('mcr')
+#zip = zipfile.ZipFile(filename, 'r')
+#zip.extractall('mcr')
 
 print(" - Installing MCR")
+print(command)
 subprocess.run(command, check=True, cwd='mcr', shell=True)
