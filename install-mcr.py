@@ -25,11 +25,11 @@ filename = mcr_name[system]
 command = mcr_command[system]
 
 print(" - Downloading: " + url)
-#urllib.request.urlretrieve(url, filename)
+urllib.request.urlretrieve(url, filename)
 
 print(" - Extracting: " + filename + " to 'mcr'")
-#zip = zipfile.ZipFile(filename, 'r')
-#zip.extractall('mcr')
+zip = zipfile.ZipFile(filename, 'r')
+zip.extractall('mcr')
 
 print(" - Installing MCR")
 print(command)

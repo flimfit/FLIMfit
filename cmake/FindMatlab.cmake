@@ -995,7 +995,11 @@ function(matlab_add_mex)
   target_include_directories(${${prefix}_NAME} PRIVATE ${Matlab_INCLUDE_DIRS})
 
   if(Matlab_HAS_CPP_API)
-    target_link_libraries(${${prefix}_NAME} ${Matlab_ENGINE_LIBRARY} ${Matlab_DATAARRAY_LIBRARY})
+    target_link_libraries(${${prefix}_NAME} ${Matlab_DATAARRAY_LIBRARY})
+  endif()
+
+  if(Matlab_ENGINE_LIBRARY)
+    target_link_libraries(${${prefix}_NAME} ${Matlab_ENGINE_LIBRARY})
   endif()
 
   target_link_libraries(${${prefix}_NAME} ${Matlab_MEX_LIBRARY} ${Matlab_MX_LIBRARY} ${${prefix}_LINK_TO})
@@ -1730,7 +1734,7 @@ if(Matlab_HAS_CPP_API)
     DOC "MatlabEngine Library"
     NO_DEFAULT_PATH
   )
-  list(APPEND _matlab_required_variables Matlab_ENGINE_LIBRARY)
+  #list(APPEND _matlab_required_variables Matlab_ENGINE_LIBRARY)
   if(Matlab_ENGINE_LIBRARY)
     set(Matlab_ENGINE_LIBRARY_FOUND TRUE)
   endif()
