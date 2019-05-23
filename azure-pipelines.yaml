@@ -34,6 +34,7 @@ jobs:
     archiveFile: '$(Build.ArtifactStagingDirectory)/flimfit-$(buildPlatform).zip'
 
   pool:
+    name: Default
     demands: 
     - Matlab2018b
     - agent.os -equals $(agentOs)
