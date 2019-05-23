@@ -21,7 +21,7 @@ jobs:
         buildPlatform: 'osx'
         setupCommand: |
           brew install ninja ghostscript platypus coreutils
-          brew install --with-toolchain llvm
+          brew install --with-clang llvm
         buildCommand: './BuildFLIMfit.sh'
 
       windows:
