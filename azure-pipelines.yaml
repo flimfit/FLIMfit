@@ -15,27 +15,18 @@ jobs:
 
   strategy:
     matrix:
-#      linux:
-#        imageName: 'ubuntu-16.04'
-#        CXX: '/usr/bin/clang++'
-#        CC: '/usr/bin/clang'
-#        buildPlatform: 'linux'
-#        setupCommand: 'sudo apt-get install ninja-build'
-#        buildCommand: './build-flim-ui.sh'
 
-#      mac:
-#        imageName: 'macos-10.13'
-#        DEVELOPER_DIR: '/Applications/Xcode_10.1.app'
-#        buildPlatform: 'osx'
-#        setupCommand: 'brew install ninja'
-#        buildCommand: './build-flim-ui.sh'
+      mac:
+        agentOs: Darwin
+        buildPlatform: 'osx'
+        setupCommand: ''
+        buildCommand: './build-flim-ui.sh'
 
       windows:
-        imageName: 'vs2017-win2016'
+        agentOs: Windows_NT
         buildPlatform: 'windows'
-        setupCommand: python install-mcr.py
+        setupCommand: ''
         buildCommand: .\build-mex.bat
-        Matlab_ROOT_DIR: "C:\\Program Files\\MATLAB\\MATLAB Runtime\\v95"
 
 
   variables:
@@ -43,14 +34,11 @@ jobs:
     archiveFile: '$(Build.ArtifactStagingDirectory)/flimfit-$(buildPlatform).zip'
 
   pool:
-    vmImage: $(imageName)
+    demands: 
+    - Matlab2018b
+    - agent.os -equals $(agentOs)
 
   steps:
-
-  - task: UsePythonVersion@0
-    inputs:
-      versionSpec: '3.6'
-      architecture: 'x64'
 
   - script: $(setupCommand)
     displayName: 'Setup environment'
@@ -61,7 +49,7 @@ jobs:
       project: 'FLIMfit'
       pipeline: 'FLIMfit vcpkg'
       specificBuildWithTriggering: true
-      buildVersionToDownload: 'latestFronBranch'
+      buildVersionToDownload: 'latestFromBranch'
       allowPartiallySucceededBuilds: true
       branchName: 'refs/heads/master'
       artifactName: 'flimfit-env-$(buildPlatform)'
