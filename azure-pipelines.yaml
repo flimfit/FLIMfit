@@ -60,7 +60,7 @@ jobs:
     inputs:
       archiveFilePatterns: '$(System.ArtifactsDirectory)/**/*.zip' 
       destinationFolder: '$(Build.SourcesDirectory)/env'
-      cleanDestinationFolder: false
+      cleanDestinationFolder: true
 
   - script: $(buildCommand)
     displayName: 'Build FLIMfit'
