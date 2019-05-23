@@ -19,7 +19,7 @@ jobs:
       mac:
         agentOs: Darwin
         buildPlatform: 'osx'
-        setupCommand: ''
+        setupCommand: 'brew install ninja clang ghostscript platypus coreutils'
         buildCommand: './BuildFLIMfit.sh'
 
       windows:
