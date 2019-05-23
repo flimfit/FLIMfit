@@ -20,7 +20,7 @@ jobs:
         agentOs: Darwin
         buildPlatform: 'osx'
         setupCommand: ''
-        buildCommand: './build-flim-ui.sh'
+        buildCommand: './BuildFLIMfit.sh'
 
       windows:
         agentOs: Windows_NT
