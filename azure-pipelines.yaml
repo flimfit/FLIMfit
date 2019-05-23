@@ -37,7 +37,7 @@ jobs:
     name: Default
     demands: 
     - Matlab2018b
-    - agent.os -equals $(agentOs)
+    - Agent.OS -equals $(agentOs)
 
   steps:
 
