@@ -26,7 +26,9 @@ jobs:
         agentOs: Windows_NT
         buildPlatform: 'windows'
         setupCommand: ''
-        buildCommand: .\build-mex.bat
+        buildCommand: | 
+          .\build-mex.bat
+          .\build-flimfit.bat
 
 
   variables:
