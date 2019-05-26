@@ -19,7 +19,7 @@ jobs:
       mac:
         agentOs: Darwin
         buildPlatform: 'osx'
-        setupCommand: brew install ninja ghostscript platypus coreutils llvm
+        setupCommand: brew install ninja ghostscript platypus coreutils llvm libomp
         buildCommand: './BuildFLIMfit.sh'
 
       windows:
