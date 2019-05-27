@@ -3,6 +3,7 @@
 #include "AbstractDecayGroup.h"
 #include "AlignedVectors.h"
 #include "FittingParameter.h"
+#include "IRFConvolution.h"
 
 class AbstractConvolver;
 

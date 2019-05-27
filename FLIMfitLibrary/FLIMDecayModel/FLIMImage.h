@@ -197,7 +197,7 @@ data_mode(data_mode)
    if (mask_ != nullptr)
    {
       mask.resize(acq->n_px);
-      memcpy(mask.data(), mask_, acq->n_px * sizeof(mask_type));
+      memcpy(mask.ptr(), mask_, acq->n_px * sizeof(mask_type));
    }
    
    setData(data_);

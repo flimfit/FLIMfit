@@ -8,11 +8,11 @@
 if [ -z ${MATLAB_VER+x} ]; then export MATLAB_VER=R2018b; echo "Setting MATLAB_VER=R2018b"; fi
 
 MATLAB_OMP_ROOT=/Applications/MATLAB_${MATLAB_VER}.app/sys/os/maci64
-export CC=/usr/local/opt/llvm/bin/clang
-export CXX=/usr/local/opt/llvm/bin/clang++
-export LDFLAGS="-L$MATLAB_OMP_ROOT -L/usr/local/opt/llvm/lib -Wl,-rpath,$MATLAB_OMP_ROOT:/usr/local/opt/llvm/lib"
-export PATH="/usr/local/opt/qt5/bin:$PATH"
-export MKLROOT=/opt/intel/mkl
+#export CC=/usr/local/opt/llvm/bin/clang
+#export CXX=/usr/local/opt/llvm/bin/clang++
+#export LDFLAGS="-L$MATLAB_OMP_ROOT -L/usr/local/opt/llvm/lib -Wl,-rpath,$MATLAB_OMP_ROOT:/usr/local/opt/llvm/lib"
+#export PATH="/usr/local/opt/qt5/bin:$PATH"
+#export MKLROOT=/opt/intel/mkl
 TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake
 
 [ "$1" == "--clean" ] && rm -rf GeneratedProjects/Unix
