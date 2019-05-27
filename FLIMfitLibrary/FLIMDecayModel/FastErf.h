@@ -23,12 +23,12 @@
    static const vecd p = vset1_pd(0.3275911);
    static const vecd signmask = vset1_pd(-0.0);
 
-/*
+
    inline static vecd abs_mask(void) {
       __m256i minus1 = _mm256_set1_epi64x(-1);
       return _mm256_castsi256_pd(_mm256_srli_epi64(minus1, 1));
    }
-*/
+
 
    inline static vecd _mm256_erf_pd_(vecd x)
    {
