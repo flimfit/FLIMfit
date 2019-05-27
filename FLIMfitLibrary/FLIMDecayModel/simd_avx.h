@@ -288,21 +288,21 @@ static inline vecd _mm256_rsqrt_pd_(vecd x) {
 /****************************************************
 * Implementations of basic vector functions for float
 ****************************************************/
-
+/*
 static inline float _mm256_reduce_ps_(vecf x_) {
    auto x = x_.m256_f32;
    return x[0] + x[1] + x[2] + x[3] + x[4] + x[5] + x[6] + x[7];
 }
-
+*/
 /****************************************************
 * Implementations of basic vector functions for double
 ****************************************************/
-
+/*
 static inline double _mm256_reduce_pd_(vecd x_) {
    auto x = x_.m256d_f64;
    return x[0] + x[1] + x[2] + x[3];
 }
-
+*/
 /****************************************************
 * Implementation of advanced arithmetic operations
 ****************************************************/
@@ -698,4 +698,4 @@ static inline vecd _mm256_dot3_pd_(vecd x[3], vecd y[3]) {
 
 #endif
 
-#endif /* LIBRARY_SIMD_AVX_H_ */#pragma once
+#endif /* LIBRARY_SIMD_AVX_H_ */
