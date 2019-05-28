@@ -8,17 +8,18 @@
 if [ -z ${MATLAB_VER+x} ]; then export MATLAB_VER=R2018b; echo "Setting MATLAB_VER=R2018b"; fi
 
 MATLAB_OMP_ROOT=/Applications/MATLAB_${MATLAB_VER}.app/sys/os/maci64
-#export CC=/usr/local/opt/llvm/bin/clang
-#export CXX=/usr/local/opt/llvm/bin/clang++
-#export LDFLAGS="-L$MATLAB_OMP_ROOT -L/usr/local/opt/llvm/lib -Wl,-rpath,$MATLAB_OMP_ROOT:/usr/local/opt/llvm/lib"
-#export PATH="/usr/local/opt/qt5/bin:$PATH"
-#export MKLROOT=/opt/intel/mkl
+export CC=/usr/local/opt/llvm/bin/clang
+export CXX=/usr/local/opt/llvm/bin/clang++
+export LDFLAGS="-L$MATLAB_OMP_ROOT -L/usr/local/opt/llvm/lib -Wl,-rpath,$MATLAB_OMP_ROOT:/usr/local/opt/llvm/lib"
+TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake
+SDKROOT=$(xcrun --sdk macosx --show-sdk-path)
 TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake
 
 [ "$1" == "--clean" ] && rm -rf GeneratedProjects/Unix
 if ! cmake -GNinja -H. -BGeneratedProjects/Unix \
     -DOpenMP_omp_LIBRARY=$MATLAB_OMP_ROOT/libiomp5.dylib \
-    -DCMAKE_TOOLCHAIN_FILE="$TOOLCHAIN_FILE"; then
+    -DCMAKE_TOOLCHAIN_FILE="$TOOLCHAIN_FILE" \
+    -DCMAKE_OSX_DEPLOYMENT_TARGET=10.13; then
    echo 'Error configuring project'
    exit 1
 fi

@@ -31,6 +31,7 @@
 #include "FlagDefinitions.h"
 #include <cmath>
 #include <algorithm>
+#include <cstdint>
 
 using namespace std;
 
@@ -466,7 +467,7 @@ int FLIMData::getMaskedData(int im, int region, float_iterator masked_data, pixe
 
    float_iterator masked_intensity, masked_r_ss, masked_acceptor, masked_ratio;
    float_iterator aux_data = results->getAuxDataPtr(im, region);
-   auto& mask = results->getMask(im);
+   auto mask = results->getMask(im);
    
    bool has_ratio = dp->n_chan > 1;
 

@@ -43,6 +43,7 @@
 #include <vector>
 #include <cmath>
 #include <algorithm>
+#include <cstdint>
 
 #include <boost/math/special_functions/fpclassify.hpp>
 
@@ -511,7 +512,7 @@ int FitController::getFit(int im, int n_fit, uint fit_loc[], double fit[], int& 
    
    //int n_px = data->n_px;
 
-   auto& mask = results->getMask(im);
+   auto mask = results->getMask(im);
 
    int iml = data->getImLoc(im);
    if (iml == -1)

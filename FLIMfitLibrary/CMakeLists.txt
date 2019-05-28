@@ -11,7 +11,7 @@ if(MSVC)
 endif(MSVC)
 
 if(UNIX)
-   set(PLATFORM_FLAGS_ALL "-mfma -mavx")
+   set(PLATFORM_FLAGS_ALL "-mfma -mavx2")
    set(PLATFORM_FLAGS_RELEASE "-O3 -ffast-math -ftree-vectorize")
    set(PLATFORM_FLAGS_DEBUG "-D_DEBUG")
 endif(UNIX)

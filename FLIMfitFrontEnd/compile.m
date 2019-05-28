@@ -76,12 +76,6 @@ function compile(exit_on_error)
 
         % Manually fix Qt references on mac
         if ismac
-            if isfolder('Libraries/QtCore.framework')
-                rmdir('Libraries/QtCore.framework','s')
-            end
-            copyfile('/usr/local/opt/qt/lib/QtCore.framework/','Libraries/QtCore.framework/');
-            system('install_name_tool -change /usr/local/opt/qt/lib/QtCore.framework/Versions/5/QtCore @loader_path/QtCore.framework/Versions/5/QtCore Libraries/FLIMfitMex.mexmaci64');
-
             for lib = {'FLIMfitMex', 'FlimReader'}
                 system(cell2mat(['DeployFiles/dylibbundler -of -x Libraries/' lib '.mexmaci64 -b  -d Libraries -p @loader_path']));
             end 

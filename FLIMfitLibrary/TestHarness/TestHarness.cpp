@@ -56,14 +56,12 @@ extern int testFittingCoreBackground();
 #include "FastErf.h"
 typedef double ty;
 
-__declspec(noinline)
 void erf_vec_real(const aligned_vector<ty>& x, aligned_vector<ty>& y)
 {
    for (int i = 0; i < x.size(); i++)
       y[i] = erf(x[i]);
 }
 
-__declspec(noinline)
 void erf_vec_fast(const aligned_vector<ty>& x, aligned_vector<ty>& y)
 {
    __m256d* xd = (__m256d*) x.data();
