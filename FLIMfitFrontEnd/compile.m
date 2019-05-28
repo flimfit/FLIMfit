@@ -204,7 +204,7 @@ function compile(exit_on_error)
 
             % sign code - need to have certificate installed
             disp('Signing executable...')
-            [~,response] = system(['codesign -s P6MM899VL9 "' final_file '"/']);
+            [~,response] = system(['codesign -s 3NRGM2XQA8 "' final_file '"/']);
             disp(response);
         end
         
