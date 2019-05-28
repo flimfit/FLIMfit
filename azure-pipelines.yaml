@@ -9,6 +9,9 @@ trigger:
 pr:
 - master
 
+variables:
+- group: passwords
+
 jobs:
 - job: Build
   timeoutInMinutes: 360
@@ -40,6 +43,13 @@ jobs:
     - Agent.OS -equals $(agentOs)
 
   steps:
+
+  - task: InstallAppleCertificate@2
+    condition: eq(variables['buildPlatform'],'osx')
+    inputs:
+      certSecureFile: 'sean-warren-apple-dev-cert-azure.p12'
+      certPwd: '$(apple-dev-cert-password)'
+      keychain: 'temp'
 
   - script: $(setupCommand)
     displayName: 'Setup environment'
