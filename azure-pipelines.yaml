@@ -30,6 +30,10 @@ jobs:
     - Agent.OS -equals Darwin
 
   steps:
+  - checkout: self 
+    clean: all
+    submodules: recursive
+
   - task: InstallAppleCertificate@2
     condition: eq(variables['buildPlatform'],'osx')
     inputs:
@@ -86,6 +90,10 @@ jobs:
     - Agent.OS -equals Windows_NT
 
   steps:
+  - checkout: self 
+    clean: all
+    submodules: recursive
+
   - task: DownloadBuildArtifacts@0
     inputs:
       buildType: 'specific'
@@ -104,8 +112,11 @@ jobs:
       destinationFolder: '$(Build.SourcesDirectory)/env'
       cleanDestinationFolder: true
 
-  - script: .\build-mex.bat and .\build-flimfit.bat
-    displayName: 'Build FLIMfit'
+  - script: .\build-mex.bat
+    displayName: 'Build FLIMfit mex files'
+
+  - script: .\build-flimfit.bat
+    displayName: 'Build FLIMfit frontend'
 
   - task: CopyFiles@2
     inputs:
