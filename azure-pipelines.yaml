@@ -63,7 +63,7 @@ jobs:
 
   - task: CopyFiles@2
     inputs:
-      contents: 'FLIMfitStandalone/BuiltApps/*.zip'
+      contents: '$(Build.SourcesDirectory)/FLIMfitStandalone/BuiltApps/*.zip'
       targetFolder: '$(Build.ArtifactStagingDirectory)/build'
 
   - task: PublishPipelineArtifact@0
@@ -109,7 +109,7 @@ jobs:
 
   - task: CopyFiles@2
     inputs:
-      contents: 'FLIMfitStandalone/Installer/*.exe'
+      contents: '$(Build.SourcesDirectory)/FLIMfitStandalone/Installer/*.exe'
       targetFolder: '$(Build.ArtifactStagingDirectory)/build'
 
   - task: PublishPipelineArtifact@0
