@@ -15,10 +15,13 @@ jobs:
   timeoutInMinutes: 360
 
   variables:
-    group: passwords
-    VCPKG_ROOT: '$(Build.SourcesDirectory)/env/vcpkg'
-    buildPlatform: 'osx'
-    archiveFile: '$(Build.ArtifactStagingDirectory)/flimfit-$(buildPlatform).zip'
+  - group: passwords
+  - name: VCPKG_ROOT
+    value: '$(Build.SourcesDirectory)/env/vcpkg'
+  - name: buildPlatform
+    value: 'osx'
+  - name: archiveFile
+    value: '$(Build.ArtifactStagingDirectory)/flimfit-$(buildPlatform).zip'
 
   pool:
     name: Default
