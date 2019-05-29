@@ -25,6 +25,7 @@ jobs:
     - Matlab2018b
     - Agent.OS -equals Darwin
 
+  steps:
   - task: InstallAppleCertificate@2
     condition: eq(variables['buildPlatform'],'osx')
     inputs:
@@ -32,7 +33,6 @@ jobs:
       certPwd: '$(apple-dev-cert-password)'
       keychain: 'temp'
 
-  steps:
   - script: brew install ninja ghostscript platypus coreutils llvm libomp
     displayName: 'Setup environment'
 
