@@ -61,6 +61,16 @@ jobs:
   - script: './BuildFLIMfit.sh'
     displayName: 'Build FLIMfit' 
 
+  - task: CopyFiles@2
+    inputs:
+      contents: 'FLIMfitStandalone/BuiltApps/*.zip'
+      targetFolder: '$(Build.ArtifactStagingDirectory)/build'
+
+  - task: PublishPipelineArtifact@0
+    inputs:
+      artifactName: 'FLIMfit-$(buildPlatform)'
+      targetPath: '$(Build.ArtifactStagingDirectory)/build'
+
 - job: windows
   timeoutInMinutes: 360
 
@@ -96,3 +106,13 @@ jobs:
 
   - script: .\build-mex.bat and .\build-flimfit.bat
     displayName: 'Build FLIMfit'
+
+  - task: CopyFiles@2
+    inputs:
+      contents: 'FLIMfitStandalone/Installer/*.exe'
+      targetFolder: '$(Build.ArtifactStagingDirectory)/build'
+
+  - task: PublishPipelineArtifact@0
+    inputs:
+      artifactName: 'FLIMfit-$(buildPlatform)'
+      targetPath: '$(Build.ArtifactStagingDirectory)/build'
