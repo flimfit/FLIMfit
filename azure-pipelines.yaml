@@ -9,30 +9,13 @@ trigger:
 pr:
 - master
 
-variables:
-- group: passwords
-
 jobs:
-- job: Build
+
+- job: osx
   timeoutInMinutes: 360
 
-  strategy:
-    matrix:
-
-      mac:
-        agentOs: Darwin
-        buildPlatform: 'osx'
-        setupCommand: brew install ninja ghostscript platypus coreutils llvm libomp
-        buildCommand: './BuildFLIMfit.sh'
-
-      windows:
-        agentOs: Windows_NT
-        buildPlatform: 'windows'
-        setupCommand: ''
-        buildCommand: .\build-mex.bat and .\build-flimfit.bat
-
-
   variables:
+    group: passwords
     VCPKG_ROOT: '$(Build.SourcesDirectory)/env/vcpkg'
     archiveFile: '$(Build.ArtifactStagingDirectory)/flimfit-$(buildPlatform).zip'
 
@@ -40,9 +23,7 @@ jobs:
     name: Default
     demands: 
     - Matlab2018b
-    - Agent.OS -equals $(agentOs)
-
-  steps:
+    - Agent.OS -equals Darwin
 
   - task: InstallAppleCertificate@2
     condition: eq(variables['buildPlatform'],'osx')
@@ -51,7 +32,8 @@ jobs:
       certPwd: '$(apple-dev-cert-password)'
       keychain: 'temp'
 
-  - script: $(setupCommand)
+  steps:
+  - script: brew install ninja ghostscript platypus coreutils llvm libomp
     displayName: 'Setup environment'
 
   - task: DownloadBuildArtifacts@0
@@ -72,5 +54,40 @@ jobs:
       destinationFolder: '$(Build.SourcesDirectory)/env'
       cleanDestinationFolder: true
 
-  - script: $(buildCommand)
+  - script: './BuildFLIMfit.sh'
+    displayName: 'Build FLIMfit' 
+
+- job: windows
+  timeoutInMinutes: 360
+
+  variables:
+    VCPKG_ROOT: '$(Build.SourcesDirectory)/env/vcpkg'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/flimfit-$(buildPlatform).zip'
+
+  pool:
+    name: Default
+    demands: 
+    - Matlab2018b
+    - Agent.OS -equals Windows_NT
+
+  steps:
+  - task: DownloadBuildArtifacts@0
+    inputs:
+      buildType: 'specific'
+      project: 'FLIMfit'
+      pipeline: 'FLIMfit vcpkg'
+      specificBuildWithTriggering: true
+      buildVersionToDownload: 'latestFromBranch'
+      allowPartiallySucceededBuilds: true
+      branchName: 'refs/heads/master'
+      artifactName: 'flimfit-env-$(buildPlatform)'
+      downloadPath: '$(System.ArtifactsDirectory)' 
+
+  - task: ExtractFiles@1
+    inputs:
+      archiveFilePatterns: '$(System.ArtifactsDirectory)/**/*.zip' 
+      destinationFolder: '$(Build.SourcesDirectory)/env'
+      cleanDestinationFolder: true
+
+  - script: .\build-mex.bat and .\build-flimfit.bat
     displayName: 'Build FLIMfit'
