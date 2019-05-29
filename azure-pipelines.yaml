@@ -9,6 +9,10 @@ trigger:
 pr:
 - master
 
+variables:
+  VCPKG_ROOT: '$(Build.SourcesDirectory)/env/vcpkg'
+  MATLAB_VER: R2018b
+
 jobs:
 
 - job: osx
@@ -16,8 +20,6 @@ jobs:
 
   variables:
   - group: passwords
-  - name: VCPKG_ROOT
-    value: '$(Build.SourcesDirectory)/env/vcpkg'
   - name: buildPlatform
     value: 'osx'
   - name: archiveFile
@@ -35,7 +37,6 @@ jobs:
     submodules: recursive
 
   - task: InstallAppleCertificate@2
-    condition: eq(variables['buildPlatform'],'osx')
     inputs:
       certSecureFile: 'sean-warren-apple-dev-cert-azure.p12'
       certPwd: '$(apple-dev-cert-password)'
@@ -79,7 +80,6 @@ jobs:
   timeoutInMinutes: 360
 
   variables:
-    VCPKG_ROOT: '$(Build.SourcesDirectory)/env/vcpkg'
     buildPlatform: 'windows'
     archiveFile: '$(Build.ArtifactStagingDirectory)/flimfit-$(buildPlatform).zip'
 
