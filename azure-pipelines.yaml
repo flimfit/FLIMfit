@@ -17,6 +17,7 @@ jobs:
   variables:
     group: passwords
     VCPKG_ROOT: '$(Build.SourcesDirectory)/env/vcpkg'
+    buildPlatform: 'osx'
     archiveFile: '$(Build.ArtifactStagingDirectory)/flimfit-$(buildPlatform).zip'
 
   pool:
@@ -62,6 +63,7 @@ jobs:
 
   variables:
     VCPKG_ROOT: '$(Build.SourcesDirectory)/env/vcpkg'
+    buildPlatform: 'windows'
     archiveFile: '$(Build.ArtifactStagingDirectory)/flimfit-$(buildPlatform).zip'
 
   pool:
