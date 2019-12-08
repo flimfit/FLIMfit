@@ -69,7 +69,7 @@
         
     % TCSPC
     elseif (~isempty(dc_tcspc) && str2double(dc_tcspc.Value) == 1) || ...
-           (~isempty(instrument_mode) && strcmp(instrument_mode.InstrumentMode,'FLIM')) 
+           (~isempty(instrument_mode))
        
         lifetime_axis = [];
         for ax=1:3
