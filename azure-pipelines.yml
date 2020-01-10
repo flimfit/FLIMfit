@@ -10,8 +10,7 @@ pr:
 - master
 
 variables:
-  VCPKG_ROOT: '$(Build.SourcesDirectory)/env/vcpkg'
-  MATLAB_VER: R2018b
+  MATLAB_VER: R2019b
 
 jobs:
 
