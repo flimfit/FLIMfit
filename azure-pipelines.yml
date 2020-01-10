@@ -1,0 +1,46 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- 6.0
+
+pr:
+- master
+
+variables:
+  VCPKG_ROOT: '$(Build.SourcesDirectory)/env/vcpkg'
+  MATLAB_VER: R2018b
+
+jobs:
+
+- job: windows
+  timeoutInMinutes: 360
+
+  variables:
+    buildPlatform: 'windows'
+
+  pool:
+    name: Default
+    demands: 
+    - Matlab2019b
+    - Agent.OS -equals Windows_NT
+
+  steps:
+  - checkout: self 
+    clean: true
+    submodules: recursive
+
+  - script: .\BuildFLIMfit.bat
+    displayName: 'Build FLIMfit frontend'
+
+  - task: CopyFiles@2
+    inputs:
+      contents: '$(Build.SourcesDirectory)/FLIMfitStandalone/Installer/*.exe'
+      targetFolder: '$(Build.ArtifactStagingDirectory)/build'
+
+  - task: PublishPipelineArtifact@0
+    inputs:
+      artifactName: 'FLIMfit-$(buildPlatform)'
+      targetPath: '$(Build.ArtifactStagingDirectory)/build'
