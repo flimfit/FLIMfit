@@ -24,7 +24,7 @@ jobs:
   pool:
     name: Default
     demands: 
-    - Matlab2019b
+    - Matlab -equals 2019b
     - Agent.OS -equals Windows_NT
 
   steps:
