@@ -43,3 +43,12 @@ jobs:
     inputs:
       artifactName: 'FLIMfit-$(buildPlatform)'
       targetPath: '$(Build.ArtifactStagingDirectory)/build'
+
+  - task: CopyToGoogleStorage@14
+    inputs:
+      bucketname: 'flimfit-downloads'
+      foldername: '$(Build.SourcesDirectory)/FLIMfitStandalone/Installer'
+      projectid: 'flimfit-storage'
+      clientemail: 'flimfit-storage@appspot.gserviceaccount.com'
+      privatekey: '$(gcs-private-key)'
+      destinationDirectory: 'latest'
