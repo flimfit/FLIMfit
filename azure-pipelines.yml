@@ -34,10 +34,14 @@ jobs:
   - script: .\BuildFLIMfit.bat
     displayName: 'Build FLIMfit frontend'
 
+  - bash: echo "##vso[task.setvariable variable=version]$(git describe)"
+
   - task: CopyFiles@2
     inputs:
-      contents: '$(Build.SourcesDirectory)/FLIMfitStandalone/Installer/*.exe'
-      targetFolder: '$(Build.ArtifactStagingDirectory)/build'
+      SourceFolder: '$(Build.SourcesDirectory)/FLIMfitStandalone/Installer/'
+      Contents: '*.exe'
+      TargetFolder: '$(Build.ArtifactStagingDirectory)/build'
+      CleanTargetFolder: true
 
   - task: PublishPipelineArtifact@0
     inputs:
@@ -46,7 +50,7 @@ jobs:
 
   - task: AzureFileCopy@3
     inputs:
-      SourcePath: '$(Build.ArtifactStagingDirectory)/build/*'
+      SourcePath: '$(Build.ArtifactStagingDirectory)/build/FLIMfit $(version) Setup x64.exe'
       azureSubscription: 'Pay-As-You-Go(a38da80c-0896-448b-9c6b-271c458ac013)'
       Destination: 'AzureBlob'
       storage: 'flimfit'
