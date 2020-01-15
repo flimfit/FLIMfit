@@ -31,7 +31,7 @@ jobs:
     clean: true
     submodules: recursive
 
-  - bash: echo "##vso[task.setvariable variable=version]$(git describe)"
+  - pwsh: echo "##vso[task.setvariable variable=version]$(git describe)"
     displayName: 'Determine version'
 
   - script: .\BuildFLIMfit.bat
