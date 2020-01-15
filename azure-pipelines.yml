@@ -44,11 +44,12 @@ jobs:
       artifactName: 'FLIMfit-$(buildPlatform)'
       targetPath: '$(Build.ArtifactStagingDirectory)/build'
 
-  - task: CopyToGoogleStorage@14
+  - task: AzureFileCopy@3
     inputs:
-      bucketname: 'flimfit-downloads'
-      foldername: '$(Build.SourcesDirectory)/FLIMfitStandalone/Installer'
-      projectid: 'flimfit-storage'
-      clientemail: 'flimfit-storage@appspot.gserviceaccount.com'
-      privatekey: '$(gcs-private-key)'
-      destinationDirectory: 'latest'
+      SourcePath: '$(Build.ArtifactStagingDirectory)/build/*'
+      azureSubscription: 'Pay-As-You-Go(2)(a38da80c-0896-448b-9c6b-271c458ac013)'
+      Destination: 'AzureBlob'
+      storage: 'flimfit'
+      ContainerName: 'builds'
+
+
