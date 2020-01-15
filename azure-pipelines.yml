@@ -31,10 +31,11 @@ jobs:
     clean: true
     submodules: recursive
 
+  - bash: echo "##vso[task.setvariable variable=version]$(git describe)"
+    displayName: 'Determine version'
+
   - script: .\BuildFLIMfit.bat
     displayName: 'Build FLIMfit frontend'
-
-  - bash: echo "##vso[task.setvariable variable=version]$(git describe)"
 
   - task: CopyFiles@2
     inputs:
@@ -46,7 +47,7 @@ jobs:
   - task: PublishPipelineArtifact@0
     inputs:
       artifactName: 'FLIMfit-$(buildPlatform)'
-      targetPath: '$(Build.ArtifactStagingDirectory)/build'
+      targetPath: '$(Build.ArtifactStagingDirectory)/build/FLIMfit $(version) Setup x64.exe'
 
   - task: AzureFileCopy@3
     inputs:
