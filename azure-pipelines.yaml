@@ -33,7 +33,7 @@ jobs:
 
   steps:
   - checkout: self 
-    clean: all
+    clean: true
     submodules: recursive
 
   - task: InstallAppleCertificate@2
@@ -91,7 +91,7 @@ jobs:
 
   steps:
   - checkout: self 
-    clean: all
+    clean: true
     submodules: recursive
 
 #  - task: DownloadBuildArtifacts@0
