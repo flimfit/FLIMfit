@@ -11,7 +11,7 @@ pr:
 
 variables:
   VCPKG_ROOT: '$(Build.SourcesDirectory)/env/vcpkg'
-  MATLAB_VER: R2018b
+  MATLAB_VER: R2019b
 
 jobs:
 
@@ -28,7 +28,7 @@ jobs:
   pool:
     name: Default
     demands: 
-    - Matlab2018b
+    - Matlab -equals 2019b
     - Agent.OS -equals Darwin
 
   steps:
@@ -86,7 +86,7 @@ jobs:
   pool:
     name: Default
     demands: 
-    - Matlab2018b
+    - Matlab -equals 2019b
     - Agent.OS -equals Windows_NT
 
   steps:
