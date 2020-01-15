@@ -47,7 +47,7 @@ jobs:
   - task: AzureFileCopy@3
     inputs:
       SourcePath: '$(Build.ArtifactStagingDirectory)/build/*'
-      azureSubscription: 'Pay-As-You-Go(2)(a38da80c-0896-448b-9c6b-271c458ac013)'
+      azureSubscription: 'Pay-As-You-Go(a38da80c-0896-448b-9c6b-271c458ac013)'
       Destination: 'AzureBlob'
       storage: 'flimfit'
       ContainerName: 'builds'
