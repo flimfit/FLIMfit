@@ -18,8 +18,7 @@ TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake
 [ "$1" == "--clean" ] && rm -rf GeneratedProjects/Unix
 if ! cmake -GNinja -H. -BGeneratedProjects/Unix \
     -DOpenMP_omp_LIBRARY=$MATLAB_OMP_ROOT/libiomp5.dylib \
-    -DCMAKE_TOOLCHAIN_FILE="$TOOLCHAIN_FILE" \
-    -DCMAKE_OSX_DEPLOYMENT_TARGET=10.13; then
+    -DCMAKE_TOOLCHAIN_FILE="$TOOLCHAIN_FILE" then
    echo 'Error configuring project'
    exit 1
 fi
