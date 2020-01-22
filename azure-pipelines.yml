@@ -56,5 +56,49 @@ jobs:
       Destination: 'AzureBlob'
       storage: 'flimfit'
       ContainerName: 'builds'
+      
+
+- job: osx
+  timeoutInMinutes: 360
+
+  variables:
+  - group: passwords
+  - name: buildPlatform
+    value: 'osx'
+  - name: archiveFile
+    value: '$(Build.ArtifactStagingDirectory)/flimfit-$(buildPlatform).zip'
+
+  pool:
+    name: Default
+    demands: 
+    - Matlab -equals 2019b
+    - Agent.OS -equals Darwin
+
+  steps:
+  - checkout: self 
+    clean: true
+    submodules: recursive
+
+  - task: InstallAppleCertificate@2
+    inputs:
+      certSecureFile: 'sean-warren-apple-dev-cert-azure.p12'
+      certPwd: '$(apple-dev-cert-password)'
+      keychain: 'temp'
+
+  - script: brew install ninja ghostscript platypus coreutils llvm libomp
+    displayName: 'Setup environment'
+
+  - script: './BuildFLIMfit.sh'
+    displayName: 'Build FLIMfit' 
+
+  - task: CopyFiles@2
+    inputs:
+      contents: '$(Build.SourcesDirectory)/FLIMfitStandalone/BuiltApps/*.zip'
+      targetFolder: '$(Build.ArtifactStagingDirectory)/build'
+
+  - task: PublishPipelineArtifact@0
+    inputs:
+      artifactName: 'FLIMfit-$(buildPlatform)'
+      targetPath: '$(Build.ArtifactStagingDirectory)/build'
 
 
