@@ -63,7 +63,9 @@ jobs:
 #      destinationFolder: '$(Build.SourcesDirectory)/env'
 #      cleanDestinationFolder: true
 
-  - script: './BuildFLIMfit.sh'
+  - script: | 
+      echo $PATH
+      './BuildFLIMfit.sh'
     displayName: 'Build FLIMfit' 
 
   - task: CopyFiles@2
