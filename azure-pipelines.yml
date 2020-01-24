@@ -93,12 +93,22 @@ jobs:
 
   - task: CopyFiles@2
     inputs:
-      contents: '$(Build.SourcesDirectory)/FLIMfitStandalone/BuiltApps/*.zip'
-      targetFolder: '$(Build.ArtifactStagingDirectory)/build'
+      SourceFolder: '$(Build.SourcesDirectory)/FLIMfitStandalone/BuiltApps/*.zip'
+      Contents: '*.zip'
+      TargetFolder: '$(Build.ArtifactStagingDirectory)/build'
+      CleanTargetFolder: true
 
   - task: PublishPipelineArtifact@0
     inputs:
       artifactName: 'FLIMfit-$(buildPlatform)'
-      targetPath: '$(Build.ArtifactStagingDirectory)/build'
+      targetPath: '$(Build.ArtifactStagingDirectory)/build/FLIMfit_$(version)_MACI64.zip'
+
+  - task: AzureFileCopy@3
+    inputs:
+      SourcePath: '$(Build.ArtifactStagingDirectory)/build/FLIMfit_$(version)_MACI64.zip'
+      azureSubscription: 'Pay-As-You-Go(a38da80c-0896-448b-9c6b-271c458ac013)'
+      Destination: 'AzureBlob'
+      storage: 'flimfit'
+      ContainerName: 'builds'
 
 
