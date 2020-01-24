@@ -2,6 +2,9 @@
 
 if [ -z ${MATLAB_VER+x} ]; then export MATLAB_VER=R2016b; echo "Setting MATLAB_VER=R2016b"; fi
 
+triplet=x64-osx
+toolchain_file=${VCPKG_ROOT}\scripts\buildsystems\vcpkg.cmake
+
 # Build FlimReader Mex file
 #--------------------------------------------
 project_dir=GeneratedProjects/FlimReaderUnix
@@ -13,8 +16,10 @@ mkdir -p ${project_dir}
 cur_dir=$(grealpath .)
 
 echo "Generating CMake Project..."
-if ! cmake -HFLIMfitLibrary/FLIMreader -B${project_dir} -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release \
-   -DBUILD_OPENCV=ON -DFlimReaderMEX_OUT_DIR=${cur_dir}/FLIMfitFrontEnd/Libraries/; then 
+if ! cmake -HFLIMfitLibrary/FLIMreader -B${project_dir} -G "Unix Makefiles" \
+   -DCMAKE_BUILD_TYPE=Release \
+   -DCMAKE_TOOLCHAIN_FILE="${toolchain_file}" -DVCPKG_TARGET_TRIPLET=${triplet} \
+   -DFlimReaderMEX_OUT_DIR=${cur_dir}/FLIMfitFrontEnd/Libraries/; then 
    echo 'Error generating project'
    exit 1
 fi
