@@ -3,7 +3,7 @@
 if [ -z ${MATLAB_VER+x} ]; then export MATLAB_VER=R2016b; echo "Setting MATLAB_VER=R2016b"; fi
 
 triplet=x64-osx
-toolchain_file=${VCPKG_ROOT}\scripts\buildsystems\vcpkg.cmake
+toolchain_file=${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake
 
 # Build FlimReader Mex file
 #--------------------------------------------
