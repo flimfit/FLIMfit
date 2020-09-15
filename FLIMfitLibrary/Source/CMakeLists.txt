@@ -27,7 +27,7 @@
 #
 #=========================================================================
 
-cmake_minimum_required(VERSION 2.8.10)
+cmake_minimum_required(VERSION 3.12)
 
 project(FLIMfit)
 
@@ -38,14 +38,7 @@ INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIR})
 
 # Enable OpenMP support, disable for XCode
 #===================================================
-find_package("OpenMP")
-if (OPENMP_FOUND)
-   option(USE_OMP "Use OpenMP" ON)
-   if (USE_OMP)
-   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS} -DUSE_OMP")
-      message("Using OpenMP")
-   endif()
-endif()
+find_package(OpenMP) 
 
 include_directories( ${LEVMAR_INCLUDE_DIRS} )
 
@@ -133,7 +126,7 @@ set(STATIC_NAME "${LIB_NAME}_lib")
 add_library(${LIB_NAME} SHARED ${SOURCE} ${HEADERS} FLIMGlobalAnalysis.h FLIMGlobalAnalysis.cpp)
 
 
-target_link_libraries(${LIB_NAME} levmar ${LEVMAR_LIBRARIES})
+target_link_libraries(${LIB_NAME} PUBLIC levmar ${LEVMAR_LIBRARIES} OpenMP::OpenMP_CXX)
 
 
 

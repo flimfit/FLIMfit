@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ -z ${MATLAB_VER+x} ]; then export MATLAB_VER=R2016b; echo "Setting MATLAB_VER=R2016b"; fi
+if [ -z ${MATLAB_VER+x} ]; then export MATLAB_VER=R2020a; echo "Setting MATLAB_VER=R2019b"; fi
 
 triplet=x64-osx
 toolchain_file=${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake
@@ -32,9 +32,6 @@ fi
 
 # Build FLIMfit library
 #--------------------------------------------
-
-export CC=/usr/local/bin/gcc-8
-export CXX=/usr/local/bin/g++-8
 
 echo "Cleaning CMake Project..."
 rm -rf GeneratedProjects/Unix
