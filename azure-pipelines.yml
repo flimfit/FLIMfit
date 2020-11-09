@@ -10,7 +10,7 @@ pr:
 - master
 
 variables:
-  MATLAB_VER: R2019b
+  MATLAB_VER: R2020b
 
 jobs:
 
@@ -23,7 +23,7 @@ jobs:
   pool:
     name: Default
     demands: 
-    - Matlab -equals 2019b
+    - Matlab -equals $(MATLAB_VER)
     - Agent.OS -equals Windows_NT
 
   steps:
