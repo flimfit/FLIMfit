@@ -31,7 +31,7 @@
 #include "boost/math/distributions/fisher_f.hpp"
 #include "boost/math/tools/minima.hpp"
 #include <boost/math/tools/roots.hpp>
-#include "boost/bind.hpp"
+#include "boost/bind/bind.hpp"
 #include <limits>
 #include <exception>
 
@@ -194,6 +194,7 @@ int AbstractFitter::CalculateErrors(double* alf, double conf_limit, double* err_
    using namespace boost::math;
    using namespace boost::math::tools;
    using namespace boost::math::policies;
+   using namespace boost::placeholders;
    using boost::math::policies::domain_error;
    using boost::math::policies::ignore_error;
 

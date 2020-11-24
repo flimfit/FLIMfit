@@ -20,7 +20,7 @@
 #include <algorithm>
 #include "util.h"
 
-#include <boost/bind.hpp>
+#include <boost/bind/bind.hpp>
 #include <boost/function.hpp>
 
 #include "omp_stub.h"

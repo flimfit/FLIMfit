@@ -1,0 +1,17 @@
+{
+  "name": "flimfit",
+  "version-string": "5.1.1",
+  "homepage": "https://flimfit.org/",
+  "dependencies": [
+    "boost-accumulators",
+    "boost-align",
+    "boost-bind",
+    "boost-filesystem",
+    "boost-function",
+    "boost-interprocess",
+    "boost-iostreams",
+    "boost-math",
+    "boost-random",
+    "boost-serialization"
+  ]
+}

@@ -7,4 +7,4 @@
 	url = https://github.com/flimfit/matlab-ui-common.git
 [submodule "vcpkg"]
 	path = vcpkg
-	url = https://github.com/seanwarren/vcpkg
+	url = https://github.com/microsoft/vcpkg
