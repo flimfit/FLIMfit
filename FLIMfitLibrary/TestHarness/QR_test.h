@@ -1,7 +1,7 @@
 #ifndef _QRTEST_
 #define _QRTEST_
 
-#ifdef _WINDOWS
+#ifdef _WIN32
 
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/mersenne_twister.hpp>
@@ -11,7 +11,7 @@
 #include <algorithm>
 
 
-#ifdef _WINDOWS
+#ifdef _WIN32
 #undef WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #undef min
@@ -71,7 +71,7 @@ void QR_test(int n, int m, int rep, double times[])
    for(int i=0; i<m; i++)
       f[i] = norm_dist(gen);
 
-#ifdef _WINDOWS
+#ifdef _WIN32
    t = GetTickCount();
 #endif
     
@@ -86,7 +86,7 @@ void QR_test(int n, int m, int rep, double times[])
       //rb[k+1] = f1[k % m];
    }
     
-#ifdef _WINDOWS
+#ifdef _WIN32
     long dt_0 = GetTickCount()-t;
 #endif
 
@@ -99,7 +99,7 @@ void QR_test(int n, int m, int rep, double times[])
    vector<double> qtf(n);
    vector<int> pvt(n);
 
-#ifdef _WINDOWS
+#ifdef _WIN32
    t = GetTickCount();
 #endif
 
@@ -127,7 +127,7 @@ void QR_test(int n, int m, int rep, double times[])
    }
    
     long dt_h;
-#ifdef _WINDOWS
+#ifdef _WIN32
    dt_h = GetTickCount()-t-dt_0;
 #endif
 
@@ -146,7 +146,7 @@ void QR_test(int n, int m, int rep, double times[])
    vector<double> r(n*n);
    double alpha;
 
-#ifdef _WINDOWS
+#ifdef _WIN32
    t = GetTickCount();
 #endif
     
@@ -164,7 +164,7 @@ void QR_test(int n, int m, int rep, double times[])
    }
     long dt_g;
     
-#ifdef _WINDOWS
+#ifdef _WIN32
     dt_g = GetTickCount()-t-dt_0;
 #endif
 
@@ -194,7 +194,7 @@ void QR_test(int n, int m, int rep, double times[])
       vector<double> fjac(dim * dim * n_thread);
       vector<double> fvec(n * n_thread * n_jac_group);
 
-#ifdef _WINDOWS
+#ifdef _WIN32
       t = GetTickCount();
 #endif
 
@@ -212,7 +212,7 @@ void QR_test(int n, int m, int rep, double times[])
       }
 
 
-#ifdef _WINDOWS
+#ifdef _WIN32
       dt_hg[n_thread] = GetTickCount()-t-dt_0;
 #endif
    }

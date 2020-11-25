@@ -810,7 +810,7 @@ void FLIMGlobalFitController::Init()
    
    int a_n_irf = (int) ( ceil(n_irf / 2.0) * 2 );
    int irf_size = a_n_irf * n_chan * n_irf_buf;
-   #ifdef _WINDOWS
+   #ifdef _WIN32
       irf_buf   = (double*) _aligned_malloc(irf_size*sizeof(double), 16);
       t_irf_buf = (double*) _aligned_malloc(a_n_irf*sizeof(double), 16);
    #else
@@ -1024,7 +1024,7 @@ void FLIMGlobalFitController::Init()
       cur_alf      = new double[ n_thread * nl ]; //ok
       cur_irf_idx  = new int[ n_thread ];
 
-      #ifdef _WINDOWS
+      #ifdef _WIN32
          exp_buf   = (double*) _aligned_malloc( n_thread * exp_buf_size * sizeof(double), 16 ); //ok
        #else
          exp_buf   = new double[n_thread * exp_buf_size];
@@ -1409,7 +1409,7 @@ void FLIMGlobalFitController::CleanupResults()
    ClearVariable(r_ss);
    ClearVariable(acceptor);
 
-   #ifdef _WINDOWS
+   #ifdef _WIN32
    
       if (exp_buf != NULL)
       {

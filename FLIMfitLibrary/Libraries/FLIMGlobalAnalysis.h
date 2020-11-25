@@ -35,7 +35,7 @@
 #include "FlagDefinitions.h"
 #include <stdint.h>
 
-#ifdef _WINDOWS
+#ifdef _WIN32
 #define FITDLL_API __declspec(dllexport)
 #else
 #define FITDLL_API 

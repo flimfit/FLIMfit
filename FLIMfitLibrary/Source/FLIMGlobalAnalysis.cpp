@@ -38,7 +38,7 @@
 FLIMGlobalFitController* controller[MAX_CONTROLLER_IDX];
 int id_registered[MAX_CONTROLLER_IDX];
 
-#ifdef _WINDOWS
+#ifdef _WIN32
 
 #ifdef _DEBUG
 #define _CRTDBG_MAP_ALLOC
