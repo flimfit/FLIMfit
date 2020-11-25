@@ -17,8 +17,8 @@ if %MSVC_VER%==15 (set GENERATOR="Visual Studio %MSVC_VER% Win64"
 
 
 
-SET FEED_URL=https://pkgs.dev.azure.com/FLIMfit/FLIMfit/_packaging/vcpkg/nuget/v3/index.json
-if NOT DEFINED VCPKG_BINARY_SOURCES SET VCPKG_BINARY_SOURCES=nuget,%FEED_URL%,read
+:: SET FEED_URL=https://pkgs.dev.azure.com/FLIMfit/FLIMfit/_packaging/vcpkg/nuget/v3/index.json
+:: if NOT DEFINED VCPKG_BINARY_SOURCES SET VCPKG_BINARY_SOURCES=nuget,%FEED_URL%,read
 
 :: Build main library
 echo Cleaning CMake Project
