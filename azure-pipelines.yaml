@@ -27,7 +27,7 @@ jobs:
   pool:
     name: Default
     demands: 
-    - Matlab -equals 2019b
+    - Matlab -equals $(MATLAB_VER)
     - Agent.OS -equals Darwin
 
   steps:
@@ -69,7 +69,7 @@ jobs:
   pool:
     name: Default
     demands: 
-    - Matlab -equals 2019b
+    - Matlab -equals $(MATLAB_VER)
     - Agent.OS -equals Windows_NT
 
   steps:
