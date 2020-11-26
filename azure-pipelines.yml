@@ -10,7 +10,7 @@ pr:
 - master
 
 variables:
-  MATLAB_VER: R2020b
+  MATLAB_VER: R2019b
 
 jobs:
 
