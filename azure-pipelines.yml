@@ -49,14 +49,6 @@ jobs:
       artifactName: 'FLIMfit-$(buildPlatform)'
       targetPath: '$(Build.ArtifactStagingDirectory)/build/FLIMfit $(version) Setup x64.exe'
 
-  - task: AzureFileCopy@3
-    inputs:
-      SourcePath: '$(Build.ArtifactStagingDirectory)/build/FLIMfit $(version) Setup x64.exe'
-      azureSubscription: 'Pay-As-You-Go(a38da80c-0896-448b-9c6b-271c458ac013)'
-      Destination: 'AzureBlob'
-      storage: 'flimfit'
-      ContainerName: 'builds'
-      
 
 - job: osx
   timeoutInMinutes: 360
