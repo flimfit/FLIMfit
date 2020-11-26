@@ -1,0 +1,33 @@
+{
+    "name": "flimfit",
+    "version-string": "5.1.1",
+    "homepage": "https://flimfit.org/",
+    "dependencies": [
+      "boost-accumulators",
+      "boost-align",
+      "boost-bind",
+      "boost-filesystem",
+      "boost-function",
+      "boost-interprocess",
+      "boost-iostreams",
+      "boost-math",
+      "boost-property-tree",
+      "boost-random",
+      "boost-serialization",
+      "dlib",
+      "fftw3",
+      "libics",
+      "qt5-serialport",
+      {
+        "name": "opencv",
+        "default-features": false,
+        "features": ["tiff", "dnn"]
+      },
+      {
+        "name": "opencv4",
+        "default-features": false,
+        "features": ["tiff", "dnn"]
+      }
+    ]
+  }
+  

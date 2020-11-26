@@ -10,7 +10,6 @@ pr:
 - master
 
 variables:
-#  VCPKG_ROOT: '$(Build.SourcesDirectory)/env/vcpkg'
   MATLAB_VER: R2019b
 
 jobs:
@@ -45,24 +44,6 @@ jobs:
   - script: brew install ninja ghostscript platypus coreutils llvm libomp
     displayName: 'Setup environment'
 
-#  - task: DownloadBuildArtifacts@0
-#    inputs:
-#      project: 'FLIMfit'
-#      buildType: 'specific'
-#      pipeline: 'FLIMfit vcpkg'
-#      specificBuildWithTriggering: true
-#      buildVersionToDownload: 'latestFromBranch'
-#      allowPartiallySucceededBuilds: true
-#      branchName: 'refs/heads/master'
-#      artifactName: 'flimfit-env-$(buildPlatform)'
-#      downloadPath: '$(System.ArtifactsDirectory)' 
-
-#  - task: ExtractFiles@1
-#    inputs:
-#      archiveFilePatterns: '$(System.ArtifactsDirectory)/**/*.zip' 
-#      destinationFolder: '$(Build.SourcesDirectory)/env'
-#      cleanDestinationFolder: true
-
   - script: | 
       echo $PATH
       './BuildFLIMfit.sh'
@@ -95,24 +76,6 @@ jobs:
   - checkout: self 
     clean: true
     submodules: recursive
-
-#  - task: DownloadBuildArtifacts@0
-#    inputs:
-#      buildType: 'specific'
-#      project: 'FLIMfit'
-#      pipeline: 'FLIMfit vcpkg'
-#      specificBuildWithTriggering: true
-#      buildVersionToDownload: 'latestFromBranch'
-#      allowPartiallySucceededBuilds: true
-#      branchName: 'refs/heads/master'
-#      artifactName: 'flimfit-env-$(buildPlatform)'
-#      downloadPath: '$(System.ArtifactsDirectory)' 
-
-#  - task: ExtractFiles@1
-#    inputs:
-#      archiveFilePatterns: '$(System.ArtifactsDirectory)/**/*.zip' 
-#      destinationFolder: '$(Build.SourcesDirectory)/env'
-#      cleanDestinationFolder: true
 
   - script: .\build-mex.bat
     displayName: 'Build FLIMfit mex files'

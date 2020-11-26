@@ -7,3 +7,6 @@
 [submodule "FLIMfitLibrary/bm3d"]
 	path = FLIMfitLibrary/bm3d
 	url = https://github.com/seanwarren/bm3d
+[submodule "vcpkg"]
+	path = vcpkg
+	url = https://github.com/microsoft/vcpkg

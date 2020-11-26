@@ -2,12 +2,12 @@
 
 SETLOCAL
 
-SET VS_VERSION=15
-SET VS_YEAR=2017
+SET VS_VERSION=16
+SET VS_YEAR=2019
 
-SET VSCOMMUNITYCMD="C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\Tools\VsDevCmd.bat"
-SET VSBUILDCMD="C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\Common7\Tools\VsDevCmd.bat"
-SET VSENTERPRISECMD="C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\Tools\VsDevCmd.bat"
+SET VSCOMMUNITYCMD="C:\Program Files (x86)\Microsoft Visual Studio\%VS_YEAR%\Community\Common7\Tools\VsDevCmd.bat"
+SET VSBUILDCMD="C:\Program Files (x86)\Microsoft Visual Studio\%VS_YEAR%\BuildTools\Common7\Tools\VsDevCmd.bat"
+SET VSENTERPRISECMD="C:\Program Files (x86)\Microsoft Visual Studio\%VS_YEAR%\Enterprise\Common7\Tools\VsDevCmd.bat"
 
 :: Set up Visual Studio environment variables
 IF EXIST %VSCOMMUNITYCMD% CALL %VSCOMMUNITYCMD% -arch=amd64 && GOTO :BUILD
@@ -17,11 +17,9 @@ ECHO Error: Visual Studio install not found && EXIT /B 1
 
 :BUILD
 
-::IF NOT DEFINED MATLAB_VER SET MATLAB_VER=R2018b
+IF NOT DEFINED MATLAB_VER SET MATLAB_VER=R2019b
 
 SET TRIPLET=x64-windows-static
-   SET PATH=%PATH%;%VCPKG_ROOT%\installed\%TRIPLET%\bin;%VCPKG_ROOT%\installed\%TRIPLET%\debug\bin
-SET TOOLCHAIN_FILE=%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake
 
 SET PROJECT_DIR=GeneratedProjects\VS%VS_YEAR%
 IF "%1"=="--clean" (
@@ -32,7 +30,6 @@ IF "%1"=="--clean" (
 
 echo Generating CMake Project in: %PROJECT_DIR%
 cmake -G"Visual Studio %VS_VERSION% %VS_YEAR%" -A x64 -H. -B%PROJECT_DIR%^
-   -DCMAKE_TOOLCHAIN_FILE="%TOOLCHAIN_FILE%"^
    -DNO_CUDA=1^
    -DMatlab_ROOT_DIR="%Matlab_ROOT_DIR%"^
    -DVCPKG_TARGET_TRIPLET=%TRIPLET%^
