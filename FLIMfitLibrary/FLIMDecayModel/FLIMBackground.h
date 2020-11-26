@@ -5,7 +5,7 @@
 #include <boost/serialization/base_object.hpp>
 
 #include <vector>
-#include <cv.h>
+#include <opencv2/opencv.hpp>
 
 class FLIMBackground
 {

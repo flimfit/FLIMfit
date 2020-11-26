@@ -30,6 +30,7 @@
 #include "AcquisitionParameters.h"
 
 #include <cassert>
+#include <stdexcept>
 #include <cmath>
 
 AcquisitionParameters::AcquisitionParameters(int data_type, double t_rep, int n_chan , double counts_per_photon) :

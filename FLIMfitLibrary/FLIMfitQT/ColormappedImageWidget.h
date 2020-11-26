@@ -15,7 +15,7 @@
 #include <limits>
 #include <cmath>
 #include <iostream>
-#include <cv.h>
+#include <opencv2/opencv.hpp>
 
 enum Colormap { Gray, Jet };
 

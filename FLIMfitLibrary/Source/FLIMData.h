@@ -33,7 +33,6 @@
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
 #include <stdint.h>
-#include <boost/bind.hpp>
 #include <boost/function.hpp>
 #include "tinythread.h"
 #include "FitStatus.h"

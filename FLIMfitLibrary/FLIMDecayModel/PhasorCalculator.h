@@ -4,7 +4,7 @@
 
 #include "FLIMImage.h"
 #include <vector>
-#include <cv.h>
+#include <opencv2/opencv.hpp>
 #include <cstdint>
 #include <map>
 #include <memory>

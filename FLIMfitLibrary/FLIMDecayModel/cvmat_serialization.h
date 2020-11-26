@@ -2,7 +2,7 @@
 
 // from: https://cheind.wordpress.com/2011/12/06/serialization-of-cvmat-objects-using-boost/
 
-#include <cv.h>
+#include <opencv2/opencv.hpp>
 #include <boost/serialization/split_free.hpp>
 #include <boost/serialization/vector.hpp>
 

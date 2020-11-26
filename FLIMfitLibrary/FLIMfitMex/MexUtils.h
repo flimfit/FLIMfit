@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 #include <memory>
-#include <cv.h>
+#include <opencv2/opencv.hpp>
 
 /*
    Input validation

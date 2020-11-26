@@ -6,7 +6,7 @@
 #include <cstdint>
 #include <typeindex> 
 #include <string>
-#include <cv.h>
+#include <opencv2/opencv.hpp>
 #include <string>
 #include <fstream>
 #include <future>
