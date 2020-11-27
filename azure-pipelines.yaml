@@ -80,16 +80,6 @@ jobs:
   - powershell: |
       $tag_version = $(git describe --abbrev=8)
       Write-Host '##vso[task.setvariable variable=version;isOutput=true]$tag_version'
-    displayName: 'Version'
-
-  - task: UniversalPackages@0
-    displayName: 'Publish package'
-    inputs:
-      command: publish 
-      publishDirectory: '$(Build.ArtifactStagingDirectory)/build'
-      vstsFeedPublish: 'FLIMfit/FLIMfit'
-      vstsFeedPackagePublish: 'FLIMfit-$(version)'
-      packagePublishDescription: 'FLIMfit Installer'
 
   - script: .\build-mex.bat
     displayName: 'Build FLIMfit mex files'
@@ -100,5 +90,13 @@ jobs:
   - task: CopyFiles@2
     inputs:
       contents: '$(Build.SourcesDirectory)/FLIMfitStandalone/Installer/*.exe'
-      targetFolder: '$(Build.ArtifactStagingDirectory)/build'
+      targetFolder: '$(Build.ArtifactStagingDirectory)/$(version)'
 
+  - task: CopyToGoogleStorage@14
+    inputs:
+      bucketname: 'flimfit-downloads'
+      foldername: '$(Build.ArtifactStagingDirectory)/$(version)'
+      projectid: 'flimfit-storage'
+      clientemail: $(gcs-email)
+      privatekey: $(gcs-key)
+      destinationDirectory: 'latest'
