@@ -77,10 +77,10 @@ jobs:
     clean: true
     submodules: recursive
 
-  powershell: |
-    $tag_version = $(git describe --abbrev=8)
-    Write-Host '##vso[task.setvariable variable=version;isOutput=true]$tag_version'
-
+  - powershell: |
+      $tag_version = $(git describe --abbrev=8)
+      Write-Host '##vso[task.setvariable variable=version;isOutput=true]$tag_version'
+    displayName: 'Version'
 
   - script: .\build-mex.bat
     displayName: 'Build FLIMfit mex files'
@@ -101,5 +101,5 @@ jobs:
       vstsFeedPublish: 'FLIMfit/FLIMfit'
       vstsFeedPackagePublish: 'FLIMfit'
       versionOption: custom
-      versionPublish: '$(version)'
+      versionPublish: '$(Version.version)'
       packagePublishDescription: 'FLIMfit Installer'
