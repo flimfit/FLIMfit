@@ -77,10 +77,9 @@ jobs:
     clean: true
     submodules: recursive
 
-  powershell: |
-    $tag_version = $(git describe --abbrev=8)
-    Write-Host '##vso[task.setvariable variable=version;isOutput=true]$tag_version'
-
+  - powershell: |
+      $tag_version = $(git describe --abbrev=8)
+      Write-Host '##vso[task.setvariable variable=version;isOutput=true]$tag_version'
 
   - script: .\build-mex.bat
     displayName: 'Build FLIMfit mex files'
