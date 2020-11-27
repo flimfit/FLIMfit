@@ -95,6 +95,7 @@ jobs:
   - task: CopyToGoogleStorage@14
     inputs:
       foldername: '$(Build.ArtifactStagingDirectory)/$(version)'
+      bucketname: 'flimfit-downloads'
       projectid: 'flimfit-storage'
       clientemail: $(gcs-email)
       privatekey: "$(gcs-key)"
