@@ -81,6 +81,12 @@ jobs:
       $tag_version = $(git describe --abbrev=8)
       Write-Host '##vso[task.setvariable variable=version;isOutput=true]$tag_version'
 
+  - task: PythonScript@0
+    inputs:
+      scriptSource: filePath
+      scriptPath: 'gcs_upload.py'
+      arguments: 'README.md README.md'
+  
   - script: .\build-mex.bat
     displayName: 'Build FLIMfit mex files'
 
@@ -92,11 +98,8 @@ jobs:
       contents: '$(Build.SourcesDirectory)/FLIMfitStandalone/Installer/*.exe'
       targetFolder: '$(Build.ArtifactStagingDirectory)/$(version)'
 
-  - task: CopyToGoogleStorage@14
+  - task: PythonScript@0
     inputs:
-      foldername: '$(Build.ArtifactStagingDirectory)'
-      bucketname: 'flimfit-downloads'
-      projectid: 'flimfit-storage'
-      clientemail: $(gcs-email)
-      privatekey: "$(gcs-key)"
-      destinationDirectory: 'latest'
+      scriptSource: filePath
+      scriptPath: 'gcs_upload.py'
+      arguments: 'FLIMfitStandalone/Installer/FLIMfit {version} Setup x64.exe latest/FLIMfit {version} Setup x64.exe'
