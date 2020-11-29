@@ -18,7 +18,8 @@ bucket = "flimfit-downloads"
 source_file = sys.argv[1]
 destination = sys.argv[2]
 
-# Format destination
+# Format arguments
+source_file = source_file.format(version=version)
 destination = destination.format(version=version)
 
 # Upload file
