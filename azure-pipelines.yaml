@@ -97,12 +97,12 @@ jobs:
     inputs:
       scriptSource: filePath
       scriptPath: 'gcs_upload.py'
-      arguments: 'FLIMfitStandalone/Installer/FLIMfit {version} Setup x64.exe latest/{version}/FLIMfit {version} Setup x64.exe'
+      arguments: '"FLIMfitStandalone/Installer/FLIMfit {version} Setup x64.exe" "latest/{version}/FLIMfit {version} Setup x64.exe"'
 
   - task: PythonScript@0
     displayName: Upload Libraries
     inputs:
       scriptSource: filePath
       scriptPath: 'gcs_upload.py'
-      arguments: 'FLIMfitFrontEnd/flimfit_libraries_pcwin64_{version}.zip latest/{version}/flimfit_libraries_pcwin64_{version}.zip'
+      arguments: '"FLIMfitFrontEnd/flimfit_libraries_pcwin64_{version}.zip" "latest/{version}/flimfit_libraries_pcwin64_{version}.zip"'
   
