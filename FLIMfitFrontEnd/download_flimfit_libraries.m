@@ -26,7 +26,7 @@ function download_flimfit_libraries(prompt_user)
     
     platform = lower(computer());
 
-    url = ['https://storage.googleapis.com/flimfit-downloads/latest/' ver '/libraries/flimfit_libraries_' platform '_' ver '.zip'];
+    url = ['https://storage.googleapis.com/flimfit-downloads/latest/' ver '/flimfit_libraries_' platform '_' ver '.zip'];
     file = 'libraries.zip';
 
     websave(file,url);
