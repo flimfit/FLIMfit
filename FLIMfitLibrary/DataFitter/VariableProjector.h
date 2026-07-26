@@ -31,7 +31,7 @@ protected:
 
    int n, nmax, ndim, nl, l, la,  p, philp1, nr;
    
-   std::vector<double> work, aw, bw, u, r;
+   aligned_vector<double> work, aw, bw, u, r;
    std::vector<float> yr;
 
    spvd a, b, wp;

@@ -131,7 +131,7 @@ protected:
 
    float photons_per_count;
    std::vector<std::vector<double>> channel_factor;
-   std::vector<double> adjust_buf;
+   aligned_vector<double> adjust_buf;
 
    bool use_spectral_correction = false;
    int zernike_order = 1;
