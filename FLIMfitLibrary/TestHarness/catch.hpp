@@ -8750,7 +8750,11 @@ namespace Catch {
 
    // 32kb for the alternate stack seems to be sufficient. However, this value
    // is experimentally determined, so that's not guaranteed.
-   constexpr static std::size_t sigStackSize = 32768 >= MINSIGSTKSZ ? 32768 : MINSIGSTKSZ;
+   // NB: since glibc 2.34 MINSIGSTKSZ expands to sysconf(_SC_MINSIGSTKSZ) and is
+   // therefore no longer a constant expression, so it cannot be used to size a
+   // static array. 32kb comfortably exceeds MINSIGSTKSZ on all supported
+   // platforms; if it ever did not, sigaltstack() simply fails with ENOMEM.
+   constexpr static std::size_t sigStackSize = 32768;
 
    static SignalDefs signalDefs[] = {
        { SIGINT,  "SIGINT - Terminal interrupt signal" },
